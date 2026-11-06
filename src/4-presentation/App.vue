@@ -159,6 +159,7 @@ function onExportConfig() {
       <TopNavHeader
         :app-name="settingsStore.settings.value.appName"
         :active-view="nav.activeView.value"
+        :accent-color="settingsStore.settings.value.accentColor"
         :show-logo="settingsStore.settings.value.showLogo"
         :show-nav-tabs="settingsStore.settings.value.showNavTabs"
         @select-view="nav.setView"
@@ -184,7 +185,12 @@ function onExportConfig() {
 
       <DynamicGreeting v-if="settingsStore.settings.value.showGreeting" />
       <WebSearchBar v-if="settingsStore.settings.value.showSearch" v-model="nav.searchQuery.value" :search-engine="settingsStore.settings.value.searchEngine" :open-in-new-tab="settingsStore.settings.value.openInNewTab" />
-      <SortModeBar v-if="settingsStore.settings.value.showSortBar" v-model="nav.sortMode.value" :grid-cols="settingsStore.settings.value.gridCols" />
+      <SortModeBar
+        v-if="settingsStore.settings.value.showSortBar"
+        v-model="nav.sortMode.value"
+        :accent-color="settingsStore.settings.value.accentColor"
+        :grid-cols="settingsStore.settings.value.gridCols"
+      />
       <TileGridContainer
         v-if="settingsStore.settings.value.showTileGrid"
         :tiles="visibleTiles"

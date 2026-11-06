@@ -67,9 +67,9 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
 <template>
   <div class="relative z-10 mx-auto w-full max-w-xl px-4 pt-2 pb-5">
     <div
-      class="group relative flex items-center rounded-full border border-white/10 bg-white/[0.05] px-5 py-2.5 shadow-xl shadow-black/25 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-within:scale-[1.01] focus-within:border-emerald-400/50 focus-within:bg-white/[0.09] focus-within:ring-2 focus-within:ring-emerald-400/20"
+      class="group relative flex items-center rounded-full border border-white/10 bg-white/[0.05] px-5 py-2.5 shadow-xl shadow-black/25 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] focus-within:scale-[1.01] focus-within:border-[var(--accent)]/50 focus-within:bg-white/[0.09] focus-within:ring-2 focus-within:ring-[var(--accent)]/20"
     >
-      <Search class="mr-3 h-4 w-4 text-white/40 transition-colors group-focus-within:text-emerald-400" />
+      <Search class="mr-3 h-4 w-4 text-white/40 transition-colors group-focus-within:text-[var(--accent)]" />
       <input
         ref="inputRef"
         type="text"

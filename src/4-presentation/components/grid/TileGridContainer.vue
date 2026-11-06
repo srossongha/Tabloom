@@ -62,38 +62,43 @@ function handleDrop(fromIdx: number, toIdx: number) {
       class="absolute top-0 left-6 right-6 h-0.5 overflow-hidden rounded-full bg-white/5 transition-opacity duration-300"
       :class="[props.isLoading ? 'opacity-100' : 'opacity-0']"
     >
-      <div class="h-full w-1/3 animate-pulse bg-emerald-400 rounded-full" />
+      <div class="h-full w-1/3 animate-pulse rounded-full" :style="{ backgroundColor: 'var(--accent, #10b981)' }" />
     </div>
 
-    <!-- Empty state without layout jumping -->
-    <div
-      v-if="!props.isLoading && props.tiles.length === 0 && (props.activeView !== 'bookmarks' || !props.showAddCard)"
-      class="flex h-64 flex-col items-center justify-center text-center text-white/40"
-    >
-      <p class="text-sm">No shortcuts or history items in this view</p>
-    </div>
+    <!-- View Switcher Transition with fluid curved mask cross-fade -->
+    <Transition name="grid-mask-swap" mode="out-in">
+      <div :key="props.activeView" class="w-full">
+        <!-- Empty state without layout jumping -->
+        <div
+          v-if="!props.isLoading && props.tiles.length === 0 && (props.activeView !== 'bookmarks' || !props.showAddCard)"
+          class="flex h-64 flex-col items-center justify-center text-center text-white/40"
+        >
+          <p class="text-sm">No shortcuts or history items in this view</p>
+        </div>
 
-    <!-- Main Tile Grid with stable dimensions -->
-    <div v-else class="grid pt-2" :style="gridStyle">
-      <TileItemCard
-        v-for="(tile, idx) in props.tiles"
-        :key="tile.id"
-        :tile="tile"
-        :index="idx"
-        :active-view="props.activeView"
-        :show-labels="props.showLabels"
-        @click="emit('clickTile', $event)"
-        @edit="emit('editTile', $event)"
-        @delete="emit('deleteTile', $event)"
-        @close-tab="emit('closeTab', $event)"
-        @drop="handleDrop"
-      />
+        <!-- Main Tile Grid with stable dimensions -->
+        <div v-else class="grid pt-2" :style="gridStyle">
+          <TileItemCard
+            v-for="(tile, idx) in props.tiles"
+            :key="tile.id"
+            :tile="tile"
+            :index="idx"
+            :active-view="props.activeView"
+            :show-labels="props.showLabels"
+            @click="emit('clickTile', $event)"
+            @edit="emit('editTile', $event)"
+            @delete="emit('deleteTile', $event)"
+            @close-tab="emit('closeTab', $event)"
+            @drop="handleDrop"
+          />
 
-      <AddNewTileCard
-        v-if="props.activeView === 'bookmarks' && props.showAddCard"
-        :show-labels="props.showLabels"
-        @add="emit('openAddModal')"
-      />
-    </div>
+          <AddNewTileCard
+            v-if="props.activeView === 'bookmarks' && props.showAddCard"
+            :show-labels="props.showLabels"
+            @add="emit('openAddModal')"
+          />
+        </div>
+      </div>
+    </Transition>
   </main>
 </template>

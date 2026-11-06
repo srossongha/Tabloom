@@ -14,6 +14,7 @@ import {
   Moon,
   Sun,
   Sparkles,
+  Bookmark,
 } from 'lucide-vue-next'
 import type {
   AppSettings,
@@ -24,6 +25,7 @@ import {
   mediaStorageService,
   type MediaMetadata,
 } from '../../../3-infrastructure/storage/mediaStorageService'
+import { isColorBright } from '../../../2-application/services/colorUtils'
 
 interface Props {
   settings: AppSettings
@@ -55,6 +57,18 @@ const LIGHT_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = 
   { id: 'sakura-day', label: 'Sakura Day', color: '#fff1f2' },
   { id: 'nordic-light', label: 'Nordic Light', color: '#f0f9ff' },
   { id: 'cream-latte', label: 'Cream Latte', color: '#fef3c7' },
+]
+
+const ACCENT_SWATCHES: Array<{ label: string; color: string }> = [
+  { label: 'Emerald Green', color: '#10b981' },
+  { label: 'Electric Blue', color: '#3b82f6' },
+  { label: 'Sky Cyan', color: '#06b6d4' },
+  { label: 'Cosmic Purple', color: '#8b5cf6' },
+  { label: 'Sakura Pink', color: '#ec4899' },
+  { label: 'Neon Coral', color: '#f43f5e' },
+  { label: 'Sunset Amber', color: '#f59e0b' },
+  { label: 'Crisp Indigo', color: '#6366f1' },
+  { label: 'Pure White', color: '#ffffff' },
 ]
 
 const localWallpaperInfo = ref<MediaMetadata | null>(null)
@@ -257,14 +271,82 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Custom Colors -->
+    <!-- Active Accent Color (Navigation Tabs & Highlights) -->
+    <div class="space-y-3 border-t border-white/10 pt-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="block font-medium text-white/80">Active Accent Color</span>
+          <span class="text-[11px] text-white/45">Navigation tab indicator, active buttons & glows</span>
+        </div>
+        <!-- Live mini preview of active tab with chosen accent -->
+        <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-sm">
+          <div
+            class="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium shadow-sm transition-all duration-300"
+            :style="{
+              backgroundColor: props.settings.accentColor,
+              color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+            }"
+          >
+            <Bookmark class="h-3 w-3" />
+            <span>Active</span>
+          </div>
+          <span class="px-1 text-[10px] text-white/40">Tab</span>
+        </div>
+      </div>
+
+      <!-- Quick 1-click Accent Swatches -->
+      <div class="grid grid-cols-5 gap-1.5 sm:grid-cols-9">
+        <button
+          v-for="swatch in ACCENT_SWATCHES"
+          :key="swatch.color"
+          type="button"
+          :title="swatch.label"
+          class="group relative flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-115 active:scale-95 cursor-pointer"
+          :class="[
+            props.settings.accentColor.toLowerCase() === swatch.color.toLowerCase()
+              ? 'border-white scale-110 shadow-md ring-2 ring-white/40'
+              : 'border-white/10 hover:border-white/30',
+          ]"
+          :style="{ backgroundColor: swatch.color }"
+          @click="emit('update', { accentColor: swatch.color })"
+        >
+          <Check
+            v-if="props.settings.accentColor.toLowerCase() === swatch.color.toLowerCase()"
+            class="h-3.5 w-3.5"
+            :class="isColorBright(swatch.color) ? 'text-slate-900' : 'text-white'"
+          />
+        </button>
+      </div>
+
+      <!-- Custom Color Picker row with Hex display -->
+      <label
+        class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
+      >
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-white/70">Custom Accent Hex</span>
+          <span class="font-mono text-xs font-semibold text-white/90 uppercase">{{ props.settings.accentColor }}</span>
+        </div>
+        <input
+          type="color"
+          :value="props.settings.accentColor"
+          class="h-6 w-8 cursor-pointer rounded border-0 bg-transparent transition-transform hover:scale-110"
+          @input="
+            emit('update', {
+              accentColor: ($event.target as HTMLInputElement).value,
+            })
+          "
+        />
+      </label>
+    </div>
+
+    <!-- Background & Label Colors -->
     <div class="space-y-2 border-t border-white/10 pt-3">
-      <span class="block font-medium text-white/70">Custom Colors</span>
-      <div class="grid grid-cols-2 gap-2">
+      <span class="block font-medium text-white/70">Background & Text Colors</span>
+      <div class="grid grid-cols-3 gap-2">
         <label
           class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
-          <span>Gradient Start</span>
+          <span class="text-xs">Grad Start</span>
           <input
             type="color"
             :value="props.settings.bgStart"
@@ -279,7 +361,7 @@ onMounted(() => {
         <label
           class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
-          <span>Gradient End</span>
+          <span class="text-xs">Grad End</span>
           <input
             type="color"
             :value="props.settings.bgEnd"
@@ -294,22 +376,7 @@ onMounted(() => {
         <label
           class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
-          <span>Active Accent</span>
-          <input
-            type="color"
-            :value="props.settings.accentColor"
-            class="h-5 w-6 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
-            @input="
-              emit('update', {
-                accentColor: ($event.target as HTMLInputElement).value,
-              })
-            "
-          />
-        </label>
-        <label
-          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
-        >
-          <span>Label Text</span>
+          <span class="text-xs">Label Text</span>
           <input
             type="color"
             :value="props.settings.textColor"

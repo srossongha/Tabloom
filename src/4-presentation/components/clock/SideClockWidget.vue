@@ -89,7 +89,7 @@ const yearProgress = computed(() => {
           class="text-4xl font-light text-white tracking-tighter xl:text-5xl"
         >
           {{ hoursFormatted
-          }}<span class="animate-pulse text-emerald-400 font-normal">:</span
+          }}<span class="animate-pulse text-[var(--accent)] font-normal">:</span
           >{{ minutesFormatted }}
         </span>
         <span
@@ -120,7 +120,7 @@ const yearProgress = computed(() => {
     <div v-if="props.showYearProgress" class="mt-3.5 border-t border-white/[0.06] pt-2.5 select-none">
       <div class="flex items-center justify-between text-[11px] text-white/40">
         <span>Day {{ dayOfYear }} of {{ totalDaysInYear }}</span>
-        <span class="font-mono text-emerald-400 font-medium"
+        <span class="font-mono text-[var(--accent)] font-medium"
           >{{ yearProgress }}%</span
         >
       </div>
@@ -128,8 +128,8 @@ const yearProgress = computed(() => {
         class="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-white/[0.08]"
       >
         <div
-          class="h-full rounded-full bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-500 transition-all duration-500"
-          :style="{ width: `${yearProgress}%` }"
+          class="h-full rounded-full transition-all duration-500"
+          :style="{ width: `${yearProgress}%`, backgroundColor: 'var(--accent, #10b981)' }"
         />
       </div>
     </div>
