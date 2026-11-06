@@ -3,7 +3,7 @@
   Provides file upload triggers for Netscape bookmarks HTML parsing and hidden URL restoration.
 -->
 <script setup lang="ts">
-import { RotateCcw, Upload } from 'lucide-vue-next'
+import { RotateCcw, Upload, Bookmark } from 'lucide-vue-next'
 import type { AppSettings } from '../../../1-domain/entities/AppSettings'
 import type { BookmarkFolder } from '../../../1-domain/entities/BrowserItem'
 import { parseBookmarksHtml } from '../../../3-infrastructure/importer/browserDataImporter'
@@ -17,6 +17,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   (e: 'update', partial: Partial<AppSettings>): void
   (e: 'importedBookmarks'): void
+  (e: 'reimportBookmarks'): void
   (e: 'clearHidden'): void
 }>()
 
@@ -103,6 +104,18 @@ function onHtmlFile(e: Event) {
     </label>
 
     <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+      <button
+        type="button"
+        class="flex items-center justify-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 py-2 font-medium text-emerald-300 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-emerald-500/20 hover:-translate-y-0.5 hover:scale-[1.01] active:scale-95 cursor-pointer"
+        @click="emit('reimportBookmarks')"
+      >
+        <Bookmark class="h-3.5 w-3.5" /> Re-sync from Browser Bookmarks
+      </button>
+
+      <p class="text-[10.5px] text-white/50 leading-relaxed px-1">
+        Your browser bookmarks were collected on first launch. Customizing or deleting shortcuts on Tabloom never modifies or deletes your actual browser bookmarks.
+      </p>
+
       <label class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/10 py-2 font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/20 hover:-translate-y-0.5 hover:scale-[1.01] active:scale-95">
         <Upload class="h-3.5 w-3.5 text-emerald-400" /> Import Bookmarks HTML
         <input type="file" accept=".html,.htm" class="hidden" @change="onHtmlFile" />

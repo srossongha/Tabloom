@@ -97,7 +97,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             {{ props.tile ? 'Edit Shortcut' : 'Add Shortcut' }}
           </h3>
           <button
-            class="rounded-lg p-1 text-white/60 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 hover:text-white active:scale-90"
+            type="button"
+            class="rounded-lg p-1 text-white/60 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 hover:text-white active:scale-90 cursor-pointer"
             @click="emit('close')"
           >
             <X class="h-4 w-4" />

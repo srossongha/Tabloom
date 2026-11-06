@@ -214,6 +214,7 @@ function onExportConfig() {
       @import-config="settingsStore.importConfigJson"
       @reset-defaults="settingsStore.resetDefaults"
       @imported-bookmarks="tilesStore.refresh(nav.activeView.value, settingsStore.settings.value, true)"
+      @reimport-bookmarks="tilesStore.importFromBrowserBookmarks()"
       @clear-hidden="settingsStore.clearHiddenUrls(); tilesStore.refresh(nav.activeView.value, settingsStore.settings.value, true)"
     />
   </div>

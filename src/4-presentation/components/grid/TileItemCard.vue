@@ -63,27 +63,33 @@ function onDrop(event: DragEvent) {
       @click="emit('click', props.tile)"
     >
       <!-- Discreet Top-Right Quick Actions -->
-      <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100" @click.stop>
+      <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100" @click.stop @pointerdown.stop>
         <button
           v-if="props.activeView === 'openTabs' && props.tile.tabId"
+          type="button"
           aria-label="Close tab"
-          class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500 hover:text-white"
-          @click="emit('closeTab', props.tile.tabId!)"
+          class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500 hover:text-white cursor-pointer"
+          @click.stop.prevent="emit('closeTab', props.tile.tabId!)"
+          @pointerdown.stop
         >
           <X class="h-3 w-3" />
         </button>
         <template v-else>
           <button
+            type="button"
             aria-label="Edit tile"
-            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-white/20 hover:text-white"
-            @click="emit('edit', props.tile)"
+            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-white/20 hover:text-white cursor-pointer"
+            @click.stop.prevent="emit('edit', props.tile)"
+            @pointerdown.stop
           >
             <Pencil class="h-3 w-3" />
           </button>
           <button
+            type="button"
             aria-label="Delete tile"
-            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500/80 hover:text-white"
-            @click="emit('delete', props.tile)"
+            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500/80 hover:text-white cursor-pointer"
+            @click.stop.prevent="emit('delete', props.tile)"
+            @pointerdown.stop
           >
             <Trash2 class="h-3 w-3" />
           </button>

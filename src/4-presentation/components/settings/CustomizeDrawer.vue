@@ -30,6 +30,7 @@ const emit = defineEmits<{
   (e: 'importConfig', text: string): void
   (e: 'resetDefaults'): void
   (e: 'importedBookmarks'): void
+  (e: 'reimportBookmarks'): void
   (e: 'clearHidden'): void
 }>()
 
@@ -200,6 +201,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               :folders="props.folders"
               @update="emit('updateSettings', $event)"
               @imported-bookmarks="emit('importedBookmarks')"
+              @reimport-bookmarks="emit('reimportBookmarks')"
               @clear-hidden="emit('clearHidden')"
             />
           </Transition>
