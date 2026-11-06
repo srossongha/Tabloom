@@ -34,6 +34,14 @@ const emit = defineEmits<{
   (e: 'openAddModal'): void
 }>()
 
+const containerMaxWidth = computed(() => {
+  if (props.gridCols <= 3) return 'max-w-3xl'
+  if (props.gridCols === 4) return 'max-w-4xl'
+  if (props.gridCols === 5) return 'max-w-5xl'
+  if (props.gridCols === 6) return 'max-w-6xl'
+  return 'max-w-7xl'
+})
+
 const gridStyle = computed(() => ({
   gridTemplateColumns: `repeat(${props.gridCols}, minmax(0, 1fr))`,
   gap: 'var(--tile-gap, 20px)',
@@ -45,7 +53,10 @@ function handleDrop(fromIdx: number, toIdx: number) {
 </script>
 
 <template>
-  <main class="relative z-10 mx-auto w-full max-w-6xl min-h-[440px] px-6 pb-20">
+  <main
+    class="relative z-10 mx-auto w-full min-h-[440px] px-6 pb-20 transition-all duration-300"
+    :class="containerMaxWidth"
+  >
     <!-- Non-shifting subtle top loading bar -->
     <div
       class="absolute top-0 left-6 right-6 h-0.5 overflow-hidden rounded-full bg-white/5 transition-opacity duration-300"

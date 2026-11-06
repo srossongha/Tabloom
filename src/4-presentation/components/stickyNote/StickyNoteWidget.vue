@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { StickyNote, Trash2, Check, Sparkles } from 'lucide-vue-next'
+import { FileText, Trash2, Check } from 'lucide-vue-next'
 
 type NoteColor = 'amber' | 'emerald' | 'rose' | 'purple' | 'glass'
 
@@ -12,42 +12,52 @@ const selectedColor = ref<NoteColor>('amber')
 const saveStatus = ref<'saved' | 'saving' | 'idle'>('idle')
 const isConfirmingClear = ref(false)
 let debounceTimeout: number | undefined
+let resetStatusTimeout: number | undefined
 
-const COLOR_THEMES: Record<NoteColor, {
-  card: string
-  textarea: string
-  dot: string
-  accent: string
-}> = {
+const COLOR_THEMES: Record<
+  NoteColor,
+  {
+    card: string
+    textarea: string
+    dot: string
+    accent: string
+    name: string
+  }
+> = {
   amber: {
-    card: 'border-amber-400/25 bg-amber-500/[0.10] shadow-amber-950/20',
-    textarea: 'text-amber-100 placeholder-amber-200/30 selection:bg-amber-400/30',
+    card: 'border-amber-400/20 bg-amber-500/[0.05] hover:border-amber-400/35 hover:bg-amber-500/[0.08]',
+    textarea: 'text-amber-100/90 placeholder-amber-200/25 selection:bg-amber-400/30',
     dot: 'bg-amber-400',
-    accent: 'text-amber-300',
+    accent: 'text-amber-300/80',
+    name: 'Warm Sepia',
   },
   emerald: {
-    card: 'border-emerald-400/25 bg-emerald-500/[0.10] shadow-emerald-950/20',
-    textarea: 'text-emerald-100 placeholder-emerald-200/30 selection:bg-emerald-400/30',
+    card: 'border-emerald-400/20 bg-emerald-500/[0.05] hover:border-emerald-400/35 hover:bg-emerald-500/[0.08]',
+    textarea: 'text-emerald-100/90 placeholder-emerald-200/25 selection:bg-emerald-400/30',
     dot: 'bg-emerald-400',
-    accent: 'text-emerald-300',
+    accent: 'text-emerald-300/80',
+    name: 'Sage Emerald',
   },
   rose: {
-    card: 'border-rose-400/25 bg-rose-500/[0.10] shadow-rose-950/20',
-    textarea: 'text-rose-100 placeholder-rose-200/30 selection:bg-rose-400/30',
+    card: 'border-rose-400/20 bg-rose-500/[0.05] hover:border-rose-400/35 hover:bg-rose-500/[0.08]',
+    textarea: 'text-rose-100/90 placeholder-rose-200/25 selection:bg-rose-400/30',
     dot: 'bg-rose-400',
-    accent: 'text-rose-300',
+    accent: 'text-rose-300/80',
+    name: 'Blush Rose',
   },
   purple: {
-    card: 'border-purple-400/25 bg-purple-500/[0.10] shadow-purple-950/20',
-    textarea: 'text-purple-100 placeholder-purple-200/30 selection:bg-purple-400/30',
+    card: 'border-purple-400/20 bg-purple-500/[0.05] hover:border-purple-400/35 hover:bg-purple-500/[0.08]',
+    textarea: 'text-purple-100/90 placeholder-purple-200/25 selection:bg-purple-400/30',
     dot: 'bg-purple-400',
-    accent: 'text-purple-300',
+    accent: 'text-purple-300/80',
+    name: 'Lavender Mist',
   },
   glass: {
-    card: 'border-white/10 bg-white/[0.06] shadow-black/20',
-    textarea: 'text-white placeholder-white/30 selection:bg-white/20',
+    card: 'border-white/[0.08] bg-white/[0.04] hover:border-white/15 hover:bg-white/[0.07]',
+    textarea: 'text-white/90 placeholder-white/25 selection:bg-white/20',
     dot: 'bg-white/70',
-    accent: 'text-white/80',
+    accent: 'text-white/60',
+    name: 'Frosted Glass',
   },
 }
 
@@ -90,21 +100,26 @@ function saveNote() {
 
   if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
     try {
-      chrome.storage.sync.set({
-        [NOTE_STORAGE_KEY]: text,
-        [COLOR_STORAGE_KEY]: color,
-      }, () => {
-        saveStatus.value = 'saved'
-        setTimeout(() => {
-          if (saveStatus.value === 'saved') saveStatus.value = 'idle'
-        }, 1500)
-      })
+      chrome.storage.sync.set(
+        {
+          [NOTE_STORAGE_KEY]: text,
+          [COLOR_STORAGE_KEY]: color,
+        },
+        () => {
+          saveStatus.value = 'saved'
+          if (resetStatusTimeout) clearTimeout(resetStatusTimeout)
+          resetStatusTimeout = window.setTimeout(() => {
+            if (saveStatus.value === 'saved') saveStatus.value = 'idle'
+          }, 1500)
+        }
+      )
       return
     } catch {}
   }
 
   saveStatus.value = 'saved'
-  setTimeout(() => {
+  if (resetStatusTimeout) clearTimeout(resetStatusTimeout)
+  resetStatusTimeout = window.setTimeout(() => {
     if (saveStatus.value === 'saved') saveStatus.value = 'idle'
   }, 1500)
 }
@@ -143,7 +158,10 @@ onMounted(() => {
         if (changes[NOTE_STORAGE_KEY] && typeof changes[NOTE_STORAGE_KEY].newValue === 'string') {
           noteText.value = changes[NOTE_STORAGE_KEY].newValue
         }
-        if (changes[COLOR_STORAGE_KEY] && COLOR_THEMES[changes[COLOR_STORAGE_KEY].newValue as NoteColor]) {
+        if (
+          changes[COLOR_STORAGE_KEY] &&
+          COLOR_THEMES[changes[COLOR_STORAGE_KEY].newValue as NoteColor]
+        ) {
           selectedColor.value = changes[COLOR_STORAGE_KEY].newValue as NoteColor
         }
       }
@@ -153,50 +171,52 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (debounceTimeout) clearTimeout(debounceTimeout)
+  if (resetStatusTimeout) clearTimeout(resetStatusTimeout)
 })
 </script>
 
 <template>
   <div
-    class="gpu-card group relative flex flex-col rounded-2xl border p-4 shadow-xl backdrop-blur-xl transition-all duration-300"
+    class="gpu-card group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300"
     :class="currentTheme.card"
   >
     <!-- Note Header -->
-    <div class="flex items-center justify-between pb-2">
+    <div class="flex items-center justify-between pb-2 select-none">
       <div class="flex items-center gap-1.5">
-        <StickyNote class="h-3.5 w-3.5" :class="currentTheme.accent" />
-        <span class="text-xs font-semibold tracking-wide" :class="currentTheme.accent">
-          Sticky Note
+        <FileText class="h-3.5 w-3.5 transition-colors" :class="currentTheme.accent" />
+        <span class="text-[11px] font-medium tracking-wider uppercase text-white/50">
+          Notes
         </span>
       </div>
 
-      <!-- Action items: Color dots & Clear button -->
+      <!-- Action items: Color dots & Clear button (revealed smoothly on hover) -->
       <div class="flex items-center gap-1.5">
-        <!-- Status indicator -->
+        <!-- Minimal status dot indicator -->
         <span
           v-if="saveStatus === 'saved'"
-          class="flex items-center gap-0.5 text-[10px] text-emerald-400 transition-opacity"
+          class="flex items-center text-emerald-400 transition-opacity duration-300"
+          title="Synced"
         >
           <Check class="h-3 w-3" />
         </span>
         <span
           v-else-if="saveStatus === 'saving'"
-          class="text-[10px] text-white/40 animate-pulse"
-        >
-          saving...
-        </span>
+          class="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"
+          title="Saving..."
+        />
 
         <!-- Color pickers -->
-        <div class="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+        <div class="flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <button
             v-for="(theme, key) in COLOR_THEMES"
             :key="key"
             type="button"
-            :aria-label="`Color ${key}`"
-            class="h-2.5 w-2.5 rounded-full transition-transform hover:scale-125"
+            :title="theme.name"
+            :aria-label="theme.name"
+            class="h-2.5 w-2.5 rounded-full transition-all hover:scale-125"
             :class="[
               theme.dot,
-              selectedColor === key ? 'ring-1 ring-white/80 scale-110' : 'opacity-60 hover:opacity-100',
+              selectedColor === key ? 'ring-1 ring-white/90 scale-110' : 'opacity-50 hover:opacity-100',
             ]"
             @click="changeColor(key)"
           />
@@ -207,8 +227,8 @@ onUnmounted(() => {
           v-if="noteText.length > 0"
           type="button"
           :title="isConfirmingClear ? 'Click again to confirm clear' : 'Clear note'"
-          class="rounded p-1 text-white/40 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
-          :class="{ 'text-rose-400 bg-rose-500/20': isConfirmingClear }"
+          class="rounded p-1 text-white/40 opacity-0 transition-all duration-200 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300"
+          :class="{ 'opacity-100 text-rose-400 bg-rose-500/20': isConfirmingClear }"
           @click="clearNote"
         >
           <Trash2 class="h-3 w-3" />
@@ -220,19 +240,24 @@ onUnmounted(() => {
     <textarea
       v-model="noteText"
       maxlength="5000"
-      placeholder="Jot down quick thoughts, tasks, or reminders..."
-      rows="6"
-      class="w-full resize-none bg-transparent text-xs leading-relaxed outline-none transition-colors scrollbar-thin"
+      placeholder="Write a quick thought, task, or reminder..."
+      rows="5"
+      class="w-full resize-none bg-transparent text-xs leading-relaxed outline-none transition-colors scrollbar-none font-normal"
       :class="currentTheme.textarea"
       @input="onInput"
     />
 
-    <!-- Footer: Character count / Hint -->
-    <div class="flex items-center justify-between pt-1.5 text-[10px] text-white/30">
-      <span v-if="isConfirmingClear" class="text-rose-400 font-medium">Click trash again to clear</span>
-      <span v-else class="flex items-center gap-1">
-        <Sparkles class="h-2.5 w-2.5 text-white/20" /> Auto-syncs
-      </span>
+    <!-- Quiet Footer: Only show confirmation when clearing, or faint char count on hover -->
+    <div
+      v-if="isConfirmingClear"
+      class="pt-1.5 text-center text-[11px] font-medium text-rose-400 animate-pulse select-none"
+    >
+      Click trash again to confirm clear
+    </div>
+    <div
+      v-else-if="noteText.length > 0"
+      class="flex justify-end pt-1 text-[10px] text-white/20 opacity-0 transition-opacity duration-200 group-hover:opacity-100 select-none"
+    >
       <span>{{ noteText.length }} / 5000</span>
     </div>
   </div>
@@ -240,7 +265,9 @@ onUnmounted(() => {
 
 <style scoped>
 textarea {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-width: none;
+}
+textarea::-webkit-scrollbar {
+  display: none;
 }
 </style>

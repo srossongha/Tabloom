@@ -115,7 +115,7 @@ function onExportConfig() {
       <!-- Left side panel: Clock & Sticky Note (stays on the place you drew) -->
       <aside
         v-if="settingsStore.settings.value.showSideClock || settingsStore.settings.value.showStickyNote"
-        class="pointer-events-auto fixed top-24 left-6 z-20 hidden w-56 flex-col gap-3.5 select-none min-[1350px]:flex xl:w-60 2xl:left-10 2xl:w-64"
+        class="pointer-events-auto fixed top-24 left-5 z-20 hidden w-52 flex-col gap-3 select-none min-[1200px]:flex xl:left-8 xl:w-56 2xl:left-10 2xl:w-60"
         aria-label="Side Widgets"
       >
         <SideClockWidget
@@ -130,7 +130,7 @@ function onExportConfig() {
 
       <DynamicGreeting />
       <WebSearchBar v-if="settingsStore.settings.value.showSearch" v-model="nav.searchQuery.value" :search-engine="settingsStore.settings.value.searchEngine" :open-in-new-tab="settingsStore.settings.value.openInNewTab" />
-      <SortModeBar v-if="settingsStore.settings.value.showSortBar" v-model="nav.sortMode.value" />
+      <SortModeBar v-if="settingsStore.settings.value.showSortBar" v-model="nav.sortMode.value" :grid-cols="settingsStore.settings.value.gridCols" />
       <TileGridContainer
         :tiles="visibleTiles"
         :active-view="nav.activeView.value"

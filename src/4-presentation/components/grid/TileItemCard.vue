@@ -55,7 +55,7 @@ function onDrop(event: DragEvent) {
   >
     <!-- Card Container with hardware-accelerated zero-jank hover -->
     <div
-      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.08] p-4 shadow-md shadow-black/20 transition-all duration-200 ease-out hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.14] hover:shadow-xl hover:shadow-purple-950/30"
+      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.05] p-4 shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-200 ease-out hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/30"
       :style="{
         height: 'var(--card-height, 120px)',
         backgroundColor: props.tile.tintColor ? props.tile.tintColor : undefined,
@@ -67,7 +67,7 @@ function onDrop(event: DragEvent) {
         <button
           v-if="props.activeView === 'openTabs' && props.tile.tabId"
           aria-label="Close tab"
-          class="rounded-full bg-black/50 p-1 text-white/70 hover:bg-rose-500 hover:text-white"
+          class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500 hover:text-white"
           @click="emit('closeTab', props.tile.tabId!)"
         >
           <X class="h-3 w-3" />
@@ -75,14 +75,14 @@ function onDrop(event: DragEvent) {
         <template v-else>
           <button
             aria-label="Edit tile"
-            class="rounded-full bg-black/50 p-1 text-white/70 hover:bg-white/20 hover:text-white"
+            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-white/20 hover:text-white"
             @click="emit('edit', props.tile)"
           >
             <Pencil class="h-3 w-3" />
           </button>
           <button
             aria-label="Delete tile"
-            class="rounded-full bg-black/50 p-1 text-white/70 hover:bg-rose-500/80 hover:text-white"
+            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500/80 hover:text-white"
             @click="emit('delete', props.tile)"
           >
             <Trash2 class="h-3 w-3" />
@@ -96,7 +96,7 @@ function onDrop(event: DragEvent) {
       </div>
 
       <!-- Centered 48x48 Favicon Icon Badge -->
-      <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white/10 shadow-inner">
+      <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner">
         <img
           v-if="!imgError && props.tile.iconMode !== 'monogram'"
           :src="faviconUrl"
@@ -117,7 +117,7 @@ function onDrop(event: DragEvent) {
 
     <!-- Fixed Height Stable Label Container to Prevent Layout Shifts -->
     <div v-if="props.showLabels" class="flex h-5 w-full items-center justify-center px-1">
-      <span class="w-full truncate text-center text-xs font-medium text-white/80 transition-colors group-hover:text-white" :title="props.tile.title">
+      <span class="w-full truncate text-center text-xs font-medium text-white/75 transition-colors group-hover:text-white" :title="props.tile.title">
         {{ props.tile.title }}
       </span>
     </div>
