@@ -12,6 +12,7 @@ import { useTilesStore } from '../2-application/useCases/useTilesStore'
 import { useNavigationViews } from '../2-application/useCases/useNavigationViews'
 import { filterTiles, sortTiles } from '../2-application/services/tileEngine'
 import CosmicCanvas from './components/background/CosmicCanvas.vue'
+import BackgroundMedia from './components/background/BackgroundMedia.vue'
 import TopNavHeader from './components/header/TopNavHeader.vue'
 import SideClockWidget from './components/clock/SideClockWidget.vue'
 import StickyNoteWidget from './components/stickyNote/StickyNoteWidget.vue'
@@ -98,14 +99,17 @@ function onExportConfig() {
       :style="{ transform: `scaleX(${scrollProgress})` }"
     />
 
-    <div
-      v-if="settingsStore.settings.value.customWallpaper"
-      class="pointer-events-none fixed inset-0 z-0 bg-cover bg-center transition-all duration-300"
-      :style="{
-        backgroundImage: `url(${settingsStore.settings.value.customWallpaper})`,
-        filter: `blur(${settingsStore.settings.value.wallpaperBlur}px)`,
-        opacity: 1 - settingsStore.settings.value.wallpaperDim / 100,
-      }"
+    <BackgroundMedia
+      :wallpaper="settingsStore.settings.value.customWallpaper"
+      :wallpaper-type="settingsStore.settings.value.wallpaperType"
+      :wallpaper-blur="settingsStore.settings.value.wallpaperBlur"
+      :wallpaper-dim="settingsStore.settings.value.wallpaperDim"
+      :audio-url="settingsStore.settings.value.backgroundAudio"
+      :audio-name="settingsStore.settings.value.backgroundAudioName"
+      :audio-volume="settingsStore.settings.value.backgroundAudioVolume"
+      :audio-autoplay="settingsStore.settings.value.backgroundAudioAutoplay"
+      :audio-loop="settingsStore.settings.value.backgroundAudioLoop"
+      @update-volume="settingsStore.updateSettings({ backgroundAudioVolume: $event })"
     />
     <CosmicCanvas :mode="settingsStore.settings.value.particleMode" :density="settingsStore.settings.value.particleDensity" />
 

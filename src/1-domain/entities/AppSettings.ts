@@ -35,6 +35,9 @@ export const DataSourceModeSchema = z.enum([
 ])
 export type DataSourceMode = z.infer<typeof DataSourceModeSchema>
 
+export const WallpaperTypeSchema = z.enum(['image', 'video', 'auto']).default('auto')
+export type WallpaperType = z.infer<typeof WallpaperTypeSchema>
+
 export const AppSettingsSchema = z.object({
   appName: z.string().default('Tabloom'),
   themePreset: ThemePresetSchema.default('cosmic-purple'),
@@ -44,8 +47,14 @@ export const AppSettingsSchema = z.object({
   accentColor: z.string().default('#10b981'),
   textColor: z.string().default('#ffffff'),
   customWallpaper: z.string().default(''),
+  wallpaperType: WallpaperTypeSchema,
   wallpaperBlur: z.number().min(0).max(24).default(0),
   wallpaperDim: z.number().min(0).max(90).default(30),
+  backgroundAudio: z.string().default(''),
+  backgroundAudioName: z.string().default(''),
+  backgroundAudioVolume: z.number().min(0).max(100).default(50),
+  backgroundAudioAutoplay: z.boolean().default(false),
+  backgroundAudioLoop: z.boolean().default(true),
   gridCols: z.number().min(3).max(10).default(6),
   tileRadius: z.number().min(0).max(32).default(16),
   tileGap: z.number().min(8).max(36).default(20),

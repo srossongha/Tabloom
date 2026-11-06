@@ -1,10 +1,25 @@
 <!--
-  SettingsThemeSection component offering theme preset selection, custom color pickers, and wallpapers.
-  Provides controls for live wallpaper upload, background blur, and dark overlay intensity.
+  SettingsThemeSection component offering theme preset selection, custom color pickers,
+  high-performance local wallpaper uploads (GIF, MP4, images) and ambient audio tracks (MP3/WAV/OGG).
+  Supports local IndexedDB storage for zero-lag performance or account-synced URLs.
 -->
 <script setup lang="ts">
-import { Upload, Trash2 } from 'lucide-vue-next'
-import type { AppSettings, ThemePreset } from '../../../1-domain/entities/AppSettings'
+import { ref, onMounted } from 'vue'
+import {
+  Upload,
+  Trash2,
+  Music,
+  Check,
+  HardDrive,
+} from 'lucide-vue-next'
+import type {
+  AppSettings,
+  ThemePreset,
+} from '../../../1-domain/entities/AppSettings'
+import {
+  mediaStorageService,
+  type MediaMetadata,
+} from '../../../3-infrastructure/storage/mediaStorageService'
 
 interface Props {
   settings: AppSettings
@@ -25,17 +40,126 @@ const PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
   { id: 'frosted-minimal', label: 'Frosted Slate', color: '#1e293b' },
 ]
 
-function onWallpaperUpload(e: Event) {
+const localWallpaperInfo = ref<MediaMetadata | null>(null)
+const localAudioInfo = ref<MediaMetadata | null>(null)
+const uploadMessage = ref('')
+
+async function refreshMediaInfo() {
+  localWallpaperInfo.value = await mediaStorageService.getMediaInfo('wallpaper')
+  localAudioInfo.value = await mediaStorageService.getMediaInfo('audio')
+}
+
+function formatBytes(bytes?: number): string {
+  if (!bytes) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+async function onWallpaperUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => emit('update', { customWallpaper: reader.result as string })
-  reader.readAsDataURL(file)
+
+  try {
+    // If user dropped or selected an audio file in the wallpaper slot (e.g. mp3)
+    if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+      await mediaStorageService.saveMedia('audio', file, file.name)
+      await refreshMediaInfo()
+      emit('update', {
+        backgroundAudio: 'local:audio',
+        backgroundAudioName: file.name,
+        backgroundAudioAutoplay: true,
+      })
+      window.dispatchEvent(
+        new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'audio' } })
+      )
+      uploadMessage.value = `Audio "${file.name}" saved locally!`
+      setTimeout(() => {
+        uploadMessage.value = ''
+      }, 3000)
+      return
+    }
+
+    const isVideo =
+      file.type.startsWith('video/') || file.name.match(/\.(mp4|webm)$/i)
+    await mediaStorageService.saveMedia('wallpaper', file, file.name)
+    await refreshMediaInfo()
+
+    emit('update', {
+      customWallpaper: 'local:wallpaper',
+      wallpaperType: isVideo ? 'video' : 'image',
+    })
+    window.dispatchEvent(
+      new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'wallpaper' } })
+    )
+    uploadMessage.value = `${isVideo ? 'Video' : 'Wallpaper'} "${file.name}" saved locally!`
+    setTimeout(() => {
+      uploadMessage.value = ''
+    }, 3000)
+  } finally {
+    ;(e.target as HTMLInputElement).value = ''
+  }
 }
+
+async function removeWallpaper() {
+  await mediaStorageService.removeMedia('wallpaper')
+  localWallpaperInfo.value = null
+  emit('update', { customWallpaper: '' })
+  window.dispatchEvent(
+    new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'wallpaper' } })
+  )
+}
+
+async function onAudioUpload(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  try {
+    await mediaStorageService.saveMedia('audio', file, file.name)
+    await refreshMediaInfo()
+    emit('update', {
+      backgroundAudio: 'local:audio',
+      backgroundAudioName: file.name,
+      backgroundAudioAutoplay: true,
+    })
+    window.dispatchEvent(
+      new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'audio' } })
+    )
+    uploadMessage.value = `Audio "${file.name}" saved locally!`
+    setTimeout(() => {
+      uploadMessage.value = ''
+    }, 3000)
+  } finally {
+    ;(e.target as HTMLInputElement).value = ''
+  }
+}
+
+async function removeAudio() {
+  await mediaStorageService.removeMedia('audio')
+  localAudioInfo.value = null
+  emit('update', { backgroundAudio: '', backgroundAudioName: '' })
+  window.dispatchEvent(
+    new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'audio' } })
+  )
+}
+
+onMounted(() => {
+  refreshMediaInfo()
+})
 </script>
 
 <template>
   <div class="space-y-4 text-xs text-white/80">
+    <!-- Success Toast Notification -->
+    <div
+      v-if="uploadMessage"
+      class="flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-emerald-300 transition-all animate-pulse"
+    >
+      <Check class="h-3.5 w-3.5" />
+      <span>{{ uploadMessage }}</span>
+    </div>
+
+    <!-- Theme Presets -->
     <div>
       <span class="block font-medium text-white/70 mb-1.5">Theme Presets</span>
       <div class="grid grid-cols-2 gap-2">
@@ -51,53 +175,151 @@ function onWallpaperUpload(e: Event) {
           ]"
           @click="emit('applyPreset', p.id)"
         >
-          <span class="h-3.5 w-3.5 rounded-full border border-white/20" :style="{ backgroundColor: p.color }" />
+          <span
+            class="h-3.5 w-3.5 rounded-full border border-white/20"
+            :style="{ backgroundColor: p.color }"
+          />
           <span>{{ p.label }}</span>
         </button>
       </div>
     </div>
 
+    <!-- Custom Colors -->
     <div class="space-y-2 border-t border-white/10 pt-3">
       <span class="block font-medium text-white/70">Custom Colors</span>
       <div class="grid grid-cols-2 gap-2">
-        <label class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2">
+        <label
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+        >
           <span>Gradient Start</span>
-          <input type="color" :value="props.settings.bgStart" class="h-5 w-6 cursor-pointer border-0 bg-transparent" @input="emit('update', { bgStart: ($event.target as HTMLInputElement).value })" />
+          <input
+            type="color"
+            :value="props.settings.bgStart"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            @input="
+              emit('update', {
+                bgStart: ($event.target as HTMLInputElement).value,
+              })
+            "
+          />
         </label>
-        <label class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2">
+        <label
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+        >
           <span>Gradient End</span>
-          <input type="color" :value="props.settings.bgEnd" class="h-5 w-6 cursor-pointer border-0 bg-transparent" @input="emit('update', { bgEnd: ($event.target as HTMLInputElement).value })" />
+          <input
+            type="color"
+            :value="props.settings.bgEnd"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            @input="
+              emit('update', {
+                bgEnd: ($event.target as HTMLInputElement).value,
+              })
+            "
+          />
         </label>
-        <label class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2">
+        <label
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+        >
           <span>Active Accent</span>
-          <input type="color" :value="props.settings.accentColor" class="h-5 w-6 cursor-pointer border-0 bg-transparent" @input="emit('update', { accentColor: ($event.target as HTMLInputElement).value })" />
+          <input
+            type="color"
+            :value="props.settings.accentColor"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            @input="
+              emit('update', {
+                accentColor: ($event.target as HTMLInputElement).value,
+              })
+            "
+          />
         </label>
-        <label class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2">
+        <label
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+        >
           <span>Label Text</span>
-          <input type="color" :value="props.settings.textColor" class="h-5 w-6 cursor-pointer border-0 bg-transparent" @input="emit('update', { textColor: ($event.target as HTMLInputElement).value })" />
+          <input
+            type="color"
+            :value="props.settings.textColor"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            @input="
+              emit('update', {
+                textColor: ($event.target as HTMLInputElement).value,
+              })
+            "
+          />
         </label>
       </div>
     </div>
 
+    <!-- Custom Wallpaper (Image, GIF, MP4) -->
     <div class="space-y-3 border-t border-white/10 pt-3">
-      <span class="block font-medium text-white/70">Custom Wallpaper</span>
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-white/70">Custom Wallpaper</span>
+        <span class="text-[10px] text-white/40">GIF, Image, MP4</span>
+      </div>
+
+      <!-- Active Local Wallpaper Badge -->
+      <div
+        v-if="props.settings.customWallpaper === 'local:wallpaper' && localWallpaperInfo"
+        class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-3 py-2 text-xs"
+      >
+        <div class="flex items-center gap-2 truncate">
+          <HardDrive class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <div class="truncate">
+            <span class="font-medium text-white/90 truncate block">
+              {{ localWallpaperInfo.name }}
+            </span>
+            <span class="text-[10px] text-emerald-300/80">
+              Local DB • {{ formatBytes(localWallpaperInfo.size) }} (Fast 0-lag load)
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="rounded p-1 text-white/40 hover:bg-rose-500/20 hover:text-rose-300"
+          title="Remove local wallpaper"
+          @click="removeWallpaper"
+        >
+          <Trash2 class="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <!-- Wallpaper URL / File Picker -->
       <div class="flex items-center gap-2">
         <input
           type="text"
-          placeholder="Paste image URL..."
-          :value="props.settings.customWallpaper"
-          class="flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 outline-none placeholder-white/30"
-          @input="emit('update', { customWallpaper: ($event.target as HTMLInputElement).value })"
+          placeholder="Paste Image, GIF, or Video URL (syncs to account)..."
+          :value="
+            props.settings.customWallpaper === 'local:wallpaper'
+              ? ''
+              : props.settings.customWallpaper
+          "
+          class="flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 outline-none placeholder-white/30 text-xs"
+          @input="
+            emit('update', {
+              customWallpaper: ($event.target as HTMLInputElement).value,
+            })
+          "
         />
-        <label class="flex cursor-pointer items-center rounded-lg border border-white/15 bg-white/10 p-2 hover:bg-white/20">
+        <label
+          class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2.5 py-1.5 hover:bg-white/20 transition-colors"
+          title="Upload GIF, MP4, or Image (stored locally)"
+        >
           <Upload class="h-3.5 w-3.5 text-white" />
-          <input type="file" accept="image/*" class="hidden" @change="onWallpaperUpload" />
+          <span class="text-[11px] font-medium text-white hidden sm:inline">Upload</span>
+          <input
+            type="file"
+            accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm,.mp3,.wav,.ogg,.m4a"
+            class="hidden"
+            @change="onWallpaperUpload"
+          />
         </label>
         <button
-          v-if="props.settings.customWallpaper"
+          v-if="props.settings.customWallpaper && props.settings.customWallpaper !== 'local:wallpaper'"
           type="button"
           class="rounded-lg border border-white/10 bg-rose-500/20 p-2 text-rose-300 hover:bg-rose-500/40"
-          @click="emit('update', { customWallpaper: '' })"
+          title="Clear wallpaper URL"
+          @click="removeWallpaper"
         >
           <Trash2 class="h-3.5 w-3.5" />
         </button>
@@ -105,12 +327,172 @@ function onWallpaperUpload(e: Event) {
 
       <div class="grid grid-cols-2 gap-3 pt-1">
         <div>
-          <div class="flex justify-between"><span>Blur</span><span>{{ props.settings.wallpaperBlur }}px</span></div>
-          <input type="range" min="0" max="24" :value="props.settings.wallpaperBlur" class="mt-1 w-full accent-emerald-500" @input="emit('update', { wallpaperBlur: Number(($event.target as HTMLInputElement).value) })" />
+          <div class="flex justify-between">
+            <span>Blur</span>
+            <span>{{ props.settings.wallpaperBlur }}px</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="24"
+            :value="props.settings.wallpaperBlur"
+            class="mt-1 w-full accent-emerald-500"
+            @input="
+              emit('update', {
+                wallpaperBlur: Number(($event.target as HTMLInputElement).value),
+              })
+            "
+          />
         </div>
         <div>
-          <div class="flex justify-between"><span>Dim</span><span>{{ props.settings.wallpaperDim }}%</span></div>
-          <input type="range" min="0" max="90" :value="props.settings.wallpaperDim" class="mt-1 w-full accent-emerald-500" @input="emit('update', { wallpaperDim: Number(($event.target as HTMLInputElement).value) })" />
+          <div class="flex justify-between">
+            <span>Dim</span>
+            <span>{{ props.settings.wallpaperDim }}%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="90"
+            :value="props.settings.wallpaperDim"
+            class="mt-1 w-full accent-emerald-500"
+            @input="
+              emit('update', {
+                wallpaperDim: Number(($event.target as HTMLInputElement).value),
+              })
+            "
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Music & Ambient Sound (MP3, WAV, OGG) -->
+    <div class="space-y-3 border-t border-white/10 pt-3">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-white/70">Background Music / Audio</span>
+        <span class="text-[10px] text-white/40">MP3, WAV, OGG</span>
+      </div>
+
+      <!-- Active Local Audio Badge -->
+      <div
+        v-if="props.settings.backgroundAudio === 'local:audio' && localAudioInfo"
+        class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-3 py-2 text-xs"
+      >
+        <div class="flex items-center gap-2 truncate">
+          <Music class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <div class="truncate">
+            <span class="font-medium text-white/90 truncate block">
+              {{ localAudioInfo.name }}
+            </span>
+            <span class="text-[10px] text-emerald-300/80">
+              Local DB • {{ formatBytes(localAudioInfo.size) }} (Stutter-free playback)
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="rounded p-1 text-white/40 hover:bg-rose-500/20 hover:text-rose-300"
+          title="Remove audio track"
+          @click="removeAudio"
+        >
+          <Trash2 class="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <!-- Audio URL / File Picker -->
+      <div class="flex items-center gap-2">
+        <input
+          type="text"
+          placeholder="Paste Audio MP3 URL (syncs to account)..."
+          :value="
+            props.settings.backgroundAudio === 'local:audio'
+              ? ''
+              : props.settings.backgroundAudio
+          "
+          class="flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 outline-none placeholder-white/30 text-xs"
+          @input="
+            emit('update', {
+              backgroundAudio: ($event.target as HTMLInputElement).value,
+              backgroundAudioName: ($event.target as HTMLInputElement).value
+                ? 'Web Audio Track'
+                : '',
+            })
+          "
+        />
+        <label
+          class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/15 bg-white/10 px-2.5 py-1.5 hover:bg-white/20 transition-colors"
+          title="Upload MP3, WAV, or OGG file (stored locally)"
+        >
+          <Upload class="h-3.5 w-3.5 text-white" />
+          <span class="text-[11px] font-medium text-white hidden sm:inline">Upload</span>
+          <input
+            type="file"
+            accept="audio/*,.mp3,.wav,.ogg,.m4a"
+            class="hidden"
+            @change="onAudioUpload"
+          />
+        </label>
+        <button
+          v-if="props.settings.backgroundAudio && props.settings.backgroundAudio !== 'local:audio'"
+          type="button"
+          class="rounded-lg border border-white/10 bg-rose-500/20 p-2 text-rose-300 hover:bg-rose-500/40"
+          title="Clear audio URL"
+          @click="removeAudio"
+        >
+          <Trash2 class="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <!-- Audio Options (Autoplay, Loop, Volume) -->
+      <div v-if="props.settings.backgroundAudio" class="space-y-2.5 pt-1">
+        <div class="flex items-center justify-between">
+          <span>Autoplay on new tab</span>
+          <input
+            type="checkbox"
+            :checked="props.settings.backgroundAudioAutoplay"
+            class="h-4 w-4 cursor-pointer rounded accent-emerald-500"
+            @change="
+              emit('update', {
+                backgroundAudioAutoplay: (
+                  $event.target as HTMLInputElement
+                ).checked,
+              })
+            "
+          />
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Loop audio track</span>
+          <input
+            type="checkbox"
+            :checked="props.settings.backgroundAudioLoop"
+            class="h-4 w-4 cursor-pointer rounded accent-emerald-500"
+            @change="
+              emit('update', {
+                backgroundAudioLoop: (
+                  $event.target as HTMLInputElement
+                ).checked,
+              })
+            "
+          />
+        </div>
+        <div>
+          <div class="flex justify-between">
+            <span>Audio Volume</span>
+            <span>{{ props.settings.backgroundAudioVolume }}%</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            :value="props.settings.backgroundAudioVolume"
+            class="mt-1 w-full accent-emerald-500"
+            @input="
+              emit('update', {
+                backgroundAudioVolume: Number(
+                  ($event.target as HTMLInputElement).value
+                ),
+              })
+            "
+          />
         </div>
       </div>
     </div>

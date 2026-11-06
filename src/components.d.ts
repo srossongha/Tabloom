@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AddNewTileCard: typeof import('./4-presentation/components/grid/AddNewTileCard.vue')['default']
+    BackgroundMedia: typeof import('./4-presentation/components/background/BackgroundMedia.vue')['default']
     CosmicCanvas: typeof import('./4-presentation/components/background/CosmicCanvas.vue')['default']
     CustomizeDrawer: typeof import('./4-presentation/components/settings/CustomizeDrawer.vue')['default']
     DynamicGreeting: typeof import('./4-presentation/components/greeting/DynamicGreeting.vue')['default']
