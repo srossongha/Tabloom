@@ -24,6 +24,9 @@ function loadInitialSettings(): AppSettings {
       raw = { ...legacy, openInNewTab: false }
     }
   }
+  if (raw && raw.dataSourceMode === 'smart-blend') {
+    raw.dataSourceMode = 'bookmarks-only'
+  }
   const parsed = AppSettingsSchema.safeParse(raw ?? DEFAULT_APP_SETTINGS)
   return parsed.success ? parsed.data : { ...DEFAULT_APP_SETTINGS }
 }
@@ -73,6 +76,10 @@ export function useSettingsStore(storage?: IStoragePort) {
         raw = { ...legacy, openInNewTab: false }
         await storagePort.set(SETTINGS_KEY, raw)
       }
+    }
+    if (raw && raw.dataSourceMode === 'smart-blend') {
+      raw.dataSourceMode = 'bookmarks-only'
+      await storagePort.set(SETTINGS_KEY, raw)
     }
     const parsed = AppSettingsSchema.safeParse(raw ?? settings.value)
     if (parsed.success) {

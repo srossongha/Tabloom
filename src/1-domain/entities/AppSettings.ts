@@ -35,11 +35,11 @@ export const ParticleModeSchema = z.enum(['off', 'cosmic-dust', 'sakura-horizon'
 export type ParticleMode = z.infer<typeof ParticleModeSchema>
 
 export const DataSourceModeSchema = z.enum([
-  'smart-blend',
   'bookmarks-only',
+  'smart-blend',
   'history-only',
   'manual-only',
-])
+]).default('bookmarks-only')
 export type DataSourceMode = z.infer<typeof DataSourceModeSchema>
 
 export const WallpaperTypeSchema = z.enum(['image', 'video', 'auto']).default('auto')
@@ -88,7 +88,7 @@ export const AppSettingsSchema = z.object({
   particleDensity: z.number().min(10).max(100).default(40),
   searchEngine: SearchEngineSchema.default('google'),
   openInNewTab: z.boolean().default(false),
-  dataSourceMode: DataSourceModeSchema.default('smart-blend'),
+  dataSourceMode: DataSourceModeSchema.default('bookmarks-only'),
   bookmarkFolder: z.string().default('all'),
   maxDiscoveredTiles: z.number().min(6).max(60).default(24),
   hiddenUrls: z.array(z.string()).default([]),

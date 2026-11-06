@@ -42,8 +42,8 @@ function onHtmlFile(e: Event) {
         class="mt-1 w-full rounded-lg border border-white/10 bg-[#1f1035] p-2 text-white outline-none cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/25 focus:border-emerald-400"
         @change="emit('update', { dataSourceMode: ($event.target as HTMLSelectElement).value as AppSettings['dataSourceMode'] })"
       >
-        <option value="smart-blend">Smart Blend (Bookmarks + History + Top Sites)</option>
-        <option value="bookmarks-only">Bookmarks Only</option>
+        <option value="bookmarks-only">Bookmarks Only (Clean & Separated)</option>
+        <option value="smart-blend">Smart Blend (Starter Fallback)</option>
         <option value="history-only">Browser History Only</option>
         <option value="manual-only">Manual Custom Tiles Only</option>
       </select>
