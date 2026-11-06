@@ -11,11 +11,14 @@ import { extractHostname } from './tileEngine'
 let cachedBookmarks: Record<string, BrowserItem[]> = {}
 let cachedHistory: BrowserItem[] | null = null
 let cachedTopSites: BrowserItem[] | null = null
+let lastCacheTime = 0
+const CACHE_TTL_MS = 25000 // 25s TTL for fresh data without hammering browser API
 
 export function clearTileCache() {
   cachedBookmarks = {}
   cachedHistory = null
   cachedTopSites = null
+  lastCacheTime = 0
 }
 
 export async function fetchRawTilesForView(
@@ -24,7 +27,11 @@ export async function fetchRawTilesForView(
   browser: IBrowserPort,
   force = false,
 ): Promise<Tile[]> {
-  if (force) clearTileCache()
+  const now = Date.now()
+  if (force || now - lastCacheTime > CACHE_TTL_MS) {
+    clearTileCache()
+    lastCacheTime = now
+  }
 
   if (view === 'bookmarks') {
     const folderKey = settings.bookmarkFolder || 'all'

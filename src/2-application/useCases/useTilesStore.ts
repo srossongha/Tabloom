@@ -227,7 +227,21 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   async function recordClick(tile: Tile) {
     const now = Date.now()
     const prev = telemetry.value[tile.url] || { useCount: 0, lastUsedAt: 0 }
-    telemetry.value = { ...telemetry.value, [tile.url]: { useCount: prev.useCount + 1, lastUsedAt: now } }
+    let updated = { ...telemetry.value, [tile.url]: { useCount: prev.useCount + 1, lastUsedAt: now } }
+
+    // Bound telemetry to max 150 items to keep storage footprint negligible (<8KB)
+    const keys = Object.keys(updated)
+    if (keys.length > 150) {
+      const sortedKeys = keys.sort((a, b) => (updated[b]?.lastUsedAt || 0) - (updated[a]?.lastUsedAt || 0))
+      const pruned: Record<string, { useCount: number; lastUsedAt: number }> = {}
+      for (let i = 0; i < 120; i++) {
+        const k = sortedKeys[i]
+        if (k && updated[k]) pruned[k] = updated[k]!
+      }
+      updated = pruned
+    }
+
+    telemetry.value = updated
     await storagePort.set(TELEMETRY_KEY, telemetry.value)
   }
 

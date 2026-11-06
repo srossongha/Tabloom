@@ -71,9 +71,16 @@ const visibleTiles = computed(() => {
   return sortTiles(filtered, nav.sortMode.value)
 })
 
+let scrollTicking = false
 function onScroll() {
-  const max = document.documentElement.scrollHeight - window.innerHeight
-  scrollProgress.value = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+  if (!scrollTicking) {
+    scrollTicking = true
+    requestAnimationFrame(() => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      scrollProgress.value = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+      scrollTicking = false
+    })
+  }
 }
 
 onMounted(async () => {

@@ -3,7 +3,7 @@
   Supports drag-and-drop, quick action hover controls, tab closing, and click telemetry.
 -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Pencil, Trash2, X, Pin } from 'lucide-vue-next'
 import type { Tile } from '../../../1-domain/entities/Tile'
 import type { NavigationTab } from '../../../1-domain/entities/BrowserItem'
@@ -31,8 +31,8 @@ const emit = defineEmits<{
 }>()
 
 const imgError = ref(false)
-const faviconUrl = resolveFaviconUrl(props.tile.url, props.tile.customIcon, props.tile.iconMode)
-const monogram = generateMonogram(props.tile.title, props.tile.url)
+const faviconUrl = computed(() => resolveFaviconUrl(props.tile.url, props.tile.customIcon, props.tile.iconMode))
+const monogram = computed(() => generateMonogram(props.tile.title, props.tile.url))
 
 function onDragStart(event: DragEvent) {
   event.dataTransfer?.setData('text/plain', String(props.index))
@@ -109,6 +109,7 @@ function onDrop(event: DragEvent) {
           :alt="props.tile.title"
           class="h-7 w-7 rounded-md object-contain"
           loading="lazy"
+          decoding="async"
           @error="imgError = true"
         />
         <div

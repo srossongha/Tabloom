@@ -162,25 +162,31 @@ const displayLine2 = computed(() => {
 
 let timer: number | undefined
 
+function onCustomUserNameChanged(e: Event) {
+  const detail = (e as CustomEvent<string>).detail
+  updateName(detail)
+}
+
+function onStorageEvent(e: StorageEvent) {
+  if (e.key === 'userName') {
+    updateName(e.newValue || undefined)
+  }
+}
+
+function onChromeStorageChanged(changes: { [key: string]: chrome.storage.StorageChange }, area: string) {
+  if (area === 'sync' && changes.userName) {
+    updateName(changes.userName.newValue as string | undefined)
+  }
+}
+
 onMounted(async () => {
   userName.value = await fetchUserName()
 
-  window.addEventListener('tabloom:userNameChanged', ((e: CustomEvent<string>) => {
-    updateName(e.detail)
-  }) as EventListener)
-
-  window.addEventListener('storage', (e: StorageEvent) => {
-    if (e.key === 'userName') {
-      updateName(e.newValue || undefined)
-    }
-  })
+  window.addEventListener('tabloom:userNameChanged', onCustomUserNameChanged)
+  window.addEventListener('storage', onStorageEvent)
 
   if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
-    chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'sync' && changes.userName) {
-        updateName(changes.userName.newValue as string | undefined)
-      }
-    })
+    chrome.storage.onChanged.addListener(onChromeStorageChanged)
   }
 
   timer = window.setInterval(checkBucket, 60000)
@@ -188,6 +194,11 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
+  window.removeEventListener('tabloom:userNameChanged', onCustomUserNameChanged)
+  window.removeEventListener('storage', onStorageEvent)
+  if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+    chrome.storage.onChanged.removeListener(onChromeStorageChanged)
+  }
 })
 </script>
 

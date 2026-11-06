@@ -5,13 +5,28 @@
 import type { Tile } from '../../1-domain/entities/Tile'
 import type { SortMode } from '../../1-domain/entities/BrowserItem'
 
+const hostCache = new Map<string, string>()
+
 export function extractHostname(rawUrl: string): string {
+  if (!rawUrl) return ''
+  const hit = hostCache.get(rawUrl)
+  if (hit !== undefined) return hit
+
+  let host = ''
   try {
     const parsed = new URL(rawUrl)
-    return parsed.hostname.replace(/^www\./, '').toLowerCase()
+    host = parsed.hostname.replace(/^www\./, '').toLowerCase()
   } catch {
-    return rawUrl.toLowerCase()
+    const match = rawUrl.match(/^(?:https?:\/\/)?(?:www\.)?([^/:]+)/i)
+    host = match ? match[1].toLowerCase() : rawUrl.toLowerCase()
   }
+
+  if (hostCache.size >= 300) {
+    const firstKey = hostCache.keys().next().value
+    if (firstKey) hostCache.delete(firstKey)
+  }
+  hostCache.set(rawUrl, host)
+  return host
 }
 
 export function deduplicateTilesByHost(tiles: Tile[]): Tile[] {

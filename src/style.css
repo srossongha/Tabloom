@@ -50,12 +50,13 @@ html, body, #app {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Zero-jank GPU composite layer for cards */
+/* Lightweight GPU composite layer for cards */
 .gpu-card {
   contain: layout style paint;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+}
+.gpu-card:hover {
+  will-change: transform;
 }
 
 .glass-panel {

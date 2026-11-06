@@ -18,14 +18,39 @@ const emit = defineEmits<{
 const now = ref(new Date());
 let timer: number | undefined;
 
-onMounted(() => {
-  timer = window.setInterval(() => {
+function updateClock() {
+  const d = new Date();
+  if (
+    d.getMinutes() !== now.value.getMinutes() ||
+    d.getHours() !== now.value.getHours()
+  ) {
+    now.value = d;
+  }
+}
+
+function handleVisibility() {
+  if (typeof document === "undefined") return;
+  if (document.hidden) {
+    if (timer) {
+      clearInterval(timer);
+      timer = undefined;
+    }
+  } else {
     now.value = new Date();
-  }, 1000);
+    if (!timer) {
+      timer = window.setInterval(updateClock, 5000);
+    }
+  }
+}
+
+onMounted(() => {
+  timer = window.setInterval(updateClock, 5000);
+  document.addEventListener("visibilitychange", handleVisibility, { passive: true });
 });
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
+  document.removeEventListener("visibilitychange", handleVisibility);
 });
 
 const hoursFormatted = computed(() => {

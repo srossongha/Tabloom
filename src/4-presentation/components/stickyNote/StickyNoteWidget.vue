@@ -349,15 +349,26 @@ function onHeaderPointerDown(e: PointerEvent) {
   e.preventDefault()
 }
 
+let dragRaf = 0
+
 function onPointerMove(e: PointerEvent) {
   if (!isDragging.value) return
-  const rawX = e.clientX - dragOffset.value.x
-  const rawY = e.clientY - dragOffset.value.y
-  customPos.value = clampPosition({ x: rawX, y: rawY })
+  if (dragRaf) cancelAnimationFrame(dragRaf)
+  const clientX = e.clientX
+  const clientY = e.clientY
+  dragRaf = requestAnimationFrame(() => {
+    const rawX = clientX - dragOffset.value.x
+    const rawY = clientY - dragOffset.value.y
+    customPos.value = clampPosition({ x: rawX, y: rawY })
+  })
 }
 
 function onPointerUp() {
   if (!isDragging.value) return
+  if (dragRaf) {
+    cancelAnimationFrame(dragRaf)
+    dragRaf = 0
+  }
   isDragging.value = false
   window.removeEventListener('pointermove', onPointerMove)
   window.removeEventListener('pointerup', onPointerUp)
@@ -404,6 +415,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', onWindowResize)
   window.removeEventListener('pointermove', onPointerMove)
   window.removeEventListener('pointerup', onPointerUp)
+  if (dragRaf) cancelAnimationFrame(dragRaf)
   if (debounceTimeout) clearTimeout(debounceTimeout)
   if (resetStatusTimeout) clearTimeout(resetStatusTimeout)
 })

@@ -41,6 +41,7 @@ const emit = defineEmits<{
 }>()
 
 // --- Wallpaper Resolution ---
+const videoRef = ref<HTMLVideoElement | null>(null)
 const resolvedWallpaperUrl = ref('')
 const resolvedWallpaperMime = ref('')
 
@@ -160,17 +161,31 @@ function onAudioEnded() {
   }
 }
 
+function onMediaUpdated(e: Event) {
+  const detail = (e as CustomEvent<{ id: string }>).detail
+  if (detail?.id === 'wallpaper') resolveWallpaper()
+  if (detail?.id === 'audio') resolveAudio()
+}
+
+function handleVisibility() {
+  if (typeof document === 'undefined') return
+  if (document.hidden) {
+    if (videoRef.value && !videoRef.value.paused) {
+      videoRef.value.pause()
+    }
+  } else {
+    if (videoRef.value && videoRef.value.paused && isVideo.value) {
+      videoRef.value.play().catch(() => {})
+    }
+  }
+}
+
 onMounted(() => {
   resolveWallpaper()
   resolveAudio()
 
-  // Listen for media storage updates (e.g. user just uploaded new media)
-  window.addEventListener('tabloom:mediaUpdated', ((
-    e: CustomEvent<{ id: string }>
-  ) => {
-    if (e.detail?.id === 'wallpaper') resolveWallpaper()
-    if (e.detail?.id === 'audio') resolveAudio()
-  }) as EventListener)
+  window.addEventListener('tabloom:mediaUpdated', onMediaUpdated)
+  document.addEventListener('visibilitychange', handleVisibility, { passive: true })
 
   // Autoplay attempt if configured
   if (props.audioAutoplay && resolvedAudioUrl.value) {
@@ -192,6 +207,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('tabloom:mediaUpdated', onMediaUpdated)
+  document.removeEventListener('visibilitychange', handleVisibility)
   if (audioRef.value) {
     audioRef.value.pause()
   }
@@ -199,10 +216,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-    <!-- Video Wallpaper (Looping MP4/WebM) -->
+  <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none">
+    <!-- Video Wallpaper (Looping MP4/WebM) - Paused in background tabs -->
     <video
       v-if="props.showCustomWallpaper && resolvedWallpaperUrl && isVideo"
+      ref="videoRef"
       :src="resolvedWallpaperUrl"
       autoplay
       loop
