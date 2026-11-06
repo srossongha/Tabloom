@@ -99,14 +99,24 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <Transition name="drawer">
-    <div
-      v-if="props.isOpen"
-      class="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-md select-none"
-      @click.self="emit('close')"
-    >
+  <div
+    class="fixed inset-0 z-50 overflow-hidden pointer-events-none select-none"
+    :class="{ 'pointer-events-auto': props.isOpen }"
+  >
+    <!-- Smooth Backdrop Fade -->
+    <Transition name="drawer-backdrop">
+      <div
+        v-if="props.isOpen"
+        class="fixed inset-0 bg-black/60 backdrop-blur-md pointer-events-auto transition-opacity cursor-pointer"
+        @click="emit('close')"
+      />
+    </Transition>
+
+    <!-- Drawer Panel: Slides from Right to Left on Open; Slides from Left to Right on Close -->
+    <Transition name="drawer-slide">
       <aside
-        class="gpu-card absolute inset-y-0 right-0 flex w-full max-w-sm flex-col border-l border-white/10 bg-[#0e0720]/95 shadow-2xl backdrop-blur-2xl"
+        v-if="props.isOpen"
+        class="settings-drawer-panel fixed inset-y-0 right-0 flex w-full max-w-sm sm:max-w-md flex-col border-l border-white/10 bg-[#0e0720]/95 shadow-2xl backdrop-blur-2xl pointer-events-auto"
       >
         <!-- Drawer Header -->
         <div
@@ -119,7 +129,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </div>
           <button
             aria-label="Close settings"
-            class="rounded-lg p-1.5 text-white/50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 hover:bg-white/10 hover:text-white active:scale-90"
+            class="rounded-lg p-1.5 text-white/50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 hover:bg-white/10 hover:text-white active:scale-90 cursor-pointer"
             @click="emit('close')"
           >
             <X class="h-4 w-4" />
@@ -207,6 +217,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </Transition>
         </div>
       </aside>
-    </div>
-  </Transition>
+    </Transition>
+  </div>
 </template>
