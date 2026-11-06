@@ -11,8 +11,15 @@ export const ThemePresetSchema = z.enum([
   'emerald-aurora',
   'cyberpunk-neon',
   'frosted-minimal',
+  'cotton-white',
+  'sakura-day',
+  'nordic-light',
+  'cream-latte',
 ])
 export type ThemePreset = z.infer<typeof ThemePresetSchema>
+
+export const ThemeModeSchema = z.enum(['dark', 'light', 'auto']).default('auto')
+export type ThemeMode = z.infer<typeof ThemeModeSchema>
 
 export const SearchEngineSchema = z.enum([
   'google',
@@ -41,6 +48,7 @@ export type WallpaperType = z.infer<typeof WallpaperTypeSchema>
 export const AppSettingsSchema = z.object({
   appName: z.string().default('Tabloom'),
   themePreset: ThemePresetSchema.default('cosmic-purple'),
+  themeMode: ThemeModeSchema,
   bgStart: z.string().default('#2b1055'),
   bgEnd: z.string().default('#090314'),
   tileBg: z.string().default('rgba(43, 16, 85, 0.45)'),

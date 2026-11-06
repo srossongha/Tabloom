@@ -91,6 +91,7 @@ export function useSettingsStore(storage?: IStoragePort) {
     const p = PRESET_COLORS[preset]
     updateSettings({
       themePreset: preset,
+      themeMode: p.mode,
       bgStart: p.bgStart,
       bgEnd: p.bgEnd,
       tileBg: p.tileBg,

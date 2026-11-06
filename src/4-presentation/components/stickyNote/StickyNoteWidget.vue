@@ -412,7 +412,8 @@ onUnmounted(() => {
 <template>
   <div
     ref="cardRef"
-    class="gpu-card group flex flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-lg shadow-black/20 backdrop-blur-xl transition-[border-color,background-color,box-shadow] duration-300 select-none"
+    class="gpu-card group sticky-note-card flex flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-lg shadow-black/20 backdrop-blur-xl transition-[border-color,background-color,box-shadow] duration-300 select-none"
+    :data-color="activeNote?.color || 'amber'"
     :class="[
       currentTheme.card,
       customPos ? 'fixed z-30 w-56 xl:w-60' : 'relative z-20 w-full',

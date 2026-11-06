@@ -11,6 +11,7 @@ import { useSettingsStore } from '../2-application/useCases/useSettingsStore'
 import { useTilesStore } from '../2-application/useCases/useTilesStore'
 import { useNavigationViews } from '../2-application/useCases/useNavigationViews'
 import { filterTiles, sortTiles } from '../2-application/services/tileEngine'
+import { isColorBright } from '../2-application/services/colorUtils'
 import CosmicCanvas from './components/background/CosmicCanvas.vue'
 import BackgroundMedia from './components/background/BackgroundMedia.vue'
 import TopNavHeader from './components/header/TopNavHeader.vue'
@@ -31,6 +32,39 @@ const isSettingsOpen = ref(false)
 const isModalOpen = ref(false)
 const editingTile = ref<Tile | null>(null)
 const scrollProgress = ref(0)
+
+const isLightMode = computed(() => {
+  const mode = settingsStore.settings.value.themeMode
+  if (mode === 'light') return true
+  if (mode === 'dark') return false
+  // auto-detect brightness from gradient colors or system theme
+  if (
+    isColorBright(settingsStore.settings.value.bgStart) ||
+    isColorBright(settingsStore.settings.value.bgEnd)
+  ) {
+    return true
+  }
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: light)').matches
+  ) {
+    return true
+  }
+  return false
+})
+
+watch(
+  isLightMode,
+  (light) => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('theme-light', light)
+      document.documentElement.classList.toggle('theme-dark', !light)
+      document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark')
+    }
+  },
+  { immediate: true }
+)
 
 const visibleTiles = computed(() => {
   const filtered = filterTiles(tilesStore.tiles.value, nav.searchQuery.value)
@@ -92,7 +126,12 @@ function onExportConfig() {
 </script>
 
 <template>
-  <div class="relative min-h-screen w-full overflow-hidden select-none" :style="{ background: `radial-gradient(circle at 50% 20%, var(--bg-start) 0%, var(--bg-end) 100%)` }">
+  <div
+    class="relative min-h-screen w-full overflow-hidden select-none transition-colors duration-300"
+    :class="[isLightMode ? 'theme-light text-slate-900' : 'theme-dark text-white']"
+    :data-theme="isLightMode ? 'light' : 'dark'"
+    :style="{ background: `radial-gradient(circle at 50% 20%, var(--bg-start) 0%, var(--bg-end) 100%)` }"
+  >
     <!-- Top-of-UI Clean Ambient Scrollbar -->
     <div
       v-if="settingsStore.settings.value.showScrollProgress"

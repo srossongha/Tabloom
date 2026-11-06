@@ -11,10 +11,14 @@ import {
   Music,
   Check,
   HardDrive,
+  Moon,
+  Sun,
+  Sparkles,
 } from 'lucide-vue-next'
 import type {
   AppSettings,
   ThemePreset,
+  ThemeMode,
 } from '../../../1-domain/entities/AppSettings'
 import {
   mediaStorageService,
@@ -31,13 +35,26 @@ const emit = defineEmits<{
   (e: 'applyPreset', preset: ThemePreset): void
 }>()
 
-const PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
+const THEME_MODES: Array<{ id: ThemeMode; label: string; icon: any }> = [
+  { id: 'dark', label: 'Dark', icon: Moon },
+  { id: 'light', label: 'Light', icon: Sun },
+  { id: 'auto', label: 'Auto', icon: Sparkles },
+]
+
+const DARK_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
   { id: 'cosmic-purple', label: 'Cosmic Purple', color: '#2b1055' },
   { id: 'oled-black', label: 'OLED Black', color: '#000000' },
   { id: 'tokyo-night', label: 'Tokyo Night', color: '#1a1b26' },
   { id: 'emerald-aurora', label: 'Emerald Aurora', color: '#064e3b' },
   { id: 'cyberpunk-neon', label: 'Cyberpunk', color: '#240046' },
   { id: 'frosted-minimal', label: 'Frosted Slate', color: '#1e293b' },
+]
+
+const LIGHT_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
+  { id: 'cotton-white', label: 'Cotton White', color: '#f8fafc' },
+  { id: 'sakura-day', label: 'Sakura Day', color: '#fff1f2' },
+  { id: 'nordic-light', label: 'Nordic Light', color: '#f0f9ff' },
+  { id: 'cream-latte', label: 'Cream Latte', color: '#fef3c7' },
 ]
 
 const localWallpaperInfo = ref<MediaMetadata | null>(null)
@@ -159,12 +176,40 @@ onMounted(() => {
       <span>{{ uploadMessage }}</span>
     </div>
 
-    <!-- Theme Presets -->
-    <div>
-      <span class="block font-medium text-white/70 mb-1.5">Theme Presets</span>
+    <!-- Theme Mode Switcher (Dark / Light / Auto) -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-white/70">Theme Mode</span>
+        <span class="text-[11px] font-mono text-emerald-400 capitalize">{{ props.settings.themeMode || 'auto' }}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+        <button
+          v-for="m in THEME_MODES"
+          :key="m.id"
+          type="button"
+          class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] active:scale-95 cursor-pointer"
+          :class="[
+            (props.settings.themeMode || 'auto') === m.id
+              ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-950/30 font-semibold'
+              : 'text-white/60 hover:bg-white/10 hover:text-white',
+          ]"
+          @click="emit('update', { themeMode: m.id })"
+        >
+          <component :is="m.icon" class="h-3.5 w-3.5" />
+          <span>{{ m.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Theme Presets: Dark Collection -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <span class="block font-medium text-white/70">Dark Themes</span>
+        <span class="text-[10px] text-white/40">Glass & Deep Gradients</span>
+      </div>
       <div class="grid grid-cols-2 gap-2">
         <button
-          v-for="p in PRESETS"
+          v-for="p in DARK_PRESETS"
           :key="p.id"
           type="button"
           class="flex items-center gap-2 rounded-lg border p-2 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
@@ -176,7 +221,35 @@ onMounted(() => {
           @click="emit('applyPreset', p.id)"
         >
           <span
-            class="h-3.5 w-3.5 rounded-full border border-white/20 transition-transform duration-200 group-hover:scale-110"
+            class="h-3.5 w-3.5 rounded-full border border-white/20 transition-transform duration-200 group-hover:scale-110 shadow-sm"
+            :style="{ backgroundColor: p.color }"
+          />
+          <span class="font-medium">{{ p.label }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Theme Presets: Light Collection -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <span class="block font-medium text-white/70">Light Themes</span>
+        <span class="text-[10px] text-white/40">Clean, Frosted & High-Contrast</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          v-for="p in LIGHT_PRESETS"
+          :key="p.id"
+          type="button"
+          class="flex items-center gap-2 rounded-lg border p-2 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          :class="[
+            props.settings.themePreset === p.id
+              ? 'border-emerald-400 bg-white/10 text-white shadow-md shadow-emerald-950/20'
+              : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white',
+          ]"
+          @click="emit('applyPreset', p.id)"
+        >
+          <span
+            class="h-3.5 w-3.5 rounded-full border border-black/20 transition-transform duration-200 group-hover:scale-110 shadow-sm"
             :style="{ backgroundColor: p.color }"
           />
           <span class="font-medium">{{ p.label }}</span>
