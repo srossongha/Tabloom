@@ -12,27 +12,73 @@ import { defaultStorageAdapter } from '../../3-infrastructure/storage/storageAda
 import { deduplicateTilesByHost, extractHostname } from '../services/tileEngine'
 import { fetchRawTilesForView, clearTileCache } from '../services/tileLoaderService'
 
-const CUSTOM_KEY = 'home_tiles_custom_list'
-const OVERRIDES_KEY = 'home_tiles_overrides'
-const TELEMETRY_KEY = 'home_tiles_telemetry'
+const CUSTOM_KEY = 'tabloom_custom_list'
+const LEGACY_CUSTOM_KEY = 'home_tiles_custom_list'
+const OVERRIDES_KEY = 'tabloom_overrides'
+const LEGACY_OVERRIDES_KEY = 'home_tiles_overrides'
+const TELEMETRY_KEY = 'tabloom_telemetry'
 
 let storagePort: IStoragePort = defaultStorageAdapter
 let browserPort: IBrowserPort | null = null
 
-const customTiles = ref<Tile[]>(storagePort.getSync ? storagePort.getSync(CUSTOM_KEY, []) : [])
-const overrides = ref<Record<string, TileOverride>>(storagePort.getSync ? storagePort.getSync(OVERRIDES_KEY, {}) : {})
+function loadInitialCustomTiles(): Tile[] {
+  const current = storagePort.getSync ? storagePort.getSync<Tile[]>(CUSTOM_KEY, []) : []
+  if (current && current.length > 0) return current
+  return storagePort.getSync ? storagePort.getSync<Tile[]>(LEGACY_CUSTOM_KEY, []) : []
+}
+
+function loadInitialOverrides(): Record<string, TileOverride> {
+  const current = storagePort.getSync ? storagePort.getSync<Record<string, TileOverride>>(OVERRIDES_KEY, {}) : {}
+  if (current && Object.keys(current).length > 0) return current
+  return storagePort.getSync ? storagePort.getSync<Record<string, TileOverride>>(LEGACY_OVERRIDES_KEY, {}) : {}
+}
+
+const customTiles = ref<Tile[]>(loadInitialCustomTiles())
+const overrides = ref<Record<string, TileOverride>>(loadInitialOverrides())
 const telemetry = ref<Record<string, { useCount: number; lastUsedAt: number }>>(storagePort.getSync ? storagePort.getSync(TELEMETRY_KEY, {}) : {})
 const tiles = ref<Tile[]>([])
 const bookmarkFolders = ref<BookmarkFolder[]>([])
 const isLoading = ref<boolean>(false)
+
+// Real-time listener for cross-device/cross-tab sync updates
+if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'sync' || area === 'local') {
+      if (changes[CUSTOM_KEY]) {
+        customTiles.value = (changes[CUSTOM_KEY].newValue as Tile[]) || []
+      }
+      if (changes[OVERRIDES_KEY]) {
+        overrides.value = (changes[OVERRIDES_KEY].newValue as Record<string, TileOverride>) || {}
+      }
+    }
+  })
+}
 
 export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   if (browser) browserPort = browser
   if (storage) storagePort = storage
 
   async function init() {
-    customTiles.value = await storagePort.get<Tile[]>(CUSTOM_KEY, customTiles.value)
-    overrides.value = await storagePort.get<Record<string, TileOverride>>(OVERRIDES_KEY, overrides.value)
+    let custom = await storagePort.get<Tile[]>(CUSTOM_KEY, [])
+    if (!custom || custom.length === 0) {
+      const legacy = await storagePort.get<Tile[]>(LEGACY_CUSTOM_KEY, [])
+      if (legacy && legacy.length > 0) {
+        custom = legacy
+        await storagePort.set(CUSTOM_KEY, custom)
+      }
+    }
+    customTiles.value = custom
+
+    let ovr = await storagePort.get<Record<string, TileOverride>>(OVERRIDES_KEY, {})
+    if (!ovr || Object.keys(ovr).length === 0) {
+      const legacy = await storagePort.get<Record<string, TileOverride>>(LEGACY_OVERRIDES_KEY, {})
+      if (legacy && Object.keys(legacy).length > 0) {
+        ovr = legacy
+        await storagePort.set(OVERRIDES_KEY, ovr)
+      }
+    }
+    overrides.value = ovr
+
     telemetry.value = await storagePort.get(TELEMETRY_KEY, telemetry.value)
     if (browserPort) bookmarkFolders.value = await browserPort.getBookmarkFolders()
   }

@@ -49,6 +49,19 @@ function applyCssVariables(cfg: AppSettings) {
 // Synchronous application on load to eliminate flash
 if (typeof document !== 'undefined') applyCssVariables(settings.value)
 
+// Real-time listener for cross-device/cross-tab sync updates
+if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if ((area === 'sync' || area === 'local') && changes[SETTINGS_KEY]) {
+      const parsed = AppSettingsSchema.safeParse(changes[SETTINGS_KEY].newValue)
+      if (parsed.success) {
+        settings.value = parsed.data
+        applyCssVariables(settings.value)
+      }
+    }
+  })
+}
+
 export function useSettingsStore(storage?: IStoragePort) {
   if (storage) storagePort = storage
 
