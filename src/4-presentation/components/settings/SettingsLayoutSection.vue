@@ -104,12 +104,12 @@ function onImportFile(e: Event) {
         </span>
         <div class="grid grid-cols-2 gap-2">
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showGreeting"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showGreeting: ($event.target as HTMLInputElement).checked,
@@ -120,12 +120,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showSearch"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showSearch: ($event.target as HTMLInputElement).checked,
@@ -136,12 +136,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showSideClock"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showSideClock: ($event.target as HTMLInputElement).checked,
@@ -152,12 +152,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showStickyNote"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showStickyNote: ($event.target as HTMLInputElement).checked,
@@ -168,12 +168,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showYearProgress"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showYearProgress: ($event.target as HTMLInputElement).checked,
@@ -184,12 +184,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.clock24h"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   clock24h: ($event.target as HTMLInputElement).checked,
@@ -200,12 +200,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showAudioPlayer"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showAudioPlayer: ($event.target as HTMLInputElement).checked,
@@ -216,12 +216,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showCustomWallpaper"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showCustomWallpaper: ($event.target as HTMLInputElement).checked,
@@ -240,12 +240,12 @@ function onImportFile(e: Event) {
         </span>
         <div class="grid grid-cols-2 gap-2">
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showTileGrid"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showTileGrid: ($event.target as HTMLInputElement).checked,
@@ -256,12 +256,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showNavTabs"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showNavTabs: ($event.target as HTMLInputElement).checked,
@@ -272,12 +272,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showLogo"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showLogo: ($event.target as HTMLInputElement).checked,
@@ -288,12 +288,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showSortBar"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showSortBar: ($event.target as HTMLInputElement).checked,
@@ -304,12 +304,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showLabels"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showLabels: ($event.target as HTMLInputElement).checked,
@@ -320,12 +320,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showAddCard"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showAddCard: ($event.target as HTMLInputElement).checked,
@@ -336,12 +336,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.showScrollProgress"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   showScrollProgress: ($event.target as HTMLInputElement).checked,
@@ -352,12 +352,12 @@ function onImportFile(e: Event) {
           </label>
 
           <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 hover:bg-white/[0.08] transition-colors"
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
           >
             <input
               type="checkbox"
               :checked="props.settings.openInNewTab"
-              class="accent-emerald-500 rounded"
+              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
               @change="
                 emit('update', {
                   openInNewTab: ($event.target as HTMLInputElement).checked,
@@ -375,7 +375,7 @@ function onImportFile(e: Event) {
       <span class="block font-medium text-white/70">Particles Engine</span>
       <select
         :value="props.settings.particleMode"
-        class="w-full rounded-lg border border-white/10 bg-[#1f1035] p-2 text-white outline-none cursor-pointer"
+        class="w-full rounded-lg border border-white/10 bg-[#1f1035] p-2 text-white outline-none cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 focus:border-emerald-400"
         @change="
           emit('update', {
             particleMode: ($event.target as HTMLSelectElement)
@@ -396,13 +396,13 @@ function onImportFile(e: Event) {
       <div class="grid grid-cols-2 gap-2">
         <button
           type="button"
-          class="flex items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/10 py-2 hover:bg-white/20 transition-colors"
+          class="flex items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/10 py-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/20 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 cursor-pointer"
           @click="emit('export')"
         >
           <Download class="h-3.5 w-3.5" /> Export JSON
         </button>
         <label
-          class="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/10 py-2 hover:bg-white/20 transition-colors"
+          class="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/10 py-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/20 hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95"
         >
           <Upload class="h-3.5 w-3.5" /> Import JSON
           <input
@@ -415,7 +415,7 @@ function onImportFile(e: Event) {
       </div>
       <button
         type="button"
-        class="w-full rounded-lg border border-rose-500/30 bg-rose-500/10 py-2 text-rose-300 hover:bg-rose-500/20 transition-colors"
+        class="w-full rounded-lg border border-rose-500/30 bg-rose-500/10 py-2 text-rose-300 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-rose-500/20 hover:-translate-y-0.5 hover:scale-[1.01] active:scale-95 cursor-pointer"
         @click="emit('reset')"
       >
         <RotateCcw class="inline mr-1 h-3.5 w-3.5" /> Reset to Defaults

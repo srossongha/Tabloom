@@ -49,7 +49,7 @@ const containerMaxWidth = computed(() => {
         v-for="item in MODES"
         :key="item.id"
         type="button"
-        class="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 select-none"
+        class="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 select-none cursor-pointer"
         :class="[
           props.modelValue === item.id
             ? 'bg-[#10b981] text-white shadow-sm shadow-emerald-950/40'

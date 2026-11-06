@@ -78,7 +78,7 @@ const yearProgress = computed(() => {
 
 <template>
   <div
-    class="gpu-card group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-white/15 hover:bg-white/[0.07]"
+    class="gpu-card group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/20 hover:bg-white/[0.07] active:scale-[0.99]"
     title="Click to toggle 12h / 24h format"
     @click="emit('toggleFormat')"
   >

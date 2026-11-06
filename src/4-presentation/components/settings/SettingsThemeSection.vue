@@ -167,19 +167,19 @@ onMounted(() => {
           v-for="p in PRESETS"
           :key="p.id"
           type="button"
-          class="flex items-center gap-2 rounded-lg border p-2 text-left transition-all"
+          class="flex items-center gap-2 rounded-lg border p-2 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           :class="[
             props.settings.themePreset === p.id
-              ? 'border-emerald-400 bg-white/10 text-white'
-              : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10',
+              ? 'border-emerald-400 bg-white/10 text-white shadow-md shadow-emerald-950/20'
+              : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white',
           ]"
           @click="emit('applyPreset', p.id)"
         >
           <span
-            class="h-3.5 w-3.5 rounded-full border border-white/20"
+            class="h-3.5 w-3.5 rounded-full border border-white/20 transition-transform duration-200 group-hover:scale-110"
             :style="{ backgroundColor: p.color }"
           />
-          <span>{{ p.label }}</span>
+          <span class="font-medium">{{ p.label }}</span>
         </button>
       </div>
     </div>
@@ -189,13 +189,13 @@ onMounted(() => {
       <span class="block font-medium text-white/70">Custom Colors</span>
       <div class="grid grid-cols-2 gap-2">
         <label
-          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
           <span>Gradient Start</span>
           <input
             type="color"
             :value="props.settings.bgStart"
-            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
             @input="
               emit('update', {
                 bgStart: ($event.target as HTMLInputElement).value,
@@ -204,13 +204,13 @@ onMounted(() => {
           />
         </label>
         <label
-          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
           <span>Gradient End</span>
           <input
             type="color"
             :value="props.settings.bgEnd"
-            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
             @input="
               emit('update', {
                 bgEnd: ($event.target as HTMLInputElement).value,
@@ -219,13 +219,13 @@ onMounted(() => {
           />
         </label>
         <label
-          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
           <span>Active Accent</span>
           <input
             type="color"
             :value="props.settings.accentColor"
-            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
             @input="
               emit('update', {
                 accentColor: ($event.target as HTMLInputElement).value,
@@ -234,13 +234,13 @@ onMounted(() => {
           />
         </label>
         <label
-          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2"
+          class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
         >
           <span>Label Text</span>
           <input
             type="color"
             :value="props.settings.textColor"
-            class="h-5 w-6 cursor-pointer border-0 bg-transparent"
+            class="h-5 w-6 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
             @input="
               emit('update', {
                 textColor: ($event.target as HTMLInputElement).value,

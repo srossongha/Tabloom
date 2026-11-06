@@ -55,7 +55,7 @@ function onDrop(event: DragEvent) {
   >
     <!-- Card Container with hardware-accelerated zero-jank hover -->
     <div
-      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.05] p-4 shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-200 ease-out hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/30"
+      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.05] p-4 shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/35 active:scale-[0.98]"
       :style="{
         height: 'var(--card-height, 120px)',
         backgroundColor: props.tile.tintColor ? props.tile.tintColor : undefined,

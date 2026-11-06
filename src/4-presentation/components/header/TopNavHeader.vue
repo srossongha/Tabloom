@@ -52,7 +52,7 @@ const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
           :key="tab.id"
           role="tab"
           :aria-selected="props.activeView === tab.id"
-          class="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200"
+          class="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.02] active:scale-95 cursor-pointer"
           :class="[
             props.activeView === tab.id
               ? 'bg-[#10b981] text-white shadow-md shadow-emerald-950/30'
@@ -69,7 +69,7 @@ const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
       <button
         aria-label="Customize settings"
         title="Customize Tabloom"
-        class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/80 shadow-lg transition-all duration-200 hover:scale-105 hover:bg-white/15 hover:text-white backdrop-blur-xl"
+        class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/80 shadow-lg transition-all duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)] hover:scale-110 hover:rotate-45 hover:bg-white/15 hover:text-white active:scale-90 cursor-pointer backdrop-blur-xl"
         @click="emit('openSettings')"
       >
         <Settings class="h-4 w-4" />

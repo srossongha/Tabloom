@@ -23,7 +23,7 @@ const emit = defineEmits<{
     <button
       type="button"
       aria-label="Add shortcut"
-      class="gpu-card flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-4 shadow-sm shadow-black/10 backdrop-blur-xl transition-all duration-200 ease-out hover:-translate-y-1 hover:border-emerald-400/50 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-black/20"
+      class="gpu-card flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-4 shadow-sm shadow-black/10 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-emerald-400/50 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-black/20 active:scale-[0.98]"
       :style="{ height: 'var(--card-height, 120px)' }"
       @click="emit('add')"
     >
