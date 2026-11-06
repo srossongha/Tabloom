@@ -18,6 +18,7 @@ declare module 'vue' {
     SettingsGeneralSection: typeof import('./4-presentation/components/settings/SettingsGeneralSection.vue')['default']
     SettingsLayoutSection: typeof import('./4-presentation/components/settings/SettingsLayoutSection.vue')['default']
     SettingsThemeSection: typeof import('./4-presentation/components/settings/SettingsThemeSection.vue')['default']
+    SideClockWidget: typeof import('./4-presentation/components/clock/SideClockWidget.vue')['default']
     SortModeBar: typeof import('./4-presentation/components/grid/SortModeBar.vue')['default']
     TileEditorModal: typeof import('./4-presentation/components/modals/TileEditorModal.vue')['default']
     TileGridContainer: typeof import('./4-presentation/components/grid/TileGridContainer.vue')['default']

@@ -54,6 +54,7 @@ function onImportFile(e: Event) {
         <label class="flex items-center gap-2"><input type="checkbox" :checked="props.settings.showSortBar" class="accent-emerald-500 rounded" @change="emit('update', { showSortBar: ($event.target as HTMLInputElement).checked })" /> Sort Pill</label>
         <label class="flex items-center gap-2"><input type="checkbox" :checked="props.settings.showLabels" class="accent-emerald-500 rounded" @change="emit('update', { showLabels: ($event.target as HTMLInputElement).checked })" /> Tile Labels</label>
         <label class="flex items-center gap-2"><input type="checkbox" :checked="props.settings.showAddCard" class="accent-emerald-500 rounded" @change="emit('update', { showAddCard: ($event.target as HTMLInputElement).checked })" /> Add (+) Card</label>
+        <label class="flex items-center gap-2"><input type="checkbox" :checked="props.settings.showSideClock" class="accent-emerald-500 rounded" @change="emit('update', { showSideClock: ($event.target as HTMLInputElement).checked })" /> Side Clock</label>
       </div>
     </div>
 

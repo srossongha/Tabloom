@@ -57,6 +57,8 @@ export const AppSettingsSchema = z.object({
   showSortBar: z.boolean().default(true),
   showLabels: z.boolean().default(true),
   showAddCard: z.boolean().default(true),
+  showSideClock: z.boolean().default(true),
+  clock24h: z.boolean().default(true),
   particleMode: ParticleModeSchema.default('cosmic-dust'),
   particleDensity: z.number().min(10).max(100).default(40),
   searchEngine: SearchEngineSchema.default('google'),
