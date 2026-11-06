@@ -13,6 +13,7 @@ import { useNavigationViews } from '../2-application/useCases/useNavigationViews
 import { filterTiles, sortTiles } from '../2-application/services/tileEngine'
 import CosmicCanvas from './components/background/CosmicCanvas.vue'
 import TopNavHeader from './components/header/TopNavHeader.vue'
+import DynamicGreeting from './components/greeting/DynamicGreeting.vue'
 import WebSearchBar from './components/search/WebSearchBar.vue'
 import SortModeBar from './components/grid/SortModeBar.vue'
 import TileGridContainer from './components/grid/TileGridContainer.vue'
@@ -108,6 +109,7 @@ function onExportConfig() {
 
     <div class="relative z-10 flex min-h-screen flex-col">
       <TopNavHeader :app-name="settingsStore.settings.value.appName" :active-view="nav.activeView.value" :show-logo="settingsStore.settings.value.showLogo" @select-view="nav.setView" @open-settings="isSettingsOpen = true" />
+      <DynamicGreeting />
       <WebSearchBar v-if="settingsStore.settings.value.showSearch" v-model="nav.searchQuery.value" :search-engine="settingsStore.settings.value.searchEngine" :open-in-new-tab="settingsStore.settings.value.openInNewTab" />
       <SortModeBar v-if="settingsStore.settings.value.showSortBar" v-model="nav.sortMode.value" />
       <TileGridContainer

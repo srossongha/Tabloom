@@ -3,7 +3,7 @@
   Provides live controls for themes, wallpapers, grid layout, data sources, and JSON backup.
 -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { X, Palette, Sliders, Database } from 'lucide-vue-next'
 import type { AppSettings, ThemePreset } from '../../../1-domain/entities/AppSettings'
 import type { BookmarkFolder } from '../../../1-domain/entities/BrowserItem'
@@ -32,6 +32,52 @@ const emit = defineEmits<{
 type DrawerTab = 'theme' | 'layout' | 'data'
 const currentTab = ref<DrawerTab>('theme')
 
+const userNameInput = ref('')
+const isSaved = ref(false)
+
+async function loadUserName() {
+  if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+    try {
+      const res = await new Promise<{ userName?: string }>((resolve) => {
+        chrome.storage.sync.get(['userName'], resolve)
+      })
+      if (res && typeof res.userName === 'string') {
+        userNameInput.value = res.userName
+        return
+      }
+    } catch {}
+  }
+  userNameInput.value = localStorage.getItem('userName') || ''
+}
+
+async function saveUserName() {
+  const trimmed = userNameInput.value.trim().slice(0, 30)
+  userNameInput.value = trimmed
+
+  if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+    try {
+      await chrome.storage.sync.set({ userName: trimmed })
+    } catch {}
+  }
+  try {
+    localStorage.setItem('userName', trimmed)
+  } catch {}
+
+  window.dispatchEvent(new CustomEvent('tabloom:userNameChanged', { detail: trimmed }))
+  isSaved.value = true
+  setTimeout(() => {
+    isSaved.value = false
+  }, 1500)
+}
+
+watch(
+  () => props.isOpen,
+  (open) => {
+    if (open) loadUserName()
+  },
+  { immediate: true }
+)
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && props.isOpen) emit('close')
 }
@@ -48,6 +94,28 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <button class="rounded-lg p-1 text-white/50 hover:bg-white/10 hover:text-white" @click="emit('close')">
           <X class="h-4 w-4" />
         </button>
+      </div>
+
+      <!-- Your Name Section -->
+      <div class="border-b border-white/10 px-5 py-3.5">
+        <label class="block text-xs font-medium text-white/70 mb-1.5">Your name</label>
+        <div class="flex items-center gap-2">
+          <input
+            v-model="userNameInput"
+            type="text"
+            maxlength="30"
+            placeholder="User"
+            class="flex-1 rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-white placeholder-white/30 outline-none transition-colors focus:border-emerald-400 focus:bg-white/[0.1]"
+            @keydown.enter="saveUserName"
+          />
+          <button
+            type="button"
+            class="rounded-lg bg-emerald-500 hover:bg-emerald-400 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm transition-all active:scale-95 cursor-pointer"
+            @click="saveUserName"
+          >
+            {{ isSaved ? 'Saved!' : 'Save' }}
+          </button>
+        </div>
       </div>
 
       <!-- Navigation Tabs -->

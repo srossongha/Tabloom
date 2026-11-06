@@ -65,7 +65,7 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
 </script>
 
 <template>
-  <div class="relative z-10 mx-auto w-full max-w-xl px-4 pt-10 pb-6">
+  <div class="relative z-10 mx-auto w-full max-w-xl px-4 pt-3 pb-6">
     <div
       class="group relative flex items-center rounded-full border border-white/15 bg-white/[0.08] px-5 py-3 shadow-2xl shadow-black/40 backdrop-blur-md transition-all duration-200 focus-within:border-emerald-400/60 focus-within:bg-white/[0.12] focus-within:ring-2 focus-within:ring-emerald-400/20"
     >
