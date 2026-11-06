@@ -3,37 +3,47 @@
   Coordinates navigation between Bookmarks, Open Tabs, Most Visited, and Last Session views.
 -->
 <script setup lang="ts">
-import { Settings, Bookmark, Layers, Sparkles, Clock } from "lucide-vue-next";
-import type { NavigationTab } from "../../../1-domain/entities/BrowserItem";
+import { Settings, Bookmark, Layers, Sparkles, Clock } from 'lucide-vue-next'
+import type { NavigationTab } from '../../../1-domain/entities/BrowserItem'
 
 interface Props {
-  appName: string;
-  activeView: NavigationTab;
-  showLogo?: boolean;
+  appName: string
+  activeView: NavigationTab
+  showLogo?: boolean
+  showNavTabs?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showLogo: true,
-});
+  showNavTabs: true,
+})
 
 const emit = defineEmits<{
-  (e: "selectView", view: NavigationTab): void;
-  (e: "openSettings"): void;
-}>();
+  (e: 'selectView', view: NavigationTab): void
+  (e: 'openSettings'): void
+}>()
 
 const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
-  { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
-  { id: "openTabs", label: "Open tabs", icon: Layers },
-  { id: "mostVisited", label: "Most visited", icon: Sparkles },
-  { id: "lastSession", label: "Last session", icon: Clock },
-];
+  { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
+  { id: 'openTabs', label: 'Open tabs', icon: Layers },
+  { id: 'mostVisited', label: 'Most visited', icon: Sparkles },
+  { id: 'lastSession', label: 'Last session', icon: Clock },
+]
 </script>
 
 <template>
-  <header class="relative z-10 flex w-full items-center justify-end px-8 py-5">
-    <!-- Center/Right view switcher pill -->
-    <div class="flex items-center gap-4">
+  <header class="relative z-10 flex w-full items-center justify-between px-8 py-5 select-none">
+    <!-- Brand Logo in top-left header if enabled -->
+    <div v-if="props.showLogo" class="flex items-center gap-2.5">
+      <img src="/icons/icon.svg" :alt="props.appName" class="h-7 w-7 object-contain drop-shadow" />
+      <span class="text-sm font-semibold tracking-wide text-white/90">{{ props.appName }}</span>
+    </div>
+    <div v-else />
+
+    <!-- Center/Right view switcher pill & settings button -->
+    <div class="flex items-center gap-3">
       <nav
+        v-if="props.showNavTabs"
         class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
         role="tablist"
       >
@@ -55,9 +65,10 @@ const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
         </button>
       </nav>
 
-      <!-- Settings gear button -->
+      <!-- Settings gear button (always stays accessible so users can re-enable features) -->
       <button
         aria-label="Customize settings"
+        title="Customize Tabloom"
         class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/80 shadow-lg transition-all duration-200 hover:scale-105 hover:bg-white/15 hover:text-white backdrop-blur-xl"
         @click="emit('openSettings')"
       >

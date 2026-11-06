@@ -14,6 +14,8 @@ interface Props {
   wallpaperType?: WallpaperType
   wallpaperBlur?: number
   wallpaperDim?: number
+  showCustomWallpaper?: boolean
+  showAudioPlayer?: boolean
   audioUrl?: string
   audioName?: string
   audioVolume?: number
@@ -25,6 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
   wallpaperType: 'auto',
   wallpaperBlur: 0,
   wallpaperDim: 30,
+  showCustomWallpaper: true,
+  showAudioPlayer: true,
   audioUrl: '',
   audioName: '',
   audioVolume: 50,
@@ -198,7 +202,7 @@ onUnmounted(() => {
   <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
     <!-- Video Wallpaper (Looping MP4/WebM) -->
     <video
-      v-if="resolvedWallpaperUrl && isVideo"
+      v-if="props.showCustomWallpaper && resolvedWallpaperUrl && isVideo"
       :src="resolvedWallpaperUrl"
       autoplay
       loop
@@ -213,7 +217,7 @@ onUnmounted(() => {
 
     <!-- Image or Animated GIF Wallpaper -->
     <div
-      v-else-if="resolvedWallpaperUrl"
+      v-else-if="props.showCustomWallpaper && resolvedWallpaperUrl"
       class="h-full w-full bg-cover bg-center transition-all duration-500"
       :style="{
         backgroundImage: `url(${resolvedWallpaperUrl})`,
@@ -224,7 +228,7 @@ onUnmounted(() => {
 
     <!-- Hidden HTML5 Audio Element for Background Sound -->
     <audio
-      v-if="resolvedAudioUrl"
+      v-if="props.showAudioPlayer && resolvedAudioUrl"
       ref="audioRef"
       :src="resolvedAudioUrl"
       :loop="props.audioLoop"
@@ -236,7 +240,7 @@ onUnmounted(() => {
 
     <!-- Minimalist Ambient Audio Controller Pill (Floating in bottom-right) -->
     <div
-      v-if="resolvedAudioUrl"
+      v-if="props.showAudioPlayer && resolvedAudioUrl"
       class="pointer-events-auto fixed bottom-5 right-6 z-40 flex items-center select-none"
       @mouseenter="isHoveringPlayer = true"
       @mouseleave="isHoveringPlayer = false"

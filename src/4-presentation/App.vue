@@ -95,6 +95,7 @@ function onExportConfig() {
   <div class="relative min-h-screen w-full overflow-hidden select-none" :style="{ background: `radial-gradient(circle at 50% 20%, var(--bg-start) 0%, var(--bg-end) 100%)` }">
     <!-- Top-of-UI Clean Ambient Scrollbar -->
     <div
+      v-if="settingsStore.settings.value.showScrollProgress"
       class="fixed top-0 left-0 right-0 z-50 h-[3px] bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-500 origin-left transition-transform duration-75 pointer-events-none"
       :style="{ transform: `scaleX(${scrollProgress})` }"
     />
@@ -104,6 +105,8 @@ function onExportConfig() {
       :wallpaper-type="settingsStore.settings.value.wallpaperType"
       :wallpaper-blur="settingsStore.settings.value.wallpaperBlur"
       :wallpaper-dim="settingsStore.settings.value.wallpaperDim"
+      :show-custom-wallpaper="settingsStore.settings.value.showCustomWallpaper"
+      :show-audio-player="settingsStore.settings.value.showAudioPlayer"
       :audio-url="settingsStore.settings.value.backgroundAudio"
       :audio-name="settingsStore.settings.value.backgroundAudioName"
       :audio-volume="settingsStore.settings.value.backgroundAudioVolume"
@@ -114,7 +117,14 @@ function onExportConfig() {
     <CosmicCanvas :mode="settingsStore.settings.value.particleMode" :density="settingsStore.settings.value.particleDensity" />
 
     <div class="relative z-10 flex min-h-screen flex-col">
-      <TopNavHeader :app-name="settingsStore.settings.value.appName" :active-view="nav.activeView.value" :show-logo="settingsStore.settings.value.showLogo" @select-view="nav.setView" @open-settings="isSettingsOpen = true" />
+      <TopNavHeader
+        :app-name="settingsStore.settings.value.appName"
+        :active-view="nav.activeView.value"
+        :show-logo="settingsStore.settings.value.showLogo"
+        :show-nav-tabs="settingsStore.settings.value.showNavTabs"
+        @select-view="nav.setView"
+        @open-settings="isSettingsOpen = true"
+      />
       
       <!-- Left side panel: Clock & Sticky Note (stays on the place you drew) -->
       <aside
@@ -125,6 +135,7 @@ function onExportConfig() {
         <SideClockWidget
           v-if="settingsStore.settings.value.showSideClock"
           :use-24h="settingsStore.settings.value.clock24h"
+          :show-year-progress="settingsStore.settings.value.showYearProgress"
           @toggle-format="settingsStore.updateSettings({ clock24h: !settingsStore.settings.value.clock24h })"
         />
         <StickyNoteWidget
@@ -132,10 +143,11 @@ function onExportConfig() {
         />
       </aside>
 
-      <DynamicGreeting />
+      <DynamicGreeting v-if="settingsStore.settings.value.showGreeting" />
       <WebSearchBar v-if="settingsStore.settings.value.showSearch" v-model="nav.searchQuery.value" :search-engine="settingsStore.settings.value.searchEngine" :open-in-new-tab="settingsStore.settings.value.openInNewTab" />
       <SortModeBar v-if="settingsStore.settings.value.showSortBar" v-model="nav.sortMode.value" :grid-cols="settingsStore.settings.value.gridCols" />
       <TileGridContainer
+        v-if="settingsStore.settings.value.showTileGrid"
         :tiles="visibleTiles"
         :active-view="nav.activeView.value"
         :grid-cols="settingsStore.settings.value.gridCols"
