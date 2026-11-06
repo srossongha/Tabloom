@@ -2,6 +2,10 @@
 
 A fresh, calm new tab that blooms every time you open it. Tabloom is an ultra-lightweight, customizable Chrome extension (Manifest V3) powered by your real browser history, bookmarks, and open tabs.
 
+## Preview
+
+![Screenshot](./src/assets/preview.png)
+
 ## Features
 
 - **Personalized Start Page:** Quick access to Bookmarks, Open Tabs, Most Visited sites, and Last Session tabs.
