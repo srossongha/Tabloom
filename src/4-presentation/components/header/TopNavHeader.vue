@@ -4,111 +4,129 @@
   with a fluid sliding mask animation and customizable active accent color.
 -->
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { Settings, Bookmark, Layers, Sparkles, Clock, SlidersHorizontal } from 'lucide-vue-next'
-import type { NavigationTab } from '../../../1-domain/entities/BrowserItem'
-import { isColorBright, parseHexOrRgb } from '../../../2-application/services/colorUtils'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
+import {
+  Settings,
+  Bookmark,
+  Layers,
+  Sparkles,
+  Clock,
+  SlidersHorizontal,
+} from "lucide-vue-next";
+import type { NavigationTab } from "../../../1-domain/entities/BrowserItem";
+import {
+  isColorBright,
+  parseHexOrRgb,
+} from "../../../2-application/services/colorUtils";
 
 interface Props {
-  appName: string
-  activeView: NavigationTab
-  accentColor?: string
-  showLogo?: boolean
-  showNavTabs?: boolean
+  appName: string;
+  activeView: NavigationTab;
+  accentColor?: string;
+  showLogo?: boolean;
+  showNavTabs?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  accentColor: '#10b981',
+  accentColor: "#10b981",
   showLogo: true,
   showNavTabs: true,
-})
+});
 
 const emit = defineEmits<{
-  (e: 'selectView', view: NavigationTab): void
-  (e: 'openSettings'): void
-}>()
+  (e: "selectView", view: NavigationTab): void;
+  (e: "openSettings"): void;
+}>();
 
-const isNavExpanded = ref(false)
+const isNavExpanded = ref(false);
 
 function toggleNav() {
-  isNavExpanded.value = !isNavExpanded.value
+  isNavExpanded.value = !isNavExpanded.value;
 }
 
 const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
-  { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
-  { id: 'openTabs', label: 'Open tabs', icon: Layers },
-  { id: 'mostVisited', label: 'Most visited', icon: Sparkles },
-  { id: 'lastSession', label: 'Last session', icon: Clock },
-]
+  { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
+  { id: "openTabs", label: "Open tabs", icon: Layers },
+  { id: "mostVisited", label: "Most visited", icon: Sparkles },
+  { id: "lastSession", label: "Last session", icon: Clock },
+];
 
-const activeAccent = computed(() => props.accentColor || '#10b981')
+const activeAccent = computed(() => props.accentColor || "#10b981");
 
 const activeTextColor = computed(() => {
-  return isColorBright(activeAccent.value) ? '#0f172a' : '#ffffff'
-})
+  return isColorBright(activeAccent.value) ? "#0f172a" : "#ffffff";
+});
 
 const accentGlow = computed(() => {
-  const rgb = parseHexOrRgb(activeAccent.value)
-  if (!rgb) return 'rgba(16, 185, 129, 0.40)'
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`
-})
+  const rgb = parseHexOrRgb(activeAccent.value);
+  if (!rgb) return "rgba(16, 185, 129, 0.40)";
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`;
+});
 
-const tabRefs = ref<Record<string, HTMLElement | null>>({})
-const pillLeft = ref(0)
-const pillWidth = ref(0)
-const pillReady = ref(false)
+const tabRefs = ref<Record<string, HTMLElement | null>>({});
+const pillLeft = ref(0);
+const pillWidth = ref(0);
+const pillReady = ref(false);
 
 function setTabRef(id: NavigationTab, el: any) {
   if (el) {
-    tabRefs.value[id] = el as HTMLElement
+    tabRefs.value[id] = el as HTMLElement;
     if (id === props.activeView) {
-      pillLeft.value = (el as HTMLElement).offsetLeft
-      pillWidth.value = (el as HTMLElement).offsetWidth
-      pillReady.value = true
+      pillLeft.value = (el as HTMLElement).offsetLeft;
+      pillWidth.value = (el as HTMLElement).offsetWidth;
+      pillReady.value = true;
     }
   }
 }
 
 function updatePillPosition() {
-  const activeEl = tabRefs.value[props.activeView]
-  if (!activeEl) return
-  pillLeft.value = activeEl.offsetLeft
-  pillWidth.value = activeEl.offsetWidth
-  pillReady.value = true
+  const activeEl = tabRefs.value[props.activeView];
+  if (!activeEl) return;
+  pillLeft.value = activeEl.offsetLeft;
+  pillWidth.value = activeEl.offsetWidth;
+  pillReady.value = true;
 }
 
 function handleTabClick(view: NavigationTab) {
-  emit('selectView', view)
+  emit("selectView", view);
   nextTick(() => {
-    updatePillPosition()
-  })
+    updatePillPosition();
+  });
 }
 
 watch(
   () => [props.activeView, isNavExpanded.value, props.accentColor],
   async () => {
-    if (!isNavExpanded.value) return
-    await nextTick()
-    requestAnimationFrame(updatePillPosition)
+    if (!isNavExpanded.value) return;
+    await nextTick();
+    requestAnimationFrame(updatePillPosition);
   },
-  { deep: true }
-)
+  { deep: true },
+);
 
 onMounted(() => {
-  window.addEventListener('resize', updatePillPosition)
-})
+  window.addEventListener("resize", updatePillPosition);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updatePillPosition)
-})
+  window.removeEventListener("resize", updatePillPosition);
+});
 </script>
 
 <template>
-  <header class="relative z-10 flex w-full items-center justify-between px-8 py-5 select-none">
+  <header
+    class="relative z-10 flex w-full items-center justify-between px-8 py-5 select-none"
+  >
     <!-- Brand Logo in top-left header if enabled -->
     <div v-if="props.showLogo" class="flex items-center gap-2.5">
-      <img src="/icons/icon.svg" :alt="props.appName" class="h-7 w-7 object-contain drop-shadow" />
-      <span class="text-sm font-semibold tracking-wide text-white/90">{{ props.appName }}</span>
+      <img
+        src="/icons/icon.svg"
+        :alt="props.appName"
+        class="h-7 w-7 object-contain drop-shadow"
+      />
+      <span class="text-sm font-semibold tracking-wide text-white/90">{{
+        props.appName
+      }}</span>
     </div>
     <div v-else />
 
@@ -164,7 +182,9 @@ onUnmounted(() => {
       <button
         type="button"
         aria-label="Toggle navigation tabs"
-        :title="isNavExpanded ? 'Hide navigation views' : 'Show navigation views'"
+        :title="
+          isNavExpanded ? 'Hide navigation views' : 'Show navigation views'
+        "
         class="flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
           isNavExpanded

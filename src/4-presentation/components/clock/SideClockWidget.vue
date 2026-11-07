@@ -45,7 +45,9 @@ function handleVisibility() {
 
 onMounted(() => {
   timer = window.setInterval(updateClock, 5000);
-  document.addEventListener("visibilitychange", handleVisibility, { passive: true });
+  document.addEventListener("visibilitychange", handleVisibility, {
+    passive: true,
+  });
 });
 
 onUnmounted(() => {
@@ -142,7 +144,10 @@ const yearProgress = computed(() => {
     </div>
 
     <!-- Minimal Year Progress Bar -->
-    <div v-if="props.showYearProgress" class="mt-3.5 border-t border-white/[0.06] pt-2.5 select-none">
+    <div
+      v-if="props.showYearProgress"
+      class="mt-3.5 border-t border-white/[0.06] pt-2.5 select-none"
+    >
       <div class="flex items-center justify-between text-[11px] text-white/40">
         <span>Day {{ dayOfYear }} of {{ totalDaysInYear }}</span>
         <span class="font-mono text-[var(--accent)] font-medium"
@@ -154,7 +159,10 @@ const yearProgress = computed(() => {
       >
         <div
           class="h-full rounded-full transition-all duration-500"
-          :style="{ width: `${yearProgress}%`, backgroundColor: 'var(--accent, #10b981)' }"
+          :style="{
+            width: `${yearProgress}%`,
+            backgroundColor: 'var(--accent, #10b981)',
+          }"
         />
       </div>
     </div>
