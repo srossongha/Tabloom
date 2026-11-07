@@ -1,11 +1,20 @@
 <!--
-  TopNavHeader component displaying the brand badge, view switcher pill, and single gear settings trigger.
-  Coordinates navigation between Bookmarks, Open Tabs, Most Visited, and Last Session views
-  with a fluid sliding curve mask animation, and single gear button for opening settings.
+  TopNavHeader component displaying the brand badge, expandable view switcher pill, and setting circle.
+  - Idle state: Displays ONLY the single Gear circle button in the top right.
+  - Interaction: Clicking the gear slides out the 4-tab navigation pill and the setting circle button.
+  - Clicking the setting circle opens/closes the Customize settings drawer.
+  - Clicking the gear button again smoothly slides them back into hiding.
 -->
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
-import { Settings, Bookmark, Layers, Sparkles, Clock } from "lucide-vue-next";
+import {
+  Settings,
+  SlidersHorizontal,
+  Bookmark,
+  Layers,
+  Sparkles,
+  Clock,
+} from "lucide-vue-next";
 import type { NavigationTab } from "../../../1-domain/entities/BrowserItem";
 import {
   isColorBright,
@@ -59,6 +68,33 @@ const accentGlow = computed(() => {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`;
 });
 
+// Expandable slide-out state: defaults to false (gear only)
+const isExpanded = ref(false);
+
+function toggleExpanded() {
+  isExpanded.value = !isExpanded.value;
+  try {
+    localStorage.setItem(
+      "tabloom_nav_expanded",
+      isExpanded.value ? "true" : "false",
+    );
+  } catch {}
+
+  if (isExpanded.value) {
+    nextTick(() => {
+      updatePillPosition();
+      window.setTimeout(updatePillPosition, 380);
+    });
+  }
+}
+
+watch(
+  () => props.isSettingsOpen,
+  (open) => {
+    if (open) isExpanded.value = true;
+  },
+);
+
 const navRef = ref<HTMLElement | null>(null);
 const tabRefs = ref<Record<string, HTMLElement | null>>({});
 const pillLeft = ref(0);
@@ -109,8 +145,6 @@ function moveToTab(view: NavigationTab, animated = true) {
     const targetIdx = TAB_ORDER[view] ?? 0;
     const dist = Math.abs(targetIdx - currentIdx);
 
-    // Dynamic speed curve duration proportional to distance:
-    // 1 tab jump: 300ms, 2 tabs jump: 380ms, 3 tabs jump (e.g. Bookmarks -> Last session): 440ms
     slideDuration.value = dist <= 1 ? 300 : dist === 2 ? 380 : 440;
     isSliding.value = true;
 
@@ -141,6 +175,12 @@ function updatePillPosition() {
   moveToTab(props.activeView, false);
 }
 
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === "Escape" && isExpanded.value && !props.isSettingsOpen) {
+    isExpanded.value = false;
+  }
+}
+
 watch(
   () => props.accentColor,
   async () => {
@@ -150,15 +190,26 @@ watch(
 );
 
 onMounted(() => {
+  try {
+    const saved = localStorage.getItem("tabloom_nav_expanded");
+    if (saved === "true") {
+      isExpanded.value = true;
+    }
+  } catch {}
+
   window.addEventListener("resize", updatePillPosition);
-  nextTick(() => {
-    updatePillPosition();
-  });
+  window.addEventListener("keydown", onKeyDown);
+  if (isExpanded.value) {
+    nextTick(() => {
+      updatePillPosition();
+    });
+  }
 });
 
 onUnmounted(() => {
   if (slideTimer) clearTimeout(slideTimer);
   window.removeEventListener("resize", updatePillPosition);
+  window.removeEventListener("keydown", onKeyDown);
 });
 </script>
 
@@ -179,95 +230,159 @@ onUnmounted(() => {
     </div>
     <div v-else />
 
-    <!-- Center/Right view switcher pill & single gear button -->
-    <div class="flex items-center gap-3">
-      <!-- Navigation Tabs Pill (The Bar) -->
-      <nav
-        v-if="props.showNavTabs"
-        ref="navRef"
-        class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
-        role="tablist"
-      >
-        <!-- Animated Sliding Mask Indicator (moves between tabs with smooth curved speed and uniform concentric padding) -->
+    <!-- Center/Right: Gear alone by default; slides out the 4-bar and setting circle when clicked -->
+    <div class="relative flex items-center justify-end gap-2.5">
+      <!-- Sliding Out Elements (The 4-bar pill & The Setting Circle) -->
+      <Transition name="header-expand">
         <div
-          class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
-          :style="{
-            transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
-            width: `${pillWidth}px`,
-            height: `${pillHeight}px`,
-            transitionProperty: 'transform, width, height, opacity, box-shadow',
-            transitionDuration: `${slideDuration}ms`,
-            transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
-            opacity: pillReady ? 1 : 0,
-            backgroundColor: activeAccent,
-            boxShadow: isSliding
-              ? `0 6px 20px 0 ${accentGlow}, 0 0 14px 2px ${activeAccent}44`
-              : `0 4px 14px 0 ${accentGlow}`,
-          }"
-        />
-
-        <button
-          v-for="tab in TABS"
-          :key="tab.id"
-          :ref="(el) => setTabRef(tab.id, el)"
-          role="tab"
-          :aria-selected="optimisticActiveView === tab.id"
-          class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none bg-transparent"
-          :class="[
-            optimisticActiveView === tab.id
-              ? 'shadow-none'
-              : 'text-white/70 hover:text-white dark:text-white/70 dark:hover:text-white light:text-slate-600 light:hover:text-slate-900',
-          ]"
-          :style="{
-            color:
-              optimisticActiveView === tab.id ? activeTextColor : undefined,
-          }"
-          @click="handleTabClick(tab.id)"
+          v-if="isExpanded && props.showNavTabs"
+          class="flex items-center gap-2.5 origin-right"
         >
-          <component
-            :is="tab.icon"
-            class="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)]"
-            :class="{ 'scale-110': optimisticActiveView === tab.id }"
-          />
-          <span>{{ tab.label }}</span>
-        </button>
-      </nav>
+          <!-- Navigation Tabs Pill (The Bar for the 4) -->
+          <nav
+            ref="navRef"
+            class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
+            role="tablist"
+          >
+            <!-- Animated Sliding Mask Indicator (Uniform concentric 6px padding & curved velocity) -->
+            <div
+              class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
+              :style="{
+                transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
+                width: `${pillWidth}px`,
+                height: `${pillHeight}px`,
+                transitionProperty:
+                  'transform, width, height, opacity, box-shadow',
+                transitionDuration: `${slideDuration}ms`,
+                transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
+                opacity: pillReady ? 1 : 0,
+                backgroundColor: activeAccent,
+                boxShadow: isSliding
+                  ? `0 6px 20px 0 ${accentGlow}, 0 0 14px 2px ${activeAccent}44`
+                  : `0 4px 14px 0 ${accentGlow}`,
+              }"
+            />
 
-      <!-- The Gear Button (Alone - Single Circle) -->
+            <button
+              v-for="tab in TABS"
+              :key="tab.id"
+              :ref="(el) => setTabRef(tab.id, el)"
+              role="tab"
+              :aria-selected="optimisticActiveView === tab.id"
+              class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none bg-transparent"
+              :class="[
+                optimisticActiveView === tab.id
+                  ? 'shadow-none'
+                  : 'text-white/70 hover:text-white dark:text-white/70 dark:hover:text-white light:text-slate-600 light:hover:text-slate-900',
+              ]"
+              :style="{
+                color:
+                  optimisticActiveView === tab.id ? activeTextColor : undefined,
+              }"
+              @click="handleTabClick(tab.id)"
+            >
+              <component
+                :is="tab.icon"
+                class="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)]"
+                :class="{ 'scale-110': optimisticActiveView === tab.id }"
+              />
+              <span>{{ tab.label }}</span>
+            </button>
+          </nav>
+
+          <!-- One Circle for Setting (Sliders / Customize Drawer) -->
+          <button
+            type="button"
+            aria-label="Customize settings"
+            :title="
+              props.isSettingsOpen
+                ? 'Close Customize'
+                : 'Customize Tabloom (Settings)'
+            "
+            class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+            :class="[
+              props.isSettingsOpen
+                ? 'bg-white/15 border-white/20'
+                : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] text-white/80 hover:text-white hover:bg-white/15 light:text-slate-700 light:hover:text-slate-900',
+            ]"
+            :style="{
+              borderColor: props.isSettingsOpen ? `${activeAccent}66` : undefined,
+              boxShadow: props.isSettingsOpen
+                ? `0 4px 14px 0 ${accentGlow}`
+                : undefined,
+            }"
+            @click="emit('openSettings')"
+          >
+            <SlidersHorizontal
+              class="h-4 w-4 transition-transform duration-300 group-hover:scale-110"
+              :style="{
+                color: props.isSettingsOpen ? activeAccent : undefined,
+              }"
+            />
+          </button>
+        </div>
+      </Transition>
+
+      <!-- The Gear Button (Alone Initially - Click to Slide Out / Slide In) -->
       <button
         type="button"
-        aria-label="Customize settings"
+        aria-label="Toggle navigation and settings"
         :title="
-          props.isSettingsOpen
-            ? 'Close settings'
-            : 'Customize Tabloom (Settings)'
+          isExpanded
+            ? 'Collapse navigation'
+            : 'Expand navigation & settings'
         "
-        class="group flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+        class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
-          props.isSettingsOpen
-            ? 'bg-white/15'
-            : 'border-white/10 bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/15',
+          isExpanded
+            ? 'border-white/20 bg-white/15'
+            : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] text-white/80 hover:text-white hover:bg-white/15 light:text-slate-700 light:hover:text-slate-900',
         ]"
         :style="{
-          borderColor: props.isSettingsOpen ? `${activeAccent}66` : undefined,
-          boxShadow: props.isSettingsOpen
-            ? `0 4px 14px 0 ${accentGlow}`
-            : undefined,
+          borderColor: isExpanded ? `${activeAccent}66` : undefined,
+          boxShadow: isExpanded ? `0 4px 14px 0 ${accentGlow}` : undefined,
         }"
-        @click="emit('openSettings')"
+        @click="toggleExpanded"
       >
         <Settings
           class="h-4 w-4 transition-transform duration-400 ease-[cubic-bezier(0.34,1.4,0.64,1)]"
           :class="[
-            props.isSettingsOpen
+            isExpanded
               ? 'rotate-90'
-              : 'rotate-0 text-white/80 group-hover:rotate-45 group-hover:text-white',
+              : 'rotate-0 text-white/80 group-hover:rotate-45 group-hover:text-white light:text-slate-700 light:group-hover:text-slate-900',
           ]"
           :style="{
-            color: props.isSettingsOpen ? activeAccent : undefined,
+            color: isExpanded ? activeAccent : undefined,
           }"
         />
       </button>
     </div>
   </header>
 </template>
+
+<style scoped>
+/* Fluid Slide-out & Collapse Spring Animation */
+.header-expand-enter-active,
+.header-expand-leave-active {
+  transition:
+    transform 340ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    opacity 280ms ease,
+    max-width 340ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.header-expand-enter-from,
+.header-expand-leave-to {
+  opacity: 0;
+  transform: translateX(24px) scale(0.92);
+  max-width: 0px;
+}
+
+.header-expand-enter-to,
+.header-expand-leave-from {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  max-width: 650px;
+}
+</style>
