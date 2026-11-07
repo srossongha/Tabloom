@@ -4,114 +4,119 @@
   with an animated sliding mask indicator.
 -->
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { ArrowDownAZ, Flame, LayoutGrid } from 'lucide-vue-next'
-import type { SortMode } from '../../../1-domain/entities/BrowserItem'
-import { isColorBright, parseHexOrRgb } from '../../../2-application/services/colorUtils'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
+import { ArrowDownAZ, Flame, LayoutGrid } from "lucide-vue-next";
+import type { SortMode } from "../../../1-domain/entities/BrowserItem";
+import {
+  isColorBright,
+  parseHexOrRgb,
+} from "../../../2-application/services/colorUtils";
 
 interface Props {
-  modelValue: SortMode
-  accentColor?: string
-  gridCols?: number
+  modelValue: SortMode;
+  accentColor?: string;
+  gridCols?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  accentColor: '#10b981',
+  accentColor: "#10b981",
   gridCols: 6,
-})
+});
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', mode: SortMode): void
-}>()
+  (e: "update:modelValue", mode: SortMode): void;
+}>();
 
 const MODES: Array<{ id: SortMode; label: string; icon: unknown }> = [
-  { id: 'default', label: 'Default', icon: LayoutGrid },
-  { id: 'name', label: 'Name', icon: ArrowDownAZ },
-  { id: 'mostUsed', label: 'Most used', icon: Flame },
-]
+  { id: "default", label: "Default", icon: LayoutGrid },
+  { id: "name", label: "Name", icon: ArrowDownAZ },
+  { id: "mostUsed", label: "Most used", icon: Flame },
+];
 
-const activeAccent = computed(() => props.accentColor || '#10b981')
-const activeTextColor = computed(() => (isColorBright(activeAccent.value) ? '#0f172a' : '#ffffff'))
+const activeAccent = computed(() => props.accentColor || "#10b981");
+const activeTextColor = computed(() =>
+  isColorBright(activeAccent.value) ? "#0f172a" : "#ffffff",
+);
 const accentGlow = computed(() => {
-  const rgb = parseHexOrRgb(activeAccent.value)
-  if (!rgb) return 'rgba(16, 185, 129, 0.40)'
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`
-})
+  const rgb = parseHexOrRgb(activeAccent.value);
+  if (!rgb) return "rgba(16, 185, 129, 0.40)";
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`;
+});
 
-const containerRef = ref<HTMLElement | null>(null)
-const modeRefs = ref<Record<string, HTMLElement | null>>({})
-const pillLeft = ref(0)
-const pillTop = ref(0)
-const pillWidth = ref(0)
-const pillHeight = ref(0)
-const pillReady = ref(false)
+const containerRef = ref<HTMLElement | null>(null);
+const modeRefs = ref<Record<string, HTMLElement | null>>({});
+const pillLeft = ref(0);
+const pillTop = ref(0);
+const pillWidth = ref(0);
+const pillHeight = ref(0);
+const pillReady = ref(false);
 
 function setModeRef(id: SortMode, el: any) {
   if (el) {
-    modeRefs.value[id] = el as HTMLElement
+    modeRefs.value[id] = el as HTMLElement;
     if (id === props.modelValue) {
       nextTick(() => {
-        updatePillPosition()
-      })
+        updatePillPosition();
+      });
     }
   }
 }
 
 function updatePillPosition() {
-  const activeEl = modeRefs.value[props.modelValue]
-  const contEl = containerRef.value
-  if (!activeEl || !contEl) return
+  const activeEl = modeRefs.value[props.modelValue];
+  const contEl = containerRef.value;
+  if (!activeEl || !contEl) return;
 
-  const left = activeEl.offsetLeft
-  const top = activeEl.offsetTop
-  const width = activeEl.offsetWidth
-  const height = activeEl.offsetHeight
+  const left = activeEl.offsetLeft;
+  const top = activeEl.offsetTop;
+  const width = activeEl.offsetWidth;
+  const height = activeEl.offsetHeight;
 
   if (width === 0) {
-    requestAnimationFrame(updatePillPosition)
-    return
+    requestAnimationFrame(updatePillPosition);
+    return;
   }
 
-  pillLeft.value = left
-  pillTop.value = top
-  pillWidth.value = width
-  pillHeight.value = height
-  pillReady.value = true
+  pillLeft.value = left;
+  pillTop.value = top;
+  pillWidth.value = width;
+  pillHeight.value = height;
+  pillReady.value = true;
 }
 
 function handleModeClick(mode: SortMode) {
-  emit('update:modelValue', mode)
+  emit("update:modelValue", mode);
   nextTick(() => {
-    updatePillPosition()
-  })
+    updatePillPosition();
+  });
 }
 
 watch(
   () => [props.modelValue, props.accentColor],
   async () => {
-    await nextTick()
-    requestAnimationFrame(updatePillPosition)
-  }
-)
+    await nextTick();
+    requestAnimationFrame(updatePillPosition);
+  },
+);
 
 onMounted(() => {
-  window.addEventListener('resize', updatePillPosition)
+  window.addEventListener("resize", updatePillPosition);
   nextTick(() => {
-    updatePillPosition()
-  })
-})
+    updatePillPosition();
+  });
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updatePillPosition)
-})
+  window.removeEventListener("resize", updatePillPosition);
+});
 
 const containerMaxWidth = computed(() => {
-  if (props.gridCols <= 3) return 'max-w-3xl'
-  if (props.gridCols === 4) return 'max-w-4xl'
-  if (props.gridCols === 5) return 'max-w-5xl'
-  if (props.gridCols === 6) return 'max-w-6xl'
-  return 'max-w-7xl'
-})
+  if (props.gridCols <= 3) return "max-w-3xl";
+  if (props.gridCols === 4) return "max-w-4xl";
+  if (props.gridCols === 5) return "max-w-5xl";
+  if (props.gridCols === 6) return "max-w-6xl";
+  return "max-w-7xl";
+});
 </script>
 
 <template>
@@ -158,7 +163,10 @@ const containerMaxWidth = computed(() => {
         @click="handleModeClick(item.id)"
       >
         <component :is="item.icon" class="h-3 w-3 shrink-0" />
-        <span class="inline-flex items-center leading-none -translate-y-[0.5px]">{{ item.label }}</span>
+        <span
+          class="inline-flex items-center leading-none -translate-y-[0.5px]"
+          >{{ item.label }}</span
+        >
       </button>
     </div>
   </div>

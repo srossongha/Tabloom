@@ -243,7 +243,8 @@ onUnmounted(() => {
                 transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
                 width: `${pillWidth}px`,
                 height: `${pillHeight}px`,
-                transitionProperty: 'transform, width, height, opacity, box-shadow',
+                transitionProperty:
+                  'transform, width, height, opacity, box-shadow',
                 transitionDuration: `${slideDuration}ms`,
                 transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 opacity: pillReady ? 1 : 0,
@@ -277,7 +278,10 @@ onUnmounted(() => {
                 class="h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-out"
                 :class="{ 'scale-105': optimisticActiveView === tab.id }"
               />
-              <span class="inline-flex items-center leading-none -translate-y-[0.5px]">{{ tab.label }}</span>
+              <span
+                class="inline-flex items-center leading-none -translate-y-[0.5px]"
+                >{{ tab.label }}</span
+              >
             </button>
           </nav>
 
@@ -297,7 +301,9 @@ onUnmounted(() => {
                 : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] text-white/80 hover:text-white hover:bg-white/15 light:text-slate-700 light:hover:text-slate-900',
             ]"
             :style="{
-              borderColor: props.isSettingsOpen ? `${activeAccent}66` : undefined,
+              borderColor: props.isSettingsOpen
+                ? `${activeAccent}66`
+                : undefined,
               boxShadow: props.isSettingsOpen
                 ? `0 4px 14px 0 ${accentGlow}`
                 : undefined,
@@ -319,9 +325,7 @@ onUnmounted(() => {
         type="button"
         aria-label="Toggle navigation and settings"
         :title="
-          isExpanded
-            ? 'Collapse navigation'
-            : 'Expand navigation & settings'
+          isExpanded ? 'Collapse navigation' : 'Expand navigation & settings'
         "
         class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
