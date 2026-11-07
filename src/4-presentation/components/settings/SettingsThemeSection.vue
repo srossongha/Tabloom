@@ -394,8 +394,8 @@ onMounted(() => {
     <div class="space-y-3 border-t border-white/10 pt-3">
       <div class="flex items-center justify-between">
         <div>
-          <span class="block font-medium text-white/90">Bookmarks & Tab Color</span>
-          <span class="text-[11px] text-white/45">Change the active Bookmarks tab color in your top bar</span>
+          <span class="block font-medium text-white/90">App Accent Color</span>
+          <span class="text-[11px] text-white/45">Buttons, tabs, active highlights, and badges</span>
         </div>
         <!-- Live replica of the Bookmarks button from user's screenshot -->
         <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-sm select-none">
@@ -407,7 +407,7 @@ onMounted(() => {
             }"
           >
             <Bookmark class="h-3.5 w-3.5" />
-            <span>Bookmarks</span>
+            <span>Active Accent</span>
           </div>
         </div>
       </div>
@@ -441,7 +441,7 @@ onMounted(() => {
         class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
       >
         <div class="flex items-center gap-2">
-          <span class="text-xs text-white/70">Custom Tab Color</span>
+          <span class="text-xs text-white/70">Custom Accent Color</span>
           <span class="font-mono text-xs font-semibold text-white/90 uppercase">{{ props.settings.accentColor }}</span>
         </div>
         <input

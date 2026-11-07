@@ -12,6 +12,7 @@ import {
 import { PRESET_COLORS } from '../../1-domain/entities/ThemePresets'
 import type { IStoragePort } from '../../1-domain/ports/IStoragePort'
 import { defaultStorageAdapter } from '../../3-infrastructure/storage/storageAdapter'
+import { isColorBright, parseHexOrRgb } from '../services/colorUtils'
 
 const SETTINGS_KEY = 'tabloom_app_settings'
 const LEGACY_SETTINGS_KEY = 'home_tiles_app_settings'
@@ -37,10 +38,20 @@ let storagePort: IStoragePort = defaultStorageAdapter
 function applyCssVariables(cfg: AppSettings) {
   if (typeof document === 'undefined') return
   const root = document.documentElement
+  const accent = cfg.accentColor || '#10b981'
+  const isBright = isColorBright(accent)
+  const rgb = parseHexOrRgb(accent) || { r: 16, g: 185, b: 129 }
+
   root.style.setProperty('--bg-start', cfg.bgStart)
   root.style.setProperty('--bg-end', cfg.bgEnd)
   root.style.setProperty('--tile-bg', cfg.tileBg)
-  root.style.setProperty('--accent', cfg.accentColor)
+  root.style.setProperty('--accent', accent)
+  root.style.setProperty('--accent-contrast', isBright ? '#0f172a' : '#ffffff')
+  root.style.setProperty('--accent-glow', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`)
+  root.style.setProperty('--accent-15', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`)
+  root.style.setProperty('--accent-20', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.20)`)
+  root.style.setProperty('--accent-25', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`)
+  root.style.setProperty('--accent-30', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.30)`)
   root.style.setProperty('--text-main', cfg.textColor)
   root.style.setProperty('--grid-cols', String(cfg.gridCols))
   root.style.setProperty('--tile-radius', `${cfg.tileRadius}px`)

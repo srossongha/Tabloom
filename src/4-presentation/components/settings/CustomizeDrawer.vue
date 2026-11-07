@@ -274,7 +274,7 @@ onUnmounted(() => {
             class="relative flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors duration-200 cursor-pointer select-none"
             :class="[
               currentTab === t.id
-                ? 'font-semibold text-emerald-400 dark:text-emerald-400 light:text-emerald-600'
+                ? 'font-semibold'
                 : 'text-white/50 hover:text-white/85 dark:text-white/50 dark:hover:text-white/85 light:text-slate-500 light:hover:text-slate-900',
             ]"
             :style="{

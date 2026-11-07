@@ -27,6 +27,12 @@
   --color-text-main: var(--text-main);
   --radius-tile: var(--tile-radius);
   --spacing-tile-gap: var(--tile-gap);
+
+  /* Dynamically bind all emerald accent tokens to the user-selected accent color */
+  --color-emerald-300: var(--accent);
+  --color-emerald-400: var(--accent);
+  --color-emerald-500: var(--accent);
+  --color-emerald-600: var(--accent);
 }
 
 /* Permanent locked scrollbar gutter eliminates any horizontal layout jumps */
@@ -308,15 +314,19 @@ body.theme-light,
   color: #0f172a !important;
 }
 
-/* Vibrant Emerald Accent on Light Theme */
-.theme-light .text-emerald-400 {
-  color: #059669 !important;
-}
-.theme-light .text-emerald-300 {
-  color: #047857 !important;
-}
+/* Dynamic Accent on Light Theme */
+.theme-light .text-emerald-400,
+.theme-light .text-emerald-300,
 .theme-light .group:hover .group-hover\:text-emerald-400 {
-  color: #059669 !important;
+  color: var(--accent) !important;
+}
+.theme-light .border-emerald-400,
+.theme-light .border-emerald-500 {
+  border-color: var(--accent) !important;
+}
+.theme-light .ring-emerald-400,
+.theme-light .ring-emerald-500 {
+  --tw-ring-color: var(--accent) !important;
 }
 
 /* Luminous Frosted Glass Card Surfaces & Buttons */
@@ -434,14 +444,19 @@ header nav button,
   color: #64748b !important;
 }
 
-/* Preserve White Text on Vibrant Accent Buttons & Badges */
+/* Dynamic Accent Buttons & Badges */
+.bg-emerald-500,
+button[class*="bg-emerald-500"] {
+  background-color: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+}
+
 .theme-light .bg-emerald-500,
 .theme-light .bg-emerald-500 *,
 .theme-light .bg-\[\#10b981\],
-.theme-light .bg-\[\#10b981\] *,
-.theme-light .bg-rose-500,
-.theme-light .bg-rose-500 * {
-  color: #ffffff !important;
+.theme-light .bg-\[\#10b981\] * {
+  background-color: var(--accent) !important;
+  color: var(--accent-contrast) !important;
 }
 
 /* Sticky Notes (Physical Post-it Notes with strictly sharp 90-degree corners) */
