@@ -24,6 +24,7 @@ declare module 'vue' {
     SideClockWidget: typeof import('./4-presentation/components/clock/SideClockWidget.vue')['default']
     SortModeBar: typeof import('./4-presentation/components/grid/SortModeBar.vue')['default']
     StickyNoteWidget: typeof import('./4-presentation/components/stickyNote/StickyNoteWidget.vue')['default']
+    TabBrandingSection: typeof import('./4-presentation/components/settings/TabBrandingSection.vue')['default']
     TileEditorModal: typeof import('./4-presentation/components/modals/TileEditorModal.vue')['default']
     TileGridContainer: typeof import('./4-presentation/components/grid/TileGridContainer.vue')['default']
     TileItemCard: typeof import('./4-presentation/components/grid/TileItemCard.vue')['default']

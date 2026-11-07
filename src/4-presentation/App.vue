@@ -69,6 +69,32 @@ watch(
   { immediate: true },
 );
 
+function applyTabIdentity(name?: string, icon?: string) {
+  if (typeof document === "undefined") return;
+  const finalName = name?.trim() || "Tabloom";
+  document.title = finalName;
+
+  const finalIcon = icon?.trim() || "/icons/icon.svg";
+  let link = document.querySelector<HTMLLinkElement>("link[rel*='icon']");
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "icon";
+    document.head.appendChild(link);
+  }
+  link.href = finalIcon;
+}
+
+watch(
+  () => [
+    settingsStore.settings.value.appName,
+    settingsStore.settings.value.appIcon,
+  ],
+  ([name, icon]) => {
+    applyTabIdentity(name, icon);
+  },
+  { immediate: true },
+);
+
 const visibleTiles = computed(() => {
   const filtered = filterTiles(tilesStore.tiles.value, nav.searchQuery.value);
   return sortTiles(filtered, nav.sortMode.value);
@@ -193,6 +219,7 @@ function onExportConfig() {
     <div class="relative z-10 flex min-h-screen flex-col">
       <TopNavHeader
         :app-name="settingsStore.settings.value.appName"
+        :app-icon="settingsStore.settings.value.appIcon"
         :active-view="nav.activeView.value"
         :accent-color="settingsStore.settings.value.accentColor"
         :show-logo="settingsStore.settings.value.showLogo"

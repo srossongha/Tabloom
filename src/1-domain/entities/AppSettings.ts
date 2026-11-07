@@ -63,6 +63,7 @@ export type TileStyle = z.infer<typeof TileStyleSchema>
 
 export const AppSettingsSchema = z.object({
   appName: z.string().default('Tabloom'),
+  appIcon: z.string().default('/icons/icon.svg'),
   themePreset: ThemePresetSchema.default('cosmic-purple'),
   themeMode: ThemeModeSchema,
   clockTheme: ClockThemeSchema,

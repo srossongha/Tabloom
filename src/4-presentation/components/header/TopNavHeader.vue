@@ -23,6 +23,7 @@ import {
 
 interface Props {
   appName: string;
+  appIcon?: string;
   activeView: NavigationTab;
   accentColor?: string;
   showLogo?: boolean;
@@ -31,6 +32,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  appIcon: "/icons/icon.svg",
   accentColor: "#10b981",
   showLogo: true,
   showNavTabs: true,
@@ -212,9 +214,10 @@ onUnmounted(() => {
     <!-- Brand Logo in top-left header if enabled -->
     <div v-if="props.showLogo" class="flex items-center gap-2.5">
       <img
-        src="/icons/icon.svg"
+        :src="props.appIcon || '/icons/icon.svg'"
         :alt="props.appName"
-        class="h-7 w-7 object-contain drop-shadow"
+        class="h-7 w-7 object-contain drop-shadow rounded-lg"
+        @error="($event.target as HTMLImageElement).src = '/icons/icon.svg'"
       />
       <span class="text-sm font-semibold tracking-wide text-white/90">{{
         props.appName

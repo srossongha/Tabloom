@@ -8,6 +8,7 @@ import type { AppSettings } from "../../../1-domain/entities/AppSettings";
 import type { BookmarkFolder } from "../../../1-domain/entities/BrowserItem";
 import { parseBookmarksHtml } from "../../../3-infrastructure/importer/browserDataImporter";
 import { isColorBright } from "../../../2-application/services/colorUtils";
+import TabBrandingSection from "./TabBrandingSection.vue";
 
 interface Props {
   settings: AppSettings;
@@ -52,6 +53,12 @@ function onHtmlFile(e: Event) {
 
 <template>
   <div class="space-y-4 text-xs text-white/80 select-none">
+    <!-- Browser Tab & Logo Identity Customization -->
+    <TabBrandingSection
+      :settings="props.settings"
+      @update="emit('update', $event)"
+    />
+
     <div>
       <label class="block font-medium text-white/70">Data Source Mode</label>
       <select

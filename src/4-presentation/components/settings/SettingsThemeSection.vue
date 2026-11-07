@@ -30,6 +30,7 @@ import {
   type MediaMetadata,
 } from '../../../3-infrastructure/storage/mediaStorageService'
 import { isColorBright } from '../../../2-application/services/colorUtils'
+import TabBrandingSection from './TabBrandingSection.vue'
 
 interface Props {
   settings: AppSettings
@@ -217,6 +218,12 @@ onMounted(() => {
 
 <template>
   <div class="space-y-4 text-xs text-white/80">
+    <!-- Browser Tab & Logo Identity Customization -->
+    <TabBrandingSection
+      :settings="props.settings"
+      @update="emit('update', $event)"
+    />
+
     <!-- Success Toast Notification -->
     <div
       v-if="uploadMessage"
