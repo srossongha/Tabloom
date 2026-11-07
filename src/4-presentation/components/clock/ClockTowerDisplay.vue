@@ -336,8 +336,11 @@ const TICKS = Array.from({ length: 60 }, (_, i) => {
         class="inline-flex items-center gap-1.5 rounded-full border border-current/10 bg-current/[0.04] px-2.5 py-0.5 font-mono text-[11px] font-semibold tracking-wider text-current/80 shadow-sm"
       >
         <span
-          class="h-1.5 w-1.5 rounded-full animate-ping"
-          :style="{ backgroundColor: 'var(--accent, #10b981)' }"
+          class="h-1.5 w-1.5 rounded-full shadow-sm"
+          :style="{
+            backgroundColor: 'var(--accent, #10b981)',
+            boxShadow: '0 0 6px var(--accent, #10b981)',
+          }"
         />
         {{ digitalTime }}
       </span>

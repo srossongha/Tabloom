@@ -16,6 +16,7 @@ import {
   TAB_ICON_PRESETS,
   type TabIconPreset,
 } from '../../../2-application/services/tabIconPresets'
+import { isColorBright } from '../../../2-application/services/colorUtils'
 
 interface Props {
   settings: AppSettings
@@ -101,7 +102,7 @@ function applyCustomUrl() {
     <!-- Header with Reset Button -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <Globe class="h-4 w-4 text-emerald-400" />
+        <Globe class="h-4 w-4" :style="{ color: props.settings.accentColor }" />
         <div>
           <h3 class="text-xs font-semibold text-white tracking-wide">
             Browser Tab & Logo Identity
@@ -162,7 +163,8 @@ function applyCustomUrl() {
         maxlength="40"
         :value="props.settings.appName"
         placeholder="Tabloom"
-        class="w-full rounded-lg border border-white/15 bg-white/[0.06] px-3 py-2 text-xs text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-emerald-400 focus:bg-white/[0.1] focus:ring-1 focus:ring-emerald-400/30"
+        class="w-full rounded-lg border border-white/15 bg-white/[0.06] px-3 py-2 text-xs text-white placeholder-white/30 outline-none transition-all duration-200 focus:bg-white/[0.1]"
+        :style="{ '--tw-ring-color': props.settings.accentColor }"
         @input="handleNameInput"
       />
 
@@ -175,9 +177,14 @@ function applyCustomUrl() {
           class="rounded-full px-2.5 py-0.5 text-[10.5px] transition-all cursor-pointer border"
           :class="[
             props.settings.appName === name
-              ? 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300 font-medium'
+              ? 'font-medium shadow-sm'
               : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white hover:bg-white/10',
           ]"
+          :style="props.settings.appName === name ? {
+            borderColor: props.settings.accentColor,
+            backgroundColor: `${props.settings.accentColor}25`,
+            color: props.settings.accentColor,
+          } : undefined"
           @click="setQuickName(name)"
         >
           {{ name }}
@@ -194,7 +201,8 @@ function applyCustomUrl() {
         <div class="flex items-center gap-1.5">
           <button
             type="button"
-            class="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 cursor-pointer"
+            class="flex items-center gap-1 text-[11px] hover:opacity-80 cursor-pointer"
+            :style="{ color: props.settings.accentColor }"
             @click="triggerFileUpload"
           >
             <Upload class="h-3 w-3" />
@@ -226,12 +234,17 @@ function applyCustomUrl() {
           v-model="customUrlInput"
           type="url"
           placeholder="https://example.com/favicon.ico"
-          class="flex-1 rounded-lg border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs text-white placeholder-white/30 outline-none focus:border-emerald-400"
+          class="flex-1 rounded-lg border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs text-white placeholder-white/30 outline-none"
+          :style="{ '--tw-ring-color': props.settings.accentColor }"
           @keydown.enter="applyCustomUrl"
         />
         <button
           type="button"
-          class="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-400 cursor-pointer"
+          class="rounded-lg px-3 py-1 text-xs font-medium transition-transform active:scale-95 cursor-pointer"
+          :style="{
+            backgroundColor: props.settings.accentColor,
+            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+          }"
           @click="applyCustomUrl"
         >
           Apply
@@ -248,9 +261,14 @@ function applyCustomUrl() {
           class="group relative flex flex-col items-center justify-center gap-1 rounded-lg border p-2 transition-all cursor-pointer backdrop-blur-sm"
           :class="[
             props.settings.appIcon === preset.iconUrl
-              ? 'border-emerald-400 bg-emerald-500/15 shadow-sm shadow-emerald-500/20'
+              ? 'shadow-sm'
               : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.08]',
           ]"
+          :style="props.settings.appIcon === preset.iconUrl ? {
+            borderColor: props.settings.accentColor,
+            backgroundColor: `${props.settings.accentColor}20`,
+            boxShadow: `0 0 10px 0 ${props.settings.accentColor}35`,
+          } : undefined"
           @click="selectPreset(preset)"
         >
           <img
@@ -266,7 +284,11 @@ function applyCustomUrl() {
           <!-- Active Indicator Badge -->
           <span
             v-if="props.settings.appIcon === preset.iconUrl"
-            class="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[9px] text-white shadow"
+            class="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold shadow"
+            :style="{
+              backgroundColor: props.settings.accentColor,
+              color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+            }"
           >
             ✓
           </span>

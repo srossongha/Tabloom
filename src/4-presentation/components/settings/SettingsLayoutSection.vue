@@ -10,11 +10,14 @@ import type {
   ClockTheme,
   TileStyle,
 } from '../../../1-domain/entities/AppSettings'
+import { isColorBright } from '../../../2-application/services/colorUtils'
 
 interface Props {
   settings: AppSettings
 }
 const props = defineProps<Props>()
+
+const COLUMN_PRESETS = [2, 3, 4, 5, 6, 8, 10]
 
 const TILE_STYLES: Array<{
   id: TileStyle
@@ -143,18 +146,42 @@ function onImportFile(e: Event) {
         <span class="text-[10px] text-white/40">Margins, gaps, paddings</span>
       </div>
 
-      <!-- Grid Columns -->
-      <div>
-        <div class="flex justify-between">
+      <!-- Grid Columns with Quick Presets -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between items-center">
           <span>Grid Columns</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.gridCols }} cols</span>
+          <span class="font-mono font-semibold" :style="{ color: props.settings.accentColor }">
+            {{ props.settings.gridCols }} cols {{ props.settings.gridCols === 4 ? '(Bento 1 1 2 2)' : '' }}
+          </span>
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="cols in COLUMN_PRESETS"
+            :key="cols"
+            type="button"
+            class="flex-1 min-w-[32px] rounded-lg border py-1 text-center text-xs font-mono font-medium transition-all cursor-pointer"
+            :class="[
+              props.settings.gridCols === cols
+                ? 'shadow-sm font-bold'
+                : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.1] text-white/70',
+            ]"
+            :style="props.settings.gridCols === cols ? {
+              borderColor: props.settings.accentColor,
+              backgroundColor: props.settings.accentColor,
+              color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+            } : undefined"
+            @click="emit('update', { gridCols: cols })"
+          >
+            {{ cols }}
+          </button>
         </div>
         <input
           type="range"
           min="2"
           max="10"
           :value="props.settings.gridCols"
-          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          class="mt-1 w-full cursor-pointer"
+          :style="{ accentColor: props.settings.accentColor }"
           @input="
             emit('update', {
               gridCols: Number(($event.target as HTMLInputElement).value),
@@ -167,14 +194,15 @@ function onImportFile(e: Event) {
       <div>
         <div class="flex justify-between">
           <span>Card Height</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.cardHeight }}px</span>
+          <span class="font-mono" :style="{ color: props.settings.accentColor }">{{ props.settings.cardHeight }}px</span>
         </div>
         <input
           type="range"
           min="70"
           max="220"
           :value="props.settings.cardHeight"
-          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          class="mt-1 w-full cursor-pointer"
+          :style="{ accentColor: props.settings.accentColor }"
           @input="
             emit('update', {
               cardHeight: Number(($event.target as HTMLInputElement).value),
@@ -187,14 +215,15 @@ function onImportFile(e: Event) {
       <div>
         <div class="flex justify-between">
           <span>Tile Spacing (Margin / Gap)</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.tileGap }}px</span>
+          <span class="font-mono" :style="{ color: props.settings.accentColor }">{{ props.settings.tileGap }}px</span>
         </div>
         <input
           type="range"
           min="4"
           max="48"
           :value="props.settings.tileGap"
-          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          class="mt-1 w-full cursor-pointer"
+          :style="{ accentColor: props.settings.accentColor }"
           @input="
             emit('update', {
               tileGap: Number(($event.target as HTMLInputElement).value),
@@ -207,14 +236,15 @@ function onImportFile(e: Event) {
       <div>
         <div class="flex justify-between">
           <span>Grid Outer Padding</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.gridPadding ?? 24 }}px</span>
+          <span class="font-mono" :style="{ color: props.settings.accentColor }">{{ props.settings.gridPadding ?? 24 }}px</span>
         </div>
         <input
           type="range"
           min="0"
           max="64"
           :value="props.settings.gridPadding ?? 24"
-          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          class="mt-1 w-full cursor-pointer"
+          :style="{ accentColor: props.settings.accentColor }"
           @input="
             emit('update', {
               gridPadding: Number(($event.target as HTMLInputElement).value),
@@ -227,14 +257,15 @@ function onImportFile(e: Event) {
       <div>
         <div class="flex justify-between">
           <span>Tile Inner Padding</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.tilePadding ?? 16 }}px</span>
+          <span class="font-mono" :style="{ color: props.settings.accentColor }">{{ props.settings.tilePadding ?? 16 }}px</span>
         </div>
         <input
           type="range"
           min="4"
           max="32"
           :value="props.settings.tilePadding ?? 16"
-          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          class="mt-1 w-full cursor-pointer"
+          :style="{ accentColor: props.settings.accentColor }"
           @input="
             emit('update', {
               tilePadding: Number(($event.target as HTMLInputElement).value),
@@ -247,7 +278,7 @@ function onImportFile(e: Event) {
       <div>
         <div class="flex justify-between">
           <span>Corner Radius</span>
-          <span class="text-emerald-400 font-mono">
+          <span class="font-mono" :style="{ color: props.settings.accentColor }">
             {{ props.settings.tileStyle === 'minecraft-2d' || props.settings.tileStyle === 'retro-pixel' ? '0px (Blocky)' : `${props.settings.tileRadius}px` }}
           </span>
         </div>
@@ -257,7 +288,8 @@ function onImportFile(e: Event) {
           max="32"
           :disabled="props.settings.tileStyle === 'minecraft-2d' || props.settings.tileStyle === 'retro-pixel'"
           :value="props.settings.tileRadius"
-          class="mt-1 w-full accent-emerald-500 cursor-pointer disabled:opacity-40"
+          class="mt-1 w-full cursor-pointer disabled:opacity-40"
+          :style="{ accentColor: props.settings.accentColor }"
           @input="
             emit('update', {
               tileRadius: Number(($event.target as HTMLInputElement).value),
@@ -276,7 +308,7 @@ function onImportFile(e: Event) {
 
       <!-- Widgets & Screen Elements -->
       <div class="space-y-1.5">
-        <span class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase">
+        <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
           Widgets & Display
         </span>
         <div class="grid grid-cols-2 gap-2">
@@ -286,7 +318,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showGreeting"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showGreeting: ($event.target as HTMLInputElement).checked,
@@ -302,7 +335,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showSearch"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showSearch: ($event.target as HTMLInputElement).checked,
@@ -318,7 +352,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showSideClock"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showSideClock: ($event.target as HTMLInputElement).checked,
@@ -334,7 +369,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showStickyNote"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showStickyNote: ($event.target as HTMLInputElement).checked,
@@ -350,7 +386,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showYearProgress"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showYearProgress: ($event.target as HTMLInputElement).checked,
@@ -366,7 +403,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.clock24h"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   clock24h: ($event.target as HTMLInputElement).checked,
@@ -382,7 +420,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showAudioPlayer"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showAudioPlayer: ($event.target as HTMLInputElement).checked,
@@ -398,7 +437,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showCustomWallpaper"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showCustomWallpaper: ($event.target as HTMLInputElement).checked,
@@ -412,7 +452,7 @@ function onImportFile(e: Event) {
         <!-- Clock Theme Style Selector -->
         <div v-if="props.settings.showSideClock" class="mt-3 space-y-2 border-t border-white/10 pt-3">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase">
+            <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
               Clock Theme
             </span>
             <span class="text-[10px] text-white/40">4 distinct styles</span>
@@ -452,7 +492,7 @@ function onImportFile(e: Event) {
 
       <!-- Shortcuts & Navigation -->
       <div class="space-y-1.5 pt-1">
-        <span class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase">
+        <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
           Shortcuts & Navigation
         </span>
         <div class="grid grid-cols-2 gap-2">
@@ -462,7 +502,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showTileGrid"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showTileGrid: ($event.target as HTMLInputElement).checked,
@@ -478,7 +519,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showNavTabs"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showNavTabs: ($event.target as HTMLInputElement).checked,
@@ -494,7 +536,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showLogo"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showLogo: ($event.target as HTMLInputElement).checked,
@@ -510,7 +553,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showSortBar"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showSortBar: ($event.target as HTMLInputElement).checked,
@@ -526,7 +570,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showLabels"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showLabels: ($event.target as HTMLInputElement).checked,
@@ -542,7 +587,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showAddCard"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showAddCard: ($event.target as HTMLInputElement).checked,
@@ -558,7 +604,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.showScrollProgress"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   showScrollProgress: ($event.target as HTMLInputElement).checked,
@@ -574,7 +621,8 @@ function onImportFile(e: Event) {
             <input
               type="checkbox"
               :checked="props.settings.openInNewTab"
-              class="accent-emerald-500 rounded cursor-pointer transition-transform hover:scale-110"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
               @change="
                 emit('update', {
                   openInNewTab: ($event.target as HTMLInputElement).checked,
@@ -592,7 +640,8 @@ function onImportFile(e: Event) {
       <span class="block font-medium text-white/70">Particles Engine</span>
       <select
         :value="props.settings.particleMode"
-        class="settings-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200 focus:border-emerald-400"
+        class="settings-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200"
+        :style="{ '--tw-ring-color': props.settings.accentColor }"
         @change="
           emit('update', {
             particleMode: ($event.target as HTMLSelectElement)

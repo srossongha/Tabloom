@@ -123,6 +123,7 @@ function setTabRef(id: NavigationTab, el: any) {
 }
 
 function moveToTab(view: NavigationTab, animated = true) {
+  if (!isExpanded.value) return;
   const targetEl = tabRefs.value[view];
   const navEl = navRef.value;
   if (!targetEl || !navEl) return;
@@ -135,7 +136,6 @@ function moveToTab(view: NavigationTab, animated = true) {
   const height = targetEl.offsetHeight;
 
   if (width === 0) {
-    requestAnimationFrame(() => moveToTab(view, false));
     return;
   }
 
@@ -180,9 +180,16 @@ watch(
   () => props.accentColor,
   async () => {
     await nextTick();
-    requestAnimationFrame(updatePillPosition);
+    if (isExpanded.value) updatePillPosition();
   },
 );
+
+watch(isExpanded, async (expanded) => {
+  if (expanded) {
+    await nextTick();
+    updatePillPosition();
+  }
+});
 
 onMounted(() => {
   try {

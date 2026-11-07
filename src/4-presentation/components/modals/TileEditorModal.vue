@@ -25,6 +25,8 @@ const emit = defineEmits<{
     url: string
     iconMode: IconMode
     displayMode: TileDisplayMode
+    colSpan?: number
+    rowSpan?: number
     customIcon?: string
     tintColor?: string
     pinned: boolean
@@ -36,13 +38,31 @@ const DISPLAY_MODES: Array<SegmentedOption<TileDisplayMode>> = [
   { id: 'full-cover', label: 'Full Tile Image Cover', icon: ImageIcon },
 ]
 
+const TILE_SIZES: Array<SegmentedOption<string>> = [
+  { id: '1x1', label: '1×1 Normal' },
+  { id: '2x1', label: '2×1 Wide' },
+  { id: '1x2', label: '1×2 Tall' },
+  { id: '2x2', label: '2×2 Hero' },
+]
+
 const title = ref('')
 const url = ref('')
 const iconMode = ref<IconMode>('auto')
 const displayMode = ref<TileDisplayMode>('icon')
+const colSpan = ref(1)
+const rowSpan = ref(1)
 const customIcon = ref('')
 const tintColor = ref('')
 const pinned = ref(false)
+
+const currentTileSize = computed({
+  get: () => `${colSpan.value}x${rowSpan.value}`,
+  set: (val: string) => {
+    const parts = val.split('x')
+    colSpan.value = Number(parts[0]) || 1
+    rowSpan.value = Number(parts[1]) || 1
+  },
+})
 
 watch(() => props.tile, (curr) => {
   if (curr) {
@@ -50,6 +70,8 @@ watch(() => props.tile, (curr) => {
     url.value = curr.url
     iconMode.value = curr.iconMode
     displayMode.value = curr.displayMode || 'icon'
+    colSpan.value = curr.colSpan || 1
+    rowSpan.value = curr.rowSpan || 1
     customIcon.value = curr.customIcon || ''
     tintColor.value = curr.tintColor || ''
     pinned.value = Boolean(curr.pinned)
@@ -58,6 +80,8 @@ watch(() => props.tile, (curr) => {
     url.value = ''
     iconMode.value = 'auto'
     displayMode.value = 'icon'
+    colSpan.value = 1
+    rowSpan.value = 1
     customIcon.value = ''
     tintColor.value = ''
     pinned.value = false
@@ -83,6 +107,8 @@ function onSave() {
     url: finalUrl,
     iconMode: iconMode.value,
     displayMode: displayMode.value,
+    colSpan: colSpan.value,
+    rowSpan: rowSpan.value,
     customIcon: customIcon.value.trim() || undefined,
     tintColor: tintColor.value.trim() || undefined,
     pinned: pinned.value,
@@ -139,7 +165,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-black/10 dark:border-white/10 bg-slate-100/90 dark:bg-black/30">
               <span class="text-[10px] text-slate-500 dark:text-white/40 uppercase tracking-wider mb-2 font-medium">Live Tile Preview</span>
               <div
-                class="gpu-card relative flex w-36 h-28 cursor-default flex-col items-center justify-center rounded-2xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/[0.08] p-3 shadow-md overflow-hidden transition-all duration-300"
+                class="gpu-card relative flex cursor-default flex-col items-center justify-center rounded-2xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/[0.08] p-3 shadow-md overflow-hidden transition-all duration-300"
+                :class="[
+                  colSpan >= 2 ? 'w-56' : 'w-36',
+                  rowSpan >= 2 ? 'h-40' : 'h-28',
+                ]"
                 :style="{
                   backgroundColor: tintColor || undefined,
                 }"
@@ -219,6 +249,56 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               />
               <p v-if="displayMode === 'full-cover'" class="text-[11px] mt-1" :style="{ color: 'var(--accent)' }">
                 The image fills the entire tile surface. Clicking anywhere on the tile opens the URL.
+              </p>
+            </div>
+
+            <!-- Bento Tile Grid Size / Span (1 1 2 2 customize) -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-medium text-slate-700 dark:text-white/70">Tile Grid Size (Bento Span)</label>
+                <span class="text-[11px] font-mono font-semibold" :style="{ color: 'var(--accent)' }">{{ colSpan }} col × {{ rowSpan }} row</span>
+              </div>
+              <SegmentedPillControl
+                v-model="currentTileSize"
+                :options="TILE_SIZES"
+                :accent-color="'var(--accent)'"
+              />
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-black/5 dark:border-white/5">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] text-slate-500 dark:text-white/50">Width:</span>
+                  <button
+                    type="button"
+                    :disabled="colSpan <= 1"
+                    class="h-6 w-6 rounded border border-black/10 dark:border-white/10 flex items-center justify-center text-xs font-bold disabled:opacity-30 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    @click="colSpan = Math.max(1, colSpan - 1)"
+                  >-</button>
+                  <span class="font-mono text-xs font-semibold w-7 text-center">{{ colSpan }} col</span>
+                  <button
+                    type="button"
+                    :disabled="colSpan >= 4"
+                    class="h-6 w-6 rounded border border-black/10 dark:border-white/10 flex items-center justify-center text-xs font-bold disabled:opacity-30 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    @click="colSpan = Math.min(4, colSpan + 1)"
+                  >+</button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] text-slate-500 dark:text-white/50">Height:</span>
+                  <button
+                    type="button"
+                    :disabled="rowSpan <= 1"
+                    class="h-6 w-6 rounded border border-black/10 dark:border-white/10 flex items-center justify-center text-xs font-bold disabled:opacity-30 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    @click="rowSpan = Math.max(1, rowSpan - 1)"
+                  >-</button>
+                  <span class="font-mono text-xs font-semibold w-7 text-center">{{ rowSpan }} row</span>
+                  <button
+                    type="button"
+                    :disabled="rowSpan >= 3"
+                    class="h-6 w-6 rounded border border-black/10 dark:border-white/10 flex items-center justify-center text-xs font-bold disabled:opacity-30 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                    @click="rowSpan = Math.min(3, rowSpan + 1)"
+                  >+</button>
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-white/40 mt-1">
+                Customize dimensions: 2×1 creates a wide banner (e.g. 1 1 2 2 layout), 2×2 creates a large square block.
               </p>
             </div>
 

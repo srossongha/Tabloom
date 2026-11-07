@@ -124,7 +124,6 @@ function updatePillPosition() {
   const height = activeEl.offsetHeight;
 
   if (width === 0) {
-    requestAnimationFrame(updatePillPosition);
     return;
   }
 

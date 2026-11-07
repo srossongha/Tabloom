@@ -32,6 +32,7 @@ const emit = defineEmits<{
   (e: 'closeTab', tabId: number): void
   (e: 'reorder', from: number, to: number): void
   (e: 'openAddModal'): void
+  (e: 'updateTileSize', payload: { id: string; colSpan: number; rowSpan: number }): void
 }>()
 
 const draggedIndex = ref<number | null>(null)
@@ -48,6 +49,7 @@ const containerMaxWidth = computed(() => {
 const gridStyle = computed(() => ({
   gridTemplateColumns: `repeat(${props.gridCols}, minmax(0, 1fr))`,
   gap: 'var(--tile-gap, 20px)',
+  gridAutoFlow: 'dense',
 }))
 
 function handleDragStart(idx: number) {
@@ -116,6 +118,7 @@ function handleDragEnd() {
             @drag-over="handleDragOver"
             @drop="handleDrop"
             @dragend="handleDragEnd"
+            @update-size="emit('updateTileSize', $event)"
           />
 
           <AddNewTileCard

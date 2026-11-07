@@ -228,8 +228,10 @@ onUnmounted(() => {
       playsinline
       class="h-full w-full object-cover transition-all duration-500"
       :style="{
-        filter: `blur(${props.wallpaperBlur}px)`,
+        filter: props.wallpaperBlur > 0 ? `blur(${props.wallpaperBlur}px)` : undefined,
         opacity: 1 - props.wallpaperDim / 100,
+        transform: 'translate3d(0, 0, 0)',
+        contain: 'strict',
       }"
     />
 
@@ -239,8 +241,10 @@ onUnmounted(() => {
       class="h-full w-full bg-cover bg-center transition-all duration-500"
       :style="{
         backgroundImage: `url(${resolvedWallpaperUrl})`,
-        filter: `blur(${props.wallpaperBlur}px)`,
+        filter: props.wallpaperBlur > 0 ? `blur(${props.wallpaperBlur}px)` : undefined,
         opacity: 1 - props.wallpaperDim / 100,
+        transform: 'translate3d(0, 0, 0)',
+        contain: 'strict',
       }"
     />
 

@@ -325,7 +325,12 @@ onMounted(() => {
     <!-- Success Toast Notification -->
     <div
       v-if="uploadMessage"
-      class="flex items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-emerald-300 transition-all animate-pulse"
+      class="flex items-center gap-1.5 rounded-lg border px-3 py-2 transition-all animate-pulse"
+      :style="{
+        borderColor: `${props.settings.accentColor}50`,
+        backgroundColor: `${props.settings.accentColor}18`,
+        color: props.settings.accentColor,
+      }"
     >
       <Check class="h-3.5 w-3.5" />
       <span>{{ uploadMessage }}</span>
@@ -661,17 +666,20 @@ onMounted(() => {
           props.settings.customWallpaper === 'local:wallpaper' &&
           localWallpaperInfo
         "
-        class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-3 py-2 text-xs"
+        class="flex items-center justify-between rounded-lg border px-3 py-2 text-xs"
+        :style="{
+          borderColor: `${props.settings.accentColor}30`,
+          backgroundColor: `${props.settings.accentColor}12`,
+        }"
       >
         <div class="flex items-center gap-2 truncate">
-          <HardDrive class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <HardDrive class="h-3.5 w-3.5 shrink-0" :style="{ color: props.settings.accentColor }" />
           <div class="truncate">
             <span class="font-medium text-white/90 truncate block">
               {{ localWallpaperInfo.name }}
             </span>
-            <span class="text-[10px] text-emerald-300/80">
-              Local DB • {{ formatBytes(localWallpaperInfo.size) }} (Fast 0-lag
-              load)
+            <span class="text-[10px]" :style="{ color: props.settings.accentColor }">
+              Local DB • {{ formatBytes(localWallpaperInfo.size) }} (Fast 0-lag load)
             </span>
           </div>
         </div>
@@ -743,13 +751,15 @@ onMounted(() => {
             :class="[
               props.settings.customWallpaper === wp.url &&
               props.settings.showCustomWallpaper
-                ? 'border-emerald-400 ring-2 ring-emerald-500/40'
+                ? 'ring-2'
                 : 'border-white/10 hover:border-white/30',
             ]"
             :style="{
               backgroundImage: `url(${wp.url})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              borderColor: props.settings.customWallpaper === wp.url && props.settings.showCustomWallpaper ? props.settings.accentColor : undefined,
+              '--tw-ring-color': `${props.settings.accentColor}66`,
             }"
             @click="
               emit('update', {
@@ -771,7 +781,11 @@ onMounted(() => {
                 props.settings.customWallpaper === wp.url &&
                 props.settings.showCustomWallpaper
               "
-              class="absolute top-1 right-1 z-10 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[9px] text-white"
+              class="absolute top-1 right-1 z-10 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[9px] font-bold shadow"
+              :style="{
+                backgroundColor: props.settings.accentColor,
+                color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+              }"
             >
               ✓
             </span>
@@ -790,7 +804,8 @@ onMounted(() => {
             min="0"
             max="24"
             :value="props.settings.wallpaperBlur"
-            class="mt-1 w-full accent-emerald-500"
+            class="mt-1 w-full cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
             @input="
               emit('update', {
                 wallpaperBlur: Number(
@@ -810,7 +825,8 @@ onMounted(() => {
             min="0"
             max="90"
             :value="props.settings.wallpaperDim"
-            class="mt-1 w-full accent-emerald-500"
+            class="mt-1 w-full cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
             @input="
               emit('update', {
                 wallpaperDim: Number(($event.target as HTMLInputElement).value),
@@ -833,17 +849,20 @@ onMounted(() => {
         v-if="
           props.settings.backgroundAudio === 'local:audio' && localAudioInfo
         "
-        class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-3 py-2 text-xs"
+        class="flex items-center justify-between rounded-lg border px-3 py-2 text-xs"
+        :style="{
+          borderColor: `${props.settings.accentColor}30`,
+          backgroundColor: `${props.settings.accentColor}12`,
+        }"
       >
         <div class="flex items-center gap-2 truncate">
-          <Music class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <Music class="h-3.5 w-3.5 shrink-0" :style="{ color: props.settings.accentColor }" />
           <div class="truncate">
             <span class="font-medium text-white/90 truncate block">
               {{ localAudioInfo.name }}
             </span>
-            <span class="text-[10px] text-emerald-300/80">
-              Local DB • {{ formatBytes(localAudioInfo.size) }} (Stutter-free
-              playback)
+            <span class="text-[10px]" :style="{ color: props.settings.accentColor }">
+              Local DB • {{ formatBytes(localAudioInfo.size) }} (Stutter-free playback)
             </span>
           </div>
         </div>
@@ -913,7 +932,8 @@ onMounted(() => {
           <input
             type="checkbox"
             :checked="props.settings.backgroundAudioAutoplay"
-            class="h-4 w-4 cursor-pointer rounded accent-emerald-500"
+            class="h-4 w-4 cursor-pointer rounded"
+            :style="{ accentColor: props.settings.accentColor }"
             @change="
               emit('update', {
                 backgroundAudioAutoplay: ($event.target as HTMLInputElement)
@@ -927,7 +947,8 @@ onMounted(() => {
           <input
             type="checkbox"
             :checked="props.settings.backgroundAudioLoop"
-            class="h-4 w-4 cursor-pointer rounded accent-emerald-500"
+            class="h-4 w-4 cursor-pointer rounded"
+            :style="{ accentColor: props.settings.accentColor }"
             @change="
               emit('update', {
                 backgroundAudioLoop: ($event.target as HTMLInputElement)
@@ -946,7 +967,8 @@ onMounted(() => {
             min="0"
             max="100"
             :value="props.settings.backgroundAudioVolume"
-            class="mt-1 w-full accent-emerald-500"
+            class="mt-1 w-full cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
             @input="
               emit('update', {
                 backgroundAudioVolume: Number(

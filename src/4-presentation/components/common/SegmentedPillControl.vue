@@ -83,7 +83,6 @@ function moveToOption(val: T, animated = true) {
   const width = targetEl.offsetWidth;
 
   if (width === 0) {
-    requestAnimationFrame(() => moveToOption(val, false));
     return;
   }
 

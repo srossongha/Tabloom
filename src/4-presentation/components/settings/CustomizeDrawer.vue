@@ -58,6 +58,7 @@ const tabRefs = ref<Record<string, HTMLElement | null>>({});
 const lineLeft = ref(0);
 const lineWidth = ref(0);
 const isLineReady = ref(false);
+const isAnimated = ref(true);
 
 function setDrawerTabRef(id: DrawerTab, el: any) {
   if (el) {
@@ -71,6 +72,7 @@ function setDrawerTabRef(id: DrawerTab, el: any) {
 }
 
 function updateLinePosition(animated = true) {
+  isAnimated.value = animated;
   const targetEl = tabRefs.value[currentTab.value];
   const containerEl = tabContainerRef.value;
   if (!targetEl || !containerEl) return;
@@ -79,24 +81,13 @@ function updateLinePosition(animated = true) {
   const left = targetEl.offsetLeft;
   const width = targetEl.offsetWidth;
 
-  if (width === 0) {
-    requestAnimationFrame(() => updateLinePosition(animated));
+  if (width === 0 || !props.isOpen) {
     return;
   }
 
   lineLeft.value = left;
   lineWidth.value = width;
-
-  if (!animated) {
-    isLineReady.value = false;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        isLineReady.value = true;
-      });
-    });
-  } else {
-    isLineReady.value = true;
-  }
+  isLineReady.value = true;
 }
 
 function selectTab(id: DrawerTab) {
@@ -186,10 +177,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 z-[90] overflow-hidden pointer-events-none select-none"
-    :class="{ 'pointer-events-auto': props.isOpen }"
-  >
+  <Teleport to="body">
+    <div
+      class="fixed inset-0 z-[90] overflow-hidden pointer-events-none select-none"
+      :class="{ 'pointer-events-auto': props.isOpen }"
+    >
     <!-- Smooth Backdrop Fade -->
     <Transition name="drawer-backdrop">
       <div
@@ -267,7 +259,7 @@ onUnmounted(() => {
             :style="{
               transform: `translate3d(${lineLeft}px, 0, 0)`,
               width: `${lineWidth}px`,
-              transition: isLineReady
+              transition: isLineReady && isAnimated
                 ? 'transform 460ms cubic-bezier(0.16, 1, 0.3, 1), width 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease'
                 : 'opacity 200ms ease',
               opacity: isLineReady ? 1 : 0,
@@ -338,4 +330,5 @@ onUnmounted(() => {
       </aside>
     </Transition>
   </div>
+</Teleport>
 </template>

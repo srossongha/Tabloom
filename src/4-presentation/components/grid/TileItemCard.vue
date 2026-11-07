@@ -43,7 +43,36 @@ const emit = defineEmits<{
   (e: 'dragStart', index: number): void
   (e: 'dragOver', event: DragEvent, index: number): void
   (e: 'drop', from: number, to: number): void
+  (e: 'updateSize', payload: { id: string; colSpan: number; rowSpan: number }): void
 }>()
+
+const TILE_SIZE_PRESETS = [
+  { id: '1x1', label: '1×1 Standard', col: 1, row: 1 },
+  { id: '2x1', label: '2×1 Wide', col: 2, row: 1 },
+  { id: '1x2', label: '1×2 Tall', col: 1, row: 2 },
+  { id: '2x2', label: '2×2 Hero', col: 2, row: 2 },
+]
+
+function onSetSize(colSpan: number, rowSpan: number) {
+  emit('updateSize', { id: props.tile.id, colSpan, rowSpan })
+}
+
+const tileRootStyle = computed(() => {
+  const colSpan = Math.min(props.tile.colSpan || 1, 6)
+  const rowSpan = Math.min(props.tile.rowSpan || 1, 4)
+  return {
+    gridColumn: colSpan > 1 ? `span ${colSpan} / span ${colSpan}` : undefined,
+    gridRow: rowSpan > 1 ? `span ${rowSpan} / span ${rowSpan}` : undefined,
+  }
+})
+
+const cardHeightStyle = computed(() => {
+  const rowSpan = Math.min(props.tile.rowSpan || 1, 4)
+  if (rowSpan > 1) {
+    return `calc(var(--card-height, 120px) * ${rowSpan} + var(--tile-gap, 20px) * ${rowSpan - 1} + ${props.showLabels ? 24 * (rowSpan - 1) : 0}px)`
+  }
+  return 'var(--card-height, 120px)'
+})
 
 const imgError = ref(false)
 const faviconUrl = computed(() =>
@@ -171,6 +200,7 @@ function onDrop(event: DragEvent) {
   <div
     ref="holdCardRef"
     class="relative group flex flex-col items-center justify-start gap-2 select-none"
+    :style="tileRootStyle"
     draggable="true"
     @dragstart="onDragStart"
     @dragover.prevent="emit('dragOver', $event, props.index)"
@@ -178,20 +208,24 @@ function onDrop(event: DragEvent) {
   >
     <!-- Card Container with hardware-accelerated zero-jank hover & hold elevation -->
     <div
-      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center border border-white/[0.08] bg-white/[0.05] shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/35 active:scale-[0.98] overflow-hidden"
+      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center border border-white/[0.08] bg-white/[0.05] shadow-md shadow-black/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/35 active:scale-[0.98] overflow-hidden"
       :class="[
         isHeld
-          ? 'scale-105 -translate-y-2 ring-2 ring-emerald-400 ring-offset-2 ring-offset-black/50 shadow-2xl shadow-emerald-950/50 z-30'
+          ? 'scale-105 -translate-y-2 ring-2 ring-offset-2 ring-offset-black/50 shadow-2xl z-30'
           : '',
         props.isDropTarget
-          ? 'ring-2 ring-dashed ring-emerald-400 bg-emerald-500/25 scale-95 shadow-inner'
+          ? 'ring-2 ring-dashed scale-95 shadow-inner'
           : '',
       ]"
       :style="{
-        height: 'var(--card-height, 120px)',
+        height: cardHeightStyle,
         borderRadius: 'var(--tile-radius, 16px)',
         padding: props.tile.displayMode === 'full-cover' ? '0px' : 'var(--tile-padding, 16px)',
-        backgroundColor: props.tile.tintColor ? props.tile.tintColor : undefined,
+        backgroundColor: props.isDropTarget
+          ? 'var(--accent-20)'
+          : (props.tile.tintColor ? props.tile.tintColor : undefined),
+        borderColor: isHeld || props.isDropTarget ? 'var(--accent)' : undefined,
+        '--tw-ring-color': isHeld || props.isDropTarget ? 'var(--accent)' : undefined,
       }"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
@@ -217,8 +251,40 @@ function onDrop(event: DragEvent) {
 
       <!-- STANDARD ICON BADGE -->
       <template v-else>
-        <!-- Centered 48x48 Favicon Icon Badge -->
-        <div class="tile-icon-box flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner">
+        <!-- Wide Layout for Bento tiles (colSpan >= 2) -->
+        <div
+          v-if="(props.tile.colSpan || 1) >= 2"
+          class="flex items-center gap-3.5 w-full px-4 justify-start z-10"
+        >
+          <div class="tile-icon-box flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner">
+            <img
+              v-if="!imgError && props.tile.iconMode !== 'monogram'"
+              :src="faviconUrl"
+              :alt="props.tile.title"
+              class="h-7 w-7 rounded-md object-contain"
+              loading="lazy"
+              decoding="async"
+              @error="imgError = true"
+            />
+            <div
+              v-else
+              class="flex h-full w-full items-center justify-center text-sm font-bold text-white shadow-sm"
+              :style="{ backgroundColor: monogram.color }"
+            >
+              {{ monogram.letter }}
+            </div>
+          </div>
+          <div class="flex flex-col min-w-0 text-left">
+            <span class="text-sm font-semibold text-white/95 truncate drop-shadow-sm">{{ props.tile.title }}</span>
+            <span class="text-xs text-white/50 truncate font-mono mt-0.5">{{ domain }}</span>
+          </div>
+        </div>
+
+        <!-- Standard Centered 1x1 Icon Badge -->
+        <div
+          v-else
+          class="tile-icon-box flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner"
+        >
           <img
             v-if="!imgError && props.tile.iconMode !== 'monogram'"
             :src="faviconUrl"
@@ -277,7 +343,7 @@ function onDrop(event: DragEvent) {
       </div>
 
       <!-- Pinned indicator -->
-      <div v-if="props.tile.pinned" class="absolute top-2 left-2 z-10 text-emerald-400">
+      <div v-if="props.tile.pinned" class="absolute top-2 left-2 z-10" :style="{ color: 'var(--accent)' }">
         <Pin class="h-3 w-3 rotate-45" />
       </div>
 
@@ -384,8 +450,34 @@ function onDrop(event: DragEvent) {
           </div>
         </div>
 
+        <!-- Bento Tile Grid Size Switcher -->
+        <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-xs">
+          <span class="text-white/60 text-[11px] font-medium">Bento Size:</span>
+          <div class="flex items-center gap-1">
+            <button
+              v-for="sz in TILE_SIZE_PRESETS"
+              :key="sz.id"
+              type="button"
+              class="px-2 py-0.5 rounded text-[10px] font-mono border transition-all cursor-pointer"
+              :class="[
+                (props.tile.colSpan || 1) === sz.col && (props.tile.rowSpan || 1) === sz.row
+                  ? 'font-bold shadow-sm'
+                  : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/15'
+              ]"
+              :style="(props.tile.colSpan || 1) === sz.col && (props.tile.rowSpan || 1) === sz.row ? {
+                borderColor: 'var(--accent)',
+                backgroundColor: 'var(--accent)',
+                color: 'var(--accent-contrast)'
+              } : undefined"
+              @click.stop="onSetSize(sz.col, sz.row)"
+            >
+              {{ sz.label }}
+            </button>
+          </div>
+        </div>
+
         <!-- Quick Actions Row inside Preview -->
-        <div class="mt-3.5 flex items-center gap-2 pt-2.5 border-t border-white/10">
+        <div class="mt-3 flex items-center gap-2 pt-2 border-t border-white/10">
           <button
             type="button"
             class="flex-1 flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-medium shadow-sm transition-transform active:scale-95 cursor-pointer"

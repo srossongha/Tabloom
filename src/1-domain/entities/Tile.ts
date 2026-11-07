@@ -19,6 +19,8 @@ export const TileSchema = z.object({
   url: z.string(),
   iconMode: IconModeSchema.default('auto'),
   displayMode: TileDisplayModeSchema.default('icon').optional(),
+  colSpan: z.number().int().min(1).max(6).default(1).optional(),
+  rowSpan: z.number().int().min(1).max(4).default(1).optional(),
   customIcon: z.string().optional(),
   tintColor: z.string().optional(),
   pinned: z.boolean().default(false),
@@ -38,6 +40,8 @@ export interface TileOverride {
   url?: string
   iconMode?: IconMode
   displayMode?: TileDisplayMode
+  colSpan?: number
+  rowSpan?: number
   customIcon?: string
   tintColor?: string
   pinned?: boolean

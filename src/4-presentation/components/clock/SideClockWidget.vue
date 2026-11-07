@@ -208,7 +208,11 @@ function cycleTheme(e: MouseEvent) {
           class="text-4xl font-light tracking-tighter xl:text-5xl text-current"
         >
           {{ hoursFormatted
-          }}<span class="animate-pulse text-[var(--accent)] font-normal">:</span
+          }}<span
+            class="font-normal transition-opacity duration-200"
+            :class="now.getSeconds() % 2 === 0 ? 'opacity-100' : 'opacity-30'"
+            :style="{ color: 'var(--accent)' }"
+          >:</span
           >{{ minutesFormatted }}
         </span>
         <span

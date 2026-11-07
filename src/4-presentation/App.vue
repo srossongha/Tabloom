@@ -155,6 +155,8 @@ function onSaveTile(payload: {
   url: string;
   iconMode: IconMode;
   displayMode: TileDisplayMode;
+  colSpan?: number;
+  rowSpan?: number;
   customIcon?: string;
   tintColor?: string;
   pinned: boolean;
@@ -214,6 +216,7 @@ function onExportConfig() {
     <CosmicCanvas
       :mode="settingsStore.settings.value.particleMode"
       :density="settingsStore.settings.value.particleDensity"
+      :paused="isSettingsOpen || isModalOpen"
     />
 
     <div class="relative z-10 flex min-h-screen flex-col">
@@ -303,6 +306,12 @@ function onExportConfig() {
         @open-add-modal="
           editingTile = null;
           isModalOpen = true;
+        "
+        @update-tile-size="
+          tilesStore.updateTile($event.id, {
+            colSpan: $event.colSpan,
+            rowSpan: $event.rowSpan,
+          })
         "
       />
     </div>
