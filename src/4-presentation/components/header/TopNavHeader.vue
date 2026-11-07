@@ -105,7 +105,7 @@ watch(
 );
 
 const isSliding = ref(false);
-const slideDuration = ref(260);
+const slideDuration = ref(400);
 let slideTimer: number | undefined;
 
 function setTabRef(id: NavigationTab, el: any) {
@@ -137,13 +137,13 @@ function moveToTab(view: NavigationTab, animated = true) {
   }
 
   if (animated && pillReady.value) {
-    slideDuration.value = 260;
+    slideDuration.value = 400;
     isSliding.value = true;
 
     if (slideTimer) clearTimeout(slideTimer);
     slideTimer = window.setTimeout(() => {
       isSliding.value = false;
-    }, 260);
+    }, 400);
   } else {
     slideDuration.value = 0;
     isSliding.value = false;
@@ -236,7 +236,7 @@ onUnmounted(() => {
             class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
             role="tablist"
           >
-            <!-- Animated Sliding Mask Indicator (Fluid Apple-style glide, zero overshoot) -->
+            <!-- Animated Sliding Mask Indicator (Fluid glide, zero overshoot) -->
             <div
               class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
               :style="{
@@ -246,7 +246,7 @@ onUnmounted(() => {
                 transitionProperty:
                   'transform, width, height, opacity, box-shadow',
                 transitionDuration: `${slideDuration}ms`,
-                transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
                 opacity: pillReady ? 1 : 0,
                 backgroundColor: activeAccent,
                 boxShadow: isSliding
@@ -294,7 +294,7 @@ onUnmounted(() => {
                 ? 'Close Customize'
                 : 'Customize Tabloom (Settings)'
             "
-            class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+            class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
             :class="[
               props.isSettingsOpen
                 ? 'bg-white/15 border-white/20'
@@ -311,7 +311,7 @@ onUnmounted(() => {
             @click="emit('openSettings')"
           >
             <SlidersHorizontal
-              class="h-4 w-4 transition-transform duration-300 group-hover:scale-110"
+              class="h-4 w-4 transition-transform duration-380 group-hover:scale-110"
               :style="{
                 color: props.isSettingsOpen ? activeAccent : undefined,
               }"
@@ -327,7 +327,7 @@ onUnmounted(() => {
         :title="
           isExpanded ? 'Collapse navigation' : 'Expand navigation & settings'
         "
-        class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+        class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
           isExpanded
             ? 'border-white/20 bg-white/15'
@@ -340,7 +340,7 @@ onUnmounted(() => {
         @click="toggleExpanded"
       >
         <Settings
-          class="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          class="h-4 w-4 transition-transform duration-380 ease-[cubic-bezier(0.4,0,0.2,1)]"
           :class="[
             isExpanded
               ? 'rotate-90'
@@ -356,20 +356,20 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Fluid Slide-out & Collapse Animation (Zero squish, crisp reveal) */
+/* Fluid Slide-out & Collapse Animation (Zero squish, graceful reveal) */
 .header-expand-enter-active {
   transition:
-    max-width 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    max-width 400ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
 .header-expand-leave-active {
   transition:
-    max-width 240ms cubic-bezier(0.2, 0, 0, 1),
-    opacity 180ms ease,
-    transform 240ms cubic-bezier(0.2, 0, 0, 1);
+    max-width 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 240ms ease,
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
@@ -384,6 +384,6 @@ onUnmounted(() => {
 .header-expand-leave-from {
   opacity: 1;
   transform: translateX(0);
-  max-width: 580px;
+  max-width: 550px;
 }
 </style>

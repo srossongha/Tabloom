@@ -249,8 +249,8 @@ onUnmounted(() => {
               transform: `translate3d(${lineLeft}px, 0, 0)`,
               width: `${lineWidth}px`,
               transition: isLineReady
-                ? 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease'
-                : 'opacity 180ms ease',
+                ? 'transform 400ms cubic-bezier(0.4, 0, 0.2, 1), width 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease'
+                : 'opacity 200ms ease',
               opacity: isLineReady ? 1 : 0,
               backgroundColor: activeAccent,
               boxShadow: `0 0 10px 1px ${accentGlow}`,

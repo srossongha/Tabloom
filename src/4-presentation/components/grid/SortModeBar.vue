@@ -138,8 +138,8 @@ const containerMaxWidth = computed(() => {
           width: `${pillWidth}px`,
           height: `${pillHeight}px`,
           transition: pillReady
-            ? 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease'
-            : 'opacity 180ms ease',
+            ? 'transform 400ms cubic-bezier(0.4, 0, 0.2, 1), width 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease'
+            : 'opacity 200ms ease',
           opacity: pillReady ? 1 : 0,
           backgroundColor: activeAccent,
           boxShadow: `0 2px 10px 0 ${accentGlow}`,
