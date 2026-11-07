@@ -507,14 +507,35 @@ header nav button,
 .theme-light aside .border-white\/10 {
   border-color: rgba(15, 23, 42, 0.09) !important;
 }
-.theme-light aside select,
-.theme-light .settings-drawer-panel select {
-  background-color: rgba(241, 245, 249, 0.95) !important;
-  border-color: rgba(15, 23, 42, 0.15) !important;
-  color: #0f172a !important;
+
+/* Settings Select Dropdowns: High-contrast Dark Mode & Crisp Light Mode */
+.settings-select {
+  background-color: rgba(31, 16, 53, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
 }
+.settings-select option {
+  background-color: #1a0f2e !important;
+  color: #ffffff !important;
+}
+
+.theme-light select,
+.theme-light .settings-select,
+.theme-light aside select,
+.theme-light .settings-drawer-panel select,
+[data-theme="light"] select,
+[data-theme="light"] .settings-select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06) !important;
+}
+.theme-light select option,
+.theme-light .settings-select option,
 .theme-light aside select option,
-.theme-light .settings-drawer-panel select option {
+.theme-light .settings-drawer-panel select option,
+[data-theme="light"] select option,
+[data-theme="light"] .settings-select option {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }

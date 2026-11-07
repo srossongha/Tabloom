@@ -439,7 +439,7 @@ function onImportFile(e: Event) {
       <span class="block font-medium text-white/70">Particles Engine</span>
       <select
         :value="props.settings.particleMode"
-        class="w-full rounded-lg border border-white/10 bg-[#1f1035] p-2 text-white outline-none cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 focus:border-emerald-400"
+        class="settings-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200 focus:border-emerald-400"
         @change="
           emit('update', {
             particleMode: ($event.target as HTMLSelectElement)

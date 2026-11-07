@@ -5,13 +5,7 @@
 -->
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
-import {
-  Settings,
-  Bookmark,
-  Layers,
-  Sparkles,
-  Clock,
-} from "lucide-vue-next";
+import { Settings, Bookmark, Layers, Sparkles, Clock } from "lucide-vue-next";
 import type { NavigationTab } from "../../../1-domain/entities/BrowserItem";
 import {
   isColorBright,
@@ -225,7 +219,8 @@ onUnmounted(() => {
               : 'text-white/70 hover:text-white dark:text-white/70 dark:hover:text-white light:text-slate-600 light:hover:text-slate-900',
           ]"
           :style="{
-            color: optimisticActiveView === tab.id ? activeTextColor : undefined,
+            color:
+              optimisticActiveView === tab.id ? activeTextColor : undefined,
           }"
           @click="handleTabClick(tab.id)"
         >
@@ -242,7 +237,11 @@ onUnmounted(() => {
       <button
         type="button"
         aria-label="Customize settings"
-        :title="props.isSettingsOpen ? 'Close settings' : 'Customize Tabloom (Settings)'"
+        :title="
+          props.isSettingsOpen
+            ? 'Close settings'
+            : 'Customize Tabloom (Settings)'
+        "
         class="group flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
           props.isSettingsOpen
@@ -251,7 +250,9 @@ onUnmounted(() => {
         ]"
         :style="{
           borderColor: props.isSettingsOpen ? `${activeAccent}66` : undefined,
-          boxShadow: props.isSettingsOpen ? `0 4px 14px 0 ${accentGlow}` : undefined,
+          boxShadow: props.isSettingsOpen
+            ? `0 4px 14px 0 ${accentGlow}`
+            : undefined,
         }"
         @click="emit('openSettings')"
       >

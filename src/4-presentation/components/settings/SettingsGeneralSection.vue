@@ -56,7 +56,7 @@ function onHtmlFile(e: Event) {
       <label class="block font-medium text-white/70">Data Source Mode</label>
       <select
         :value="props.settings.dataSourceMode"
-        class="mt-1 w-full rounded-lg border border-white/10 dark:border-white/10 light:border-slate-300 bg-white/10 dark:bg-[#1f1035] light:bg-slate-100 text-white dark:text-white light:text-slate-900 p-2 outline-none cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/25 focus:border-emerald-400"
+        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200 focus:border-emerald-400"
         @change="
           emit('update', {
             dataSourceMode: ($event.target as HTMLSelectElement)
@@ -64,28 +64,16 @@ function onHtmlFile(e: Event) {
           })
         "
       >
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="bookmarks-only"
-        >
+        <option value="bookmarks-only">
           Bookmarks Only (Clean & Separated)
         </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="smart-blend"
-        >
+        <option value="smart-blend">
           Smart Blend (Starter Fallback)
         </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="history-only"
-        >
+        <option value="history-only">
           Browser History Only
         </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="manual-only"
-        >
+        <option value="manual-only">
           Manual Custom Tiles Only
         </option>
       </select>
@@ -95,7 +83,7 @@ function onHtmlFile(e: Event) {
       <label class="block font-medium text-white/70">Bookmark Folder</label>
       <select
         :value="props.settings.bookmarkFolder"
-        class="mt-1 w-full rounded-lg border border-white/10 dark:border-white/10 light:border-slate-300 bg-white/10 dark:bg-[#1f1035] light:bg-slate-100 text-white dark:text-white light:text-slate-900 p-2 outline-none cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/25 focus:border-emerald-400"
+        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200 focus:border-emerald-400"
         @change="
           emit('update', {
             bookmarkFolder: ($event.target as HTMLSelectElement).value,
@@ -106,7 +94,6 @@ function onHtmlFile(e: Event) {
           v-for="f in props.folders"
           :key="f.id"
           :value="f.id"
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
         >
           {{ f.title }}
         </option>
@@ -141,7 +128,7 @@ function onHtmlFile(e: Event) {
       <label class="block font-medium text-white/70">Search Engine</label>
       <select
         :value="props.settings.searchEngine"
-        class="mt-1 w-full rounded-lg border border-white/10 dark:border-white/10 light:border-slate-300 bg-white/10 dark:bg-[#1f1035] light:bg-slate-100 text-white dark:text-white light:text-slate-900 p-2 outline-none cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/25 focus:border-emerald-400"
+        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200 focus:border-emerald-400"
         @change="
           emit('update', {
             searchEngine: ($event.target as HTMLSelectElement)
@@ -149,42 +136,12 @@ function onHtmlFile(e: Event) {
           })
         "
       >
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="google"
-        >
-          Google
-        </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="duckduckgo"
-        >
-          DuckDuckGo
-        </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="brave"
-        >
-          Brave
-        </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="youtube"
-        >
-          YouTube
-        </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="perplexity"
-        >
-          Perplexity
-        </option>
-        <option
-          class="bg-[#1f1035] dark:bg-[#1f1035] light:bg-white text-white dark:text-white light:text-slate-900"
-          value="chatgpt"
-        >
-          ChatGPT
-        </option>
+        <option value="google">Google</option>
+        <option value="duckduckgo">DuckDuckGo</option>
+        <option value="brave">Brave</option>
+        <option value="youtube">YouTube</option>
+        <option value="perplexity">Perplexity</option>
+        <option value="chatgpt">ChatGPT</option>
       </select>
     </div>
 
