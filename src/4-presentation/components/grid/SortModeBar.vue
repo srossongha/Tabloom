@@ -38,27 +38,35 @@ const accentGlow = computed(() => {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`
 })
 
+const containerRef = ref<HTMLElement | null>(null)
 const modeRefs = ref<Record<string, HTMLElement | null>>({})
 const pillLeft = ref(0)
+const pillTop = ref(0)
 const pillWidth = ref(0)
+const pillHeight = ref(0)
 const pillReady = ref(false)
 
 function setModeRef(id: SortMode, el: any) {
   if (el) {
     modeRefs.value[id] = el as HTMLElement
     if (id === props.modelValue) {
-      pillLeft.value = (el as HTMLElement).offsetLeft
-      pillWidth.value = (el as HTMLElement).offsetWidth
-      pillReady.value = true
+      nextTick(() => {
+        updatePillPosition()
+      })
     }
   }
 }
 
 function updatePillPosition() {
   const activeEl = modeRefs.value[props.modelValue]
-  if (!activeEl) return
-  pillLeft.value = activeEl.offsetLeft
-  pillWidth.value = activeEl.offsetWidth
+  const contEl = containerRef.value
+  if (!activeEl || !contEl) return
+  const activeRect = activeEl.getBoundingClientRect()
+  const contRect = contEl.getBoundingClientRect()
+  pillLeft.value = Math.round(activeRect.left - contRect.left)
+  pillTop.value = Math.round(activeRect.top - contRect.top)
+  pillWidth.value = Math.round(activeRect.width)
+  pillHeight.value = Math.round(activeRect.height)
   pillReady.value = true
 }
 
@@ -79,6 +87,9 @@ watch(
 
 onMounted(() => {
   window.addEventListener('resize', updatePillPosition)
+  nextTick(() => {
+    updatePillPosition()
+  })
 })
 
 onUnmounted(() => {
@@ -100,16 +111,18 @@ const containerMaxWidth = computed(() => {
     :class="containerMaxWidth"
   >
     <div
+      ref="containerRef"
       class="relative flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] p-1 shadow-lg shadow-black/20 backdrop-blur-xl"
       role="group"
       aria-label="Tile sort modes"
     >
       <!-- Animated Sliding Mask Indicator -->
       <div
-        class="pointer-events-none absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,width,opacity]"
+        class="pointer-events-none absolute top-0 left-0 rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] will-change-[transform,width,height,opacity]"
         :style="{
-          transform: `translateX(${pillLeft}px)`,
+          transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
           width: `${pillWidth}px`,
+          height: `${pillHeight}px`,
           opacity: pillReady ? 1 : 0,
           backgroundColor: activeAccent,
           boxShadow: `0 2px 10px 0 ${accentGlow}`,

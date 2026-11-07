@@ -65,9 +65,12 @@ const accentGlow = computed(() => {
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.38)`;
 });
 
+const navRef = ref<HTMLElement | null>(null);
 const tabRefs = ref<Record<string, HTMLElement | null>>({});
 const pillLeft = ref(0);
+const pillTop = ref(0);
 const pillWidth = ref(0);
+const pillHeight = ref(0);
 const pillReady = ref(false);
 
 const optimisticActiveView = ref<NavigationTab>(props.activeView);
@@ -96,7 +99,16 @@ function setTabRef(id: NavigationTab, el: any) {
 
 function moveToTab(view: NavigationTab, animated = true) {
   const targetEl = tabRefs.value[view];
-  if (!targetEl) return;
+  const navEl = navRef.value;
+  if (!targetEl || !navEl) return;
+
+  const targetRect = targetEl.getBoundingClientRect();
+  const navRect = navEl.getBoundingClientRect();
+
+  const relLeft = Math.round(targetRect.left - navRect.left);
+  const relTop = Math.round(targetRect.top - navRect.top);
+  const relWidth = Math.round(targetRect.width);
+  const relHeight = Math.round(targetRect.height);
 
   if (animated && pillReady.value) {
     const currentIdx = TAB_ORDER[optimisticActiveView.value] ?? 0;
@@ -117,8 +129,10 @@ function moveToTab(view: NavigationTab, animated = true) {
     isSliding.value = false;
   }
 
-  pillLeft.value = targetEl.offsetLeft;
-  pillWidth.value = targetEl.offsetWidth;
+  pillLeft.value = relLeft;
+  pillTop.value = relTop;
+  pillWidth.value = relWidth;
+  pillHeight.value = relHeight;
   pillReady.value = true;
 }
 
@@ -176,16 +190,18 @@ onUnmounted(() => {
       <!-- Navigation Tabs Pill (The Bar) -->
       <nav
         v-if="props.showNavTabs"
+        ref="navRef"
         class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
         role="tablist"
       >
-        <!-- Animated Sliding Mask Indicator (moves between tabs with smooth curved speed) -->
+        <!-- Animated Sliding Mask Indicator (moves between tabs with smooth curved speed and uniform concentric padding) -->
         <div
-          class="pointer-events-none absolute left-0 top-1.5 bottom-1.5 rounded-full will-change-[transform,width,opacity]"
+          class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
           :style="{
-            transform: `translateX(${pillLeft}px)`,
+            transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
             width: `${pillWidth}px`,
-            transitionProperty: 'transform, width, opacity, box-shadow',
+            height: `${pillHeight}px`,
+            transitionProperty: 'transform, width, height, opacity, box-shadow',
             transitionDuration: `${slideDuration}ms`,
             transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
             opacity: pillReady ? 1 : 0,
