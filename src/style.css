@@ -696,7 +696,8 @@ button[class*="bg-emerald-500"],
 }
 
 [data-tile-style="minecraft-2d"] .tile-label {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
   letter-spacing: 0.05em !important;
   text-shadow: 1px 1px 0px #000000 !important;
 }

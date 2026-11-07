@@ -4,7 +4,7 @@
   Supports local IndexedDB storage for zero-lag performance or account-synced URLs.
 -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 import {
   Upload,
   Trash2,
@@ -19,276 +19,281 @@ import {
   Monitor,
   Landmark,
   Palette,
-} from 'lucide-vue-next'
+} from "lucide-vue-next";
 import type {
   AppSettings,
   ThemePreset,
   ThemeMode,
   ClockTheme,
-} from '../../../1-domain/entities/AppSettings'
+} from "../../../1-domain/entities/AppSettings";
 import {
   mediaStorageService,
   type MediaMetadata,
-} from '../../../3-infrastructure/storage/mediaStorageService'
-import { isColorBright } from '../../../2-application/services/colorUtils'
-import TabBrandingSection from './TabBrandingSection.vue'
+} from "../../../3-infrastructure/storage/mediaStorageService";
+import { isColorBright } from "../../../2-application/services/colorUtils";
+import TabBrandingSection from "./TabBrandingSection.vue";
 
 interface Props {
-  settings: AppSettings
+  settings: AppSettings;
 }
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: 'update', partial: Partial<AppSettings>): void
-  (e: 'applyPreset', preset: ThemePreset): void
-}>()
+  (e: "update", partial: Partial<AppSettings>): void;
+  (e: "applyPreset", preset: ThemePreset): void;
+}>();
 
 const THEME_MODES: Array<{ id: ThemeMode; label: string; icon: any }> = [
-  { id: 'dark', label: 'Dark', icon: Moon },
-  { id: 'light', label: 'Light', icon: Sun },
-  { id: 'auto', label: 'Auto', icon: Sparkles },
-]
+  { id: "dark", label: "Dark", icon: Moon },
+  { id: "light", label: "Light", icon: Sun },
+  { id: "auto", label: "Auto", icon: Sparkles },
+];
 
 const DARK_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
-  { id: 'cosmic-purple', label: 'Cosmic Purple', color: '#2b1055' },
-  { id: 'oled-black', label: 'OLED Black', color: '#000000' },
-  { id: 'tokyo-night', label: 'Tokyo Night', color: '#1a1b26' },
-  { id: 'emerald-aurora', label: 'Emerald Aurora', color: '#064e3b' },
-  { id: 'cyberpunk-neon', label: 'Cyberpunk', color: '#240046' },
-  { id: 'frosted-minimal', label: 'Frosted Slate', color: '#1e293b' },
-]
+  { id: "cosmic-purple", label: "Cosmic Purple", color: "#2b1055" },
+  { id: "oled-black", label: "OLED Black", color: "#000000" },
+  { id: "tokyo-night", label: "Tokyo Night", color: "#1a1b26" },
+  { id: "emerald-aurora", label: "Emerald Aurora", color: "#064e3b" },
+  { id: "cyberpunk-neon", label: "Cyberpunk", color: "#240046" },
+  { id: "frosted-minimal", label: "Frosted Slate", color: "#1e293b" },
+];
 
-const LIGHT_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
-  { id: 'cotton-white', label: 'Cotton White', color: '#f8fafc' },
-  { id: 'sakura-day', label: 'Sakura Day', color: '#fff1f2' },
-  { id: 'nordic-light', label: 'Nordic Light', color: '#f0f9ff' },
-  { id: 'cream-latte', label: 'Cream Latte', color: '#fef3c7' },
-]
+const LIGHT_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> =
+  [
+    { id: "cotton-white", label: "Cotton White", color: "#f8fafc" },
+    { id: "sakura-day", label: "Sakura Day", color: "#fff1f2" },
+    { id: "nordic-light", label: "Nordic Light", color: "#f0f9ff" },
+    { id: "cream-latte", label: "Cream Latte", color: "#fef3c7" },
+  ];
 
 const ACCENT_SWATCHES: Array<{ label: string; color: string }> = [
-  { label: 'Emerald Green', color: '#10b981' },
-  { label: 'Electric Blue', color: '#3b82f6' },
-  { label: 'Sky Cyan', color: '#06b6d4' },
-  { label: 'Cosmic Purple', color: '#8b5cf6' },
-  { label: 'Sakura Pink', color: '#ec4899' },
-  { label: 'Neon Coral', color: '#f43f5e' },
-  { label: 'Sunset Amber', color: '#f59e0b' },
-  { label: 'Crisp Indigo', color: '#6366f1' },
-  { label: 'Pure White', color: '#ffffff' },
-]
+  { label: "Emerald Green", color: "#10b981" },
+  { label: "Electric Blue", color: "#3b82f6" },
+  { label: "Sky Cyan", color: "#06b6d4" },
+  { label: "Cosmic Purple", color: "#8b5cf6" },
+  { label: "Sakura Pink", color: "#ec4899" },
+  { label: "Neon Coral", color: "#f43f5e" },
+  { label: "Sunset Amber", color: "#f59e0b" },
+  { label: "Crisp Indigo", color: "#6366f1" },
+  { label: "Pure White", color: "#ffffff" },
+];
 
 const WALLPAPER_PRESETS: Array<{
-  id: string
-  name: string
-  url: string
-  type: 'light' | 'dark'
+  id: string;
+  name: string;
+  url: string;
+  type: "light" | "dark";
 }> = [
   {
-    id: 'sakura-blossom',
-    name: 'Sakura Minimal',
-    type: 'light',
-    url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80',
+    id: "sakura-blossom",
+    name: "Sakura Minimal",
+    type: "light",
+    url: "https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80",
   },
   {
-    id: 'pastel-clouds',
-    name: 'Pastel Horizon',
-    type: 'light',
-    url: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1920&q=80',
+    id: "pastel-clouds",
+    name: "Pastel Horizon",
+    type: "light",
+    url: "https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1920&q=80",
   },
   {
-    id: 'calm-botanical',
-    name: 'Calm Studio',
-    type: 'light',
-    url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1920&q=80',
+    id: "calm-botanical",
+    name: "Calm Studio",
+    type: "light",
+    url: "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1920&q=80",
   },
   {
-    id: 'deep-forest',
-    name: 'Pine Forest',
-    type: 'dark',
-    url: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=80',
+    id: "deep-forest",
+    name: "Pine Forest",
+    type: "dark",
+    url: "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=80",
   },
   {
-    id: 'cosmic-nebula',
-    name: 'Cosmic Sky',
-    type: 'dark',
-    url: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80',
+    id: "cosmic-nebula",
+    name: "Cosmic Sky",
+    type: "dark",
+    url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80",
   },
   {
-    id: 'cyber-city',
-    name: 'Midnight Lights',
-    type: 'dark',
-    url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80',
+    id: "cyber-city",
+    name: "Midnight Lights",
+    type: "dark",
+    url: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80",
   },
-]
+];
 
 const CLOCK_THEMES: Array<{
-  id: ClockTheme
-  label: string
-  desc: string
-  icon: any
+  id: ClockTheme;
+  label: string;
+  desc: string;
+  icon: any;
 }> = [
   {
-    id: 'digital-lcd',
-    label: 'Digital LCD',
-    desc: '7-segment with ghost lines',
+    id: "digital-lcd",
+    label: "Digital LCD",
+    desc: "7-segment with ghost lines",
     icon: Monitor,
   },
   {
-    id: 'digital-clean',
-    label: 'Digital Clean',
-    desc: 'Active 7-segment lines only',
+    id: "digital-clean",
+    label: "Digital Clean",
+    desc: "Active 7-segment lines only",
     icon: Sparkles,
   },
   {
-    id: 'clock-tower',
-    label: 'Clock Tower',
-    desc: 'Roman numeral tower dial',
+    id: "clock-tower",
+    label: "Clock Tower",
+    desc: "Roman numeral tower dial",
     icon: Landmark,
   },
   {
-    id: 'minimal',
-    label: 'Minimal Clean',
-    desc: 'Modern typography display',
+    id: "minimal",
+    label: "Minimal Clean",
+    desc: "Modern typography display",
     icon: Clock,
   },
-]
+];
 
-const localWallpaperInfo = ref<MediaMetadata | null>(null)
-const localAudioInfo = ref<MediaMetadata | null>(null)
-const uploadMessage = ref('')
+const localWallpaperInfo = ref<MediaMetadata | null>(null);
+const localAudioInfo = ref<MediaMetadata | null>(null);
+const uploadMessage = ref("");
 
 async function refreshMediaInfo() {
-  localWallpaperInfo.value = await mediaStorageService.getMediaInfo('wallpaper')
-  localAudioInfo.value = await mediaStorageService.getMediaInfo('audio')
+  localWallpaperInfo.value =
+    await mediaStorageService.getMediaInfo("wallpaper");
+  localAudioInfo.value = await mediaStorageService.getMediaInfo("audio");
 }
 
 function formatBytes(bytes?: number): string {
-  if (!bytes) return ''
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 async function onWallpaperUpload(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
 
   try {
     // If user dropped or selected an audio file in the wallpaper slot (e.g. mp3)
-    if (file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
-      await mediaStorageService.saveMedia('audio', file, file.name)
-      await refreshMediaInfo()
-      emit('update', {
-        backgroundAudio: 'local:audio',
+    if (
+      file.type.startsWith("audio/") ||
+      file.name.match(/\.(mp3|wav|ogg|m4a)$/i)
+    ) {
+      await mediaStorageService.saveMedia("audio", file, file.name);
+      await refreshMediaInfo();
+      emit("update", {
+        backgroundAudio: "local:audio",
         backgroundAudioName: file.name,
         backgroundAudioAutoplay: true,
-      })
+      });
       window.dispatchEvent(
-        new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'audio' } })
-      )
-      uploadMessage.value = `Audio "${file.name}" saved locally!`
+        new CustomEvent("tabloom:mediaUpdated", { detail: { id: "audio" } }),
+      );
+      uploadMessage.value = `Audio "${file.name}" saved locally!`;
       setTimeout(() => {
-        uploadMessage.value = ''
-      }, 3000)
-      return
+        uploadMessage.value = "";
+      }, 3000);
+      return;
     }
 
     const isVideo =
-      file.type.startsWith('video/') || file.name.match(/\.(mp4|webm)$/i)
-    await mediaStorageService.saveMedia('wallpaper', file, file.name)
-    await refreshMediaInfo()
+      file.type.startsWith("video/") || file.name.match(/\.(mp4|webm)$/i);
+    await mediaStorageService.saveMedia("wallpaper", file, file.name);
+    await refreshMediaInfo();
 
-    emit('update', {
-      customWallpaper: 'local:wallpaper',
-      wallpaperType: isVideo ? 'video' : 'image',
-    })
+    emit("update", {
+      customWallpaper: "local:wallpaper",
+      wallpaperType: isVideo ? "video" : "image",
+    });
     window.dispatchEvent(
-      new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'wallpaper' } })
-    )
-    uploadMessage.value = `${isVideo ? 'Video' : 'Wallpaper'} "${file.name}" saved locally!`
+      new CustomEvent("tabloom:mediaUpdated", { detail: { id: "wallpaper" } }),
+    );
+    uploadMessage.value = `${isVideo ? "Video" : "Wallpaper"} "${file.name}" saved locally!`;
     setTimeout(() => {
-      uploadMessage.value = ''
-    }, 3000)
+      uploadMessage.value = "";
+    }, 3000);
   } finally {
-    ;(e.target as HTMLInputElement).value = ''
+    (e.target as HTMLInputElement).value = "";
   }
 }
 
 async function removeWallpaper() {
   try {
-    await mediaStorageService.removeMedia('wallpaper')
+    await mediaStorageService.removeMedia("wallpaper");
   } catch {}
-  localWallpaperInfo.value = null
-  emit('update', { customWallpaper: '', showCustomWallpaper: false })
+  localWallpaperInfo.value = null;
+  emit("update", { customWallpaper: "", showCustomWallpaper: false });
   window.dispatchEvent(
-    new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'wallpaper' } })
-  )
-  uploadMessage.value = 'Wallpaper cleared! Background color active.'
+    new CustomEvent("tabloom:mediaUpdated", { detail: { id: "wallpaper" } }),
+  );
+  uploadMessage.value = "Wallpaper cleared! Background color active.";
   setTimeout(() => {
-    uploadMessage.value = ''
-  }, 2500)
+    uploadMessage.value = "";
+  }, 2500);
 }
 
-function onSelectThemeMode(mode: 'dark' | 'light' | 'auto') {
-  if (mode === 'light') {
-    emit('update', {
-      themeMode: 'light',
-      bgStart: '#ffffff',
-      bgEnd: '#f1f5f9',
-      tileBg: 'rgba(255, 255, 255, 0.85)',
-      textColor: '#0f172a',
-      themePreset: 'cotton-white',
-    })
-  } else if (mode === 'dark') {
-    emit('update', {
-      themeMode: 'dark',
-      bgStart: '#2b1055',
-      bgEnd: '#090314',
-      tileBg: 'rgba(43, 16, 85, 0.45)',
-      textColor: '#ffffff',
-      themePreset: 'cosmic-purple',
-    })
+function onSelectThemeMode(mode: "dark" | "light" | "auto") {
+  if (mode === "light") {
+    emit("update", {
+      themeMode: "light",
+      bgStart: "#ffffff",
+      bgEnd: "#f1f5f9",
+      tileBg: "rgba(255, 255, 255, 0.85)",
+      textColor: "#0f172a",
+      themePreset: "cotton-white",
+    });
+  } else if (mode === "dark") {
+    emit("update", {
+      themeMode: "dark",
+      bgStart: "#2b1055",
+      bgEnd: "#090314",
+      tileBg: "rgba(43, 16, 85, 0.45)",
+      textColor: "#ffffff",
+      themePreset: "cosmic-purple",
+    });
   } else {
-    emit('update', { themeMode: 'auto' })
+    emit("update", { themeMode: "auto" });
   }
 }
 
 async function onAudioUpload(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
 
   try {
-    await mediaStorageService.saveMedia('audio', file, file.name)
-    await refreshMediaInfo()
-    emit('update', {
-      backgroundAudio: 'local:audio',
+    await mediaStorageService.saveMedia("audio", file, file.name);
+    await refreshMediaInfo();
+    emit("update", {
+      backgroundAudio: "local:audio",
       backgroundAudioName: file.name,
       backgroundAudioAutoplay: true,
-    })
+    });
     window.dispatchEvent(
-      new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'audio' } })
-    )
-    uploadMessage.value = `Audio "${file.name}" saved locally!`
+      new CustomEvent("tabloom:mediaUpdated", { detail: { id: "audio" } }),
+    );
+    uploadMessage.value = `Audio "${file.name}" saved locally!`;
     setTimeout(() => {
-      uploadMessage.value = ''
-    }, 3000)
+      uploadMessage.value = "";
+    }, 3000);
   } finally {
-    ;(e.target as HTMLInputElement).value = ''
+    (e.target as HTMLInputElement).value = "";
   }
 }
 
 async function removeAudio() {
-  await mediaStorageService.removeMedia('audio')
-  localAudioInfo.value = null
-  emit('update', { backgroundAudio: '', backgroundAudioName: '' })
+  await mediaStorageService.removeMedia("audio");
+  localAudioInfo.value = null;
+  emit("update", { backgroundAudio: "", backgroundAudioName: "" });
   window.dispatchEvent(
-    new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'audio' } })
-  )
+    new CustomEvent("tabloom:mediaUpdated", { detail: { id: "audio" } }),
+  );
 }
 
 onMounted(() => {
-  refreshMediaInfo()
-})
+  refreshMediaInfo();
+});
 </script>
 
 <template>
@@ -312,9 +317,15 @@ onMounted(() => {
     <div class="space-y-1.5">
       <div class="flex items-center justify-between">
         <span class="font-medium text-white/70">Theme Mode</span>
-        <span class="text-[11px] font-mono capitalize" :style="{ color: props.settings.accentColor }">{{ props.settings.themeMode || 'auto' }}</span>
+        <span
+          class="text-[11px] font-mono capitalize"
+          :style="{ color: props.settings.accentColor }"
+          >{{ props.settings.themeMode || "auto" }}</span
+        >
       </div>
-      <div class="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+      <div
+        class="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1"
+      >
         <button
           v-for="m in THEME_MODES"
           :key="m.id"
@@ -325,11 +336,17 @@ onMounted(() => {
               ? 'shadow-sm font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
-          :style="(props.settings.themeMode || 'auto') === m.id ? {
-            backgroundColor: props.settings.accentColor,
-            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
-            boxShadow: `0 4px 12px 0 ${props.settings.accentColor}40`,
-          } : undefined"
+          :style="
+            (props.settings.themeMode || 'auto') === m.id
+              ? {
+                  backgroundColor: props.settings.accentColor,
+                  color: isColorBright(props.settings.accentColor)
+                    ? '#0f172a'
+                    : '#ffffff',
+                  boxShadow: `0 4px 12px 0 ${props.settings.accentColor}40`,
+                }
+              : undefined
+          "
           @click="onSelectThemeMode(m.id)"
         >
           <component :is="m.icon" class="h-3.5 w-3.5" />
@@ -355,10 +372,14 @@ onMounted(() => {
               ? 'bg-white/10 text-white shadow-md'
               : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white',
           ]"
-          :style="props.settings.themePreset === p.id ? {
-            borderColor: props.settings.accentColor,
-            boxShadow: `0 0 12px 0 ${props.settings.accentColor}30`,
-          } : undefined"
+          :style="
+            props.settings.themePreset === p.id
+              ? {
+                  borderColor: props.settings.accentColor,
+                  boxShadow: `0 0 12px 0 ${props.settings.accentColor}30`,
+                }
+              : undefined
+          "
           @click="emit('applyPreset', p.id)"
         >
           <span
@@ -374,7 +395,9 @@ onMounted(() => {
     <div class="space-y-1.5">
       <div class="flex items-center justify-between">
         <span class="block font-medium text-white/70">Light Themes</span>
-        <span class="text-[10px] text-white/40">Clean, Frosted & High-Contrast</span>
+        <span class="text-[10px] text-white/40"
+          >Clean, Frosted & High-Contrast</span
+        >
       </div>
       <div class="grid grid-cols-2 gap-2">
         <button
@@ -387,10 +410,14 @@ onMounted(() => {
               ? 'bg-white/10 text-white shadow-md'
               : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white',
           ]"
-          :style="props.settings.themePreset === p.id ? {
-            borderColor: props.settings.accentColor,
-            boxShadow: `0 0 12px 0 ${props.settings.accentColor}30`,
-          } : undefined"
+          :style="
+            props.settings.themePreset === p.id
+              ? {
+                  borderColor: props.settings.accentColor,
+                  boxShadow: `0 0 12px 0 ${props.settings.accentColor}30`,
+                }
+              : undefined
+          "
           @click="emit('applyPreset', p.id)"
         >
           <span
@@ -407,15 +434,21 @@ onMounted(() => {
       <div class="flex items-center justify-between">
         <div>
           <span class="block font-medium text-white/90">App Accent Color</span>
-          <span class="text-[11px] text-white/45">Buttons, tabs, active highlights, and badges</span>
+          <span class="text-[11px] text-white/45"
+            >Buttons, tabs, active highlights, and badges</span
+          >
         </div>
         <!-- Live replica of the Bookmarks button from user's screenshot -->
-        <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-sm select-none">
+        <div
+          class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-sm select-none"
+        >
           <div
             class="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-sm transition-all duration-300"
             :style="{
               backgroundColor: props.settings.accentColor,
-              color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+              color: isColorBright(props.settings.accentColor)
+                ? '#0f172a'
+                : '#ffffff',
             }"
           >
             <Bookmark class="h-3.5 w-3.5" />
@@ -433,7 +466,8 @@ onMounted(() => {
           :title="swatch.label"
           class="group relative flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-115 active:scale-95 cursor-pointer"
           :class="[
-            props.settings.accentColor.toLowerCase() === swatch.color.toLowerCase()
+            props.settings.accentColor.toLowerCase() ===
+            swatch.color.toLowerCase()
               ? 'border-white scale-110 shadow-md ring-2 ring-white/40'
               : 'border-white/10 hover:border-white/30',
           ]"
@@ -441,9 +475,14 @@ onMounted(() => {
           @click="emit('update', { accentColor: swatch.color })"
         >
           <Check
-            v-if="props.settings.accentColor.toLowerCase() === swatch.color.toLowerCase()"
+            v-if="
+              props.settings.accentColor.toLowerCase() ===
+              swatch.color.toLowerCase()
+            "
             class="h-3.5 w-3.5"
-            :class="isColorBright(swatch.color) ? 'text-slate-900' : 'text-white'"
+            :class="
+              isColorBright(swatch.color) ? 'text-slate-900' : 'text-white'
+            "
           />
         </button>
       </div>
@@ -454,7 +493,10 @@ onMounted(() => {
       >
         <div class="flex items-center gap-2">
           <span class="text-xs text-white/70">Custom Accent Color</span>
-          <span class="font-mono text-xs font-semibold text-white/90 uppercase">{{ props.settings.accentColor }}</span>
+          <span
+            class="font-mono text-xs font-semibold text-white/90 uppercase"
+            >{{ props.settings.accentColor }}</span
+          >
         </div>
         <input
           type="color"
@@ -471,7 +513,9 @@ onMounted(() => {
 
     <!-- Background & Label Colors -->
     <div class="space-y-2 border-t border-white/10 pt-3">
-      <span class="block font-medium text-white/70">Background & Text Colors</span>
+      <span class="block font-medium text-white/70"
+        >Background & Text Colors</span
+      >
       <div class="grid grid-cols-3 gap-2">
         <label
           class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
@@ -524,7 +568,9 @@ onMounted(() => {
 
       <!-- Live Wallpaper Overlay Notification -->
       <div
-        v-if="props.settings.customWallpaper && props.settings.showCustomWallpaper"
+        v-if="
+          props.settings.customWallpaper && props.settings.showCustomWallpaper
+        "
         class="flex items-center justify-between rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-amber-200 text-[11px]"
       >
         <div class="flex items-center gap-1.5 truncate">
@@ -558,18 +604,28 @@ onMounted(() => {
               ? 'text-white shadow-sm'
               : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
           ]"
-          :style="props.settings.clockTheme === ct.id ? {
-            borderColor: props.settings.accentColor,
-            backgroundColor: `${props.settings.accentColor}18`,
-            boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
-          } : undefined"
+          :style="
+            props.settings.clockTheme === ct.id
+              ? {
+                  borderColor: props.settings.accentColor,
+                  backgroundColor: `${props.settings.accentColor}18`,
+                  boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+                }
+              : undefined
+          "
           @click="emit('update', { clockTheme: ct.id })"
         >
           <div class="flex items-center gap-1.5 w-full">
-            <component :is="ct.icon" class="h-3.5 w-3.5 shrink-0" :style="{ color: props.settings.accentColor }" />
+            <component
+              :is="ct.icon"
+              class="h-3.5 w-3.5 shrink-0"
+              :style="{ color: props.settings.accentColor }"
+            />
             <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
           </div>
-          <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
+          <span class="text-[9px] text-white/40 leading-tight">{{
+            ct.desc
+          }}</span>
         </button>
       </div>
     </div>
@@ -578,8 +634,12 @@ onMounted(() => {
     <div class="space-y-3 border-t border-white/10 pt-3">
       <div class="flex items-center justify-between">
         <div>
-          <span class="font-medium text-white/90">Background Mode & Wallpaper</span>
-          <p class="text-[10px] text-white/50">Choose clean colors or media wallpaper</p>
+          <span class="font-medium text-white/90"
+            >Background Mode & Wallpaper</span
+          >
+          <p class="text-[10px] text-white/50">
+            Choose clean colors or media wallpaper
+          </p>
         </div>
         <button
           v-if="props.settings.customWallpaper"
@@ -594,19 +654,29 @@ onMounted(() => {
       </div>
 
       <!-- Mode Selector: Gradient Colors vs Custom Wallpaper -->
-      <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+      <div
+        class="grid grid-cols-2 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1"
+      >
         <button
           type="button"
           class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
           :class="[
-            !props.settings.showCustomWallpaper || !props.settings.customWallpaper
+            !props.settings.showCustomWallpaper ||
+            !props.settings.customWallpaper
               ? 'shadow-sm font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
-          :style="(!props.settings.showCustomWallpaper || !props.settings.customWallpaper) ? {
-            backgroundColor: props.settings.accentColor,
-            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
-          } : undefined"
+          :style="
+            !props.settings.showCustomWallpaper ||
+            !props.settings.customWallpaper
+              ? {
+                  backgroundColor: props.settings.accentColor,
+                  color: isColorBright(props.settings.accentColor)
+                    ? '#0f172a'
+                    : '#ffffff',
+                }
+              : undefined
+          "
           @click="emit('update', { showCustomWallpaper: false })"
         >
           <Palette class="h-3.5 w-3.5" />
@@ -620,10 +690,16 @@ onMounted(() => {
               ? 'shadow-sm font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
-          :style="(props.settings.showCustomWallpaper && props.settings.customWallpaper) ? {
-            backgroundColor: props.settings.accentColor,
-            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
-          } : undefined"
+          :style="
+            props.settings.showCustomWallpaper && props.settings.customWallpaper
+              ? {
+                  backgroundColor: props.settings.accentColor,
+                  color: isColorBright(props.settings.accentColor)
+                    ? '#0f172a'
+                    : '#ffffff',
+                }
+              : undefined
+          "
           @click="emit('update', { showCustomWallpaper: true })"
         >
           <HardDrive class="h-3.5 w-3.5" />
@@ -633,7 +709,10 @@ onMounted(() => {
 
       <!-- Active Local Wallpaper Badge -->
       <div
-        v-if="props.settings.customWallpaper === 'local:wallpaper' && localWallpaperInfo"
+        v-if="
+          props.settings.customWallpaper === 'local:wallpaper' &&
+          localWallpaperInfo
+        "
         class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-3 py-2 text-xs"
       >
         <div class="flex items-center gap-2 truncate">
@@ -643,7 +722,8 @@ onMounted(() => {
               {{ localWallpaperInfo.name }}
             </span>
             <span class="text-[10px] text-emerald-300/80">
-              Local DB • {{ formatBytes(localWallpaperInfo.size) }} (Fast 0-lag load)
+              Local DB • {{ formatBytes(localWallpaperInfo.size) }} (Fast 0-lag
+              load)
             </span>
           </div>
         </div>
@@ -680,7 +760,9 @@ onMounted(() => {
           title="Upload GIF, MP4, or Image (stored locally)"
         >
           <Upload class="h-3.5 w-3.5 text-white" />
-          <span class="text-[11px] font-medium text-white hidden sm:inline">Upload</span>
+          <span class="text-[11px] font-medium text-white hidden sm:inline"
+            >Upload</span
+          >
           <input
             type="file"
             accept="image/*,video/mp4,video/webm,.gif,.mp4,.webm,.mp3,.wav,.ogg,.m4a"
@@ -701,7 +783,9 @@ onMounted(() => {
 
       <!-- Wallpaper Presets (Light & Dark) -->
       <div class="space-y-1.5 pt-1">
-        <span class="block text-[11px] font-medium text-white/60">Curated Wallpapers</span>
+        <span class="block text-[11px] font-medium text-white/60"
+          >Curated Wallpapers</span
+        >
         <div class="grid grid-cols-3 gap-1.5">
           <button
             v-for="wp in WALLPAPER_PRESETS"
@@ -709,7 +793,8 @@ onMounted(() => {
             type="button"
             class="group relative flex h-14 flex-col justify-end overflow-hidden rounded-lg border p-1.5 text-left transition-all hover:scale-[1.02] cursor-pointer"
             :class="[
-              props.settings.customWallpaper === wp.url && props.settings.showCustomWallpaper
+              props.settings.customWallpaper === wp.url &&
+              props.settings.showCustomWallpaper
                 ? 'border-emerald-400 ring-2 ring-emerald-500/40'
                 : 'border-white/10 hover:border-white/30',
             ]"
@@ -718,14 +803,26 @@ onMounted(() => {
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }"
-            @click="emit('update', { customWallpaper: wp.url, showCustomWallpaper: true })"
+            @click="
+              emit('update', {
+                customWallpaper: wp.url,
+                showCustomWallpaper: true,
+              })
+            "
           >
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <span class="relative z-10 text-[9px] font-semibold text-white drop-shadow truncate w-full">
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
+            />
+            <span
+              class="relative z-10 text-[9px] font-semibold text-white drop-shadow truncate w-full"
+            >
               {{ wp.name }}
             </span>
             <span
-              v-if="props.settings.customWallpaper === wp.url && props.settings.showCustomWallpaper"
+              v-if="
+                props.settings.customWallpaper === wp.url &&
+                props.settings.showCustomWallpaper
+              "
               class="absolute top-1 right-1 z-10 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[9px] text-white"
             >
               ✓
@@ -748,7 +845,9 @@ onMounted(() => {
             class="mt-1 w-full accent-emerald-500"
             @input="
               emit('update', {
-                wallpaperBlur: Number(($event.target as HTMLInputElement).value),
+                wallpaperBlur: Number(
+                  ($event.target as HTMLInputElement).value,
+                ),
               })
             "
           />
@@ -783,7 +882,9 @@ onMounted(() => {
 
       <!-- Active Local Audio Badge -->
       <div
-        v-if="props.settings.backgroundAudio === 'local:audio' && localAudioInfo"
+        v-if="
+          props.settings.backgroundAudio === 'local:audio' && localAudioInfo
+        "
         class="flex items-center justify-between rounded-lg border border-emerald-400/20 bg-emerald-500/[0.06] px-3 py-2 text-xs"
       >
         <div class="flex items-center gap-2 truncate">
@@ -793,7 +894,8 @@ onMounted(() => {
               {{ localAudioInfo.name }}
             </span>
             <span class="text-[10px] text-emerald-300/80">
-              Local DB • {{ formatBytes(localAudioInfo.size) }} (Stutter-free playback)
+              Local DB • {{ formatBytes(localAudioInfo.size) }} (Stutter-free
+              playback)
             </span>
           </div>
         </div>
@@ -832,7 +934,9 @@ onMounted(() => {
           title="Upload MP3, WAV, or OGG file (stored locally)"
         >
           <Upload class="h-3.5 w-3.5 text-white" />
-          <span class="text-[11px] font-medium text-white hidden sm:inline">Upload</span>
+          <span class="text-[11px] font-medium text-white hidden sm:inline"
+            >Upload</span
+          >
           <input
             type="file"
             accept="audio/*,.mp3,.wav,.ogg,.m4a"
@@ -841,7 +945,10 @@ onMounted(() => {
           />
         </label>
         <button
-          v-if="props.settings.backgroundAudio && props.settings.backgroundAudio !== 'local:audio'"
+          v-if="
+            props.settings.backgroundAudio &&
+            props.settings.backgroundAudio !== 'local:audio'
+          "
           type="button"
           class="rounded-lg border border-white/10 bg-rose-500/20 p-2 text-rose-300 hover:bg-rose-500/40"
           title="Clear audio URL"
@@ -861,9 +968,8 @@ onMounted(() => {
             class="h-4 w-4 cursor-pointer rounded accent-emerald-500"
             @change="
               emit('update', {
-                backgroundAudioAutoplay: (
-                  $event.target as HTMLInputElement
-                ).checked,
+                backgroundAudioAutoplay: ($event.target as HTMLInputElement)
+                  .checked,
               })
             "
           />
@@ -876,9 +982,8 @@ onMounted(() => {
             class="h-4 w-4 cursor-pointer rounded accent-emerald-500"
             @change="
               emit('update', {
-                backgroundAudioLoop: (
-                  $event.target as HTMLInputElement
-                ).checked,
+                backgroundAudioLoop: ($event.target as HTMLInputElement)
+                  .checked,
               })
             "
           />
@@ -897,7 +1002,7 @@ onMounted(() => {
             @input="
               emit('update', {
                 backgroundAudioVolume: Number(
-                  ($event.target as HTMLInputElement).value
+                  ($event.target as HTMLInputElement).value,
                 ),
               })
             "

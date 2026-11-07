@@ -4,185 +4,185 @@
   Features fluid curved motion animations for opening/closing and tab transitions.
 -->
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { X, Palette, Sliders, Database, Check } from 'lucide-vue-next'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { X, Palette, Sliders, Database, Check } from "lucide-vue-next";
 import type {
   AppSettings,
   ThemePreset,
-} from '../../../1-domain/entities/AppSettings'
-import type { BookmarkFolder } from '../../../1-domain/entities/BrowserItem'
-import { parseHexOrRgb } from '../../../2-application/services/colorUtils'
-import SettingsThemeSection from './SettingsThemeSection.vue'
-import SettingsLayoutSection from './SettingsLayoutSection.vue'
-import SettingsGeneralSection from './SettingsGeneralSection.vue'
+} from "../../../1-domain/entities/AppSettings";
+import type { BookmarkFolder } from "../../../1-domain/entities/BrowserItem";
+import { parseHexOrRgb } from "../../../2-application/services/colorUtils";
+import SettingsThemeSection from "./SettingsThemeSection.vue";
+import SettingsLayoutSection from "./SettingsLayoutSection.vue";
+import SettingsGeneralSection from "./SettingsGeneralSection.vue";
 
 interface Props {
-  isOpen: boolean
-  settings: AppSettings
-  folders: BookmarkFolder[]
+  isOpen: boolean;
+  settings: AppSettings;
+  folders: BookmarkFolder[];
 }
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'updateSettings', partial: Partial<AppSettings>): void
-  (e: 'applyPreset', preset: ThemePreset): void
-  (e: 'exportConfig'): void
-  (e: 'importConfig', text: string): void
-  (e: 'resetDefaults'): void
-  (e: 'importedBookmarks'): void
-  (e: 'reimportBookmarks'): void
-  (e: 'clearHidden'): void
-}>()
+  (e: "close"): void;
+  (e: "updateSettings", partial: Partial<AppSettings>): void;
+  (e: "applyPreset", preset: ThemePreset): void;
+  (e: "exportConfig"): void;
+  (e: "importConfig", text: string): void;
+  (e: "resetDefaults"): void;
+  (e: "importedBookmarks"): void;
+  (e: "reimportBookmarks"): void;
+  (e: "clearHidden"): void;
+}>();
 
-type DrawerTab = 'theme' | 'layout' | 'data'
-const currentTab = ref<DrawerTab>('theme')
+type DrawerTab = "theme" | "layout" | "data";
+const currentTab = ref<DrawerTab>("theme");
 
 const TABS: Array<{ id: DrawerTab; label: string; icon: any }> = [
-  { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'layout', label: 'Layout', icon: Sliders },
-  { id: 'data', label: 'Data', icon: Database },
-]
+  { id: "theme", label: "Theme", icon: Palette },
+  { id: "layout", label: "Layout", icon: Sliders },
+  { id: "data", label: "Data", icon: Database },
+];
 
-const activeAccent = computed(() => props.settings.accentColor || '#10b981')
+const activeAccent = computed(() => props.settings.accentColor || "#10b981");
 
 const accentGlow = computed(() => {
-  const rgb = parseHexOrRgb(activeAccent.value)
-  if (!rgb) return 'rgba(16, 185, 129, 0.45)'
-  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.45)`
-})
+  const rgb = parseHexOrRgb(activeAccent.value);
+  if (!rgb) return "rgba(16, 185, 129, 0.45)";
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.45)`;
+});
 
 // Dynamic Moving Underline Indicator State
-const tabContainerRef = ref<HTMLElement | null>(null)
-const tabRefs = ref<Record<string, HTMLElement | null>>({})
-const lineLeft = ref(0)
-const lineWidth = ref(0)
-const isLineReady = ref(false)
+const tabContainerRef = ref<HTMLElement | null>(null);
+const tabRefs = ref<Record<string, HTMLElement | null>>({});
+const lineLeft = ref(0);
+const lineWidth = ref(0);
+const isLineReady = ref(false);
 
 function setDrawerTabRef(id: DrawerTab, el: any) {
   if (el) {
-    tabRefs.value[id] = el as HTMLElement
+    tabRefs.value[id] = el as HTMLElement;
     if (id === currentTab.value) {
       nextTick(() => {
-        updateLinePosition(false)
-      })
+        updateLinePosition(false);
+      });
     }
   }
 }
 
 function updateLinePosition(animated = true) {
-  const targetEl = tabRefs.value[currentTab.value]
-  const containerEl = tabContainerRef.value
-  if (!targetEl || !containerEl) return
+  const targetEl = tabRefs.value[currentTab.value];
+  const containerEl = tabContainerRef.value;
+  if (!targetEl || !containerEl) return;
 
   // With containerEl having position: relative, targetEl.offsetLeft gives the exact local position
-  const left = targetEl.offsetLeft
-  const width = targetEl.offsetWidth
+  const left = targetEl.offsetLeft;
+  const width = targetEl.offsetWidth;
 
   if (width === 0) {
-    requestAnimationFrame(() => updateLinePosition(animated))
-    return
+    requestAnimationFrame(() => updateLinePosition(animated));
+    return;
   }
 
-  lineLeft.value = left
-  lineWidth.value = width
+  lineLeft.value = left;
+  lineWidth.value = width;
 
   if (!animated) {
-    isLineReady.value = false
+    isLineReady.value = false;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        isLineReady.value = true
-      })
-    })
+        isLineReady.value = true;
+      });
+    });
   } else {
-    isLineReady.value = true
+    isLineReady.value = true;
   }
 }
 
 function selectTab(id: DrawerTab) {
-  if (currentTab.value === id) return
-  currentTab.value = id
-  updateLinePosition(true)
+  if (currentTab.value === id) return;
+  currentTab.value = id;
+  updateLinePosition(true);
 }
 
-const userNameInput = ref('')
-const isSaved = ref(false)
+const userNameInput = ref("");
+const isSaved = ref(false);
 
 async function loadUserName() {
-  if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+  if (typeof chrome !== "undefined" && chrome.storage?.sync) {
     try {
       const res = await new Promise<{ userName?: string }>((resolve) => {
-        chrome.storage.sync.get(['userName'], resolve)
-      })
-      if (res && typeof res.userName === 'string') {
-        userNameInput.value = res.userName
-        return
+        chrome.storage.sync.get(["userName"], resolve);
+      });
+      if (res && typeof res.userName === "string") {
+        userNameInput.value = res.userName;
+        return;
       }
     } catch {}
   }
-  userNameInput.value = localStorage.getItem('userName') || ''
+  userNameInput.value = localStorage.getItem("userName") || "";
 }
 
 async function saveUserName() {
-  const trimmed = userNameInput.value.trim().slice(0, 30)
-  userNameInput.value = trimmed
+  const trimmed = userNameInput.value.trim().slice(0, 30);
+  userNameInput.value = trimmed;
 
-  if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+  if (typeof chrome !== "undefined" && chrome.storage?.sync) {
     try {
-      await chrome.storage.sync.set({ userName: trimmed })
+      await chrome.storage.sync.set({ userName: trimmed });
     } catch {}
   }
   try {
-    localStorage.setItem('userName', trimmed)
+    localStorage.setItem("userName", trimmed);
   } catch {}
 
   window.dispatchEvent(
-    new CustomEvent('tabloom:userNameChanged', { detail: trimmed })
-  )
-  isSaved.value = true
+    new CustomEvent("tabloom:userNameChanged", { detail: trimmed }),
+  );
+  isSaved.value = true;
   setTimeout(() => {
-    isSaved.value = false
-  }, 1500)
+    isSaved.value = false;
+  }, 1500);
 }
 
 watch(
   () => props.isOpen,
   (open) => {
     if (open) {
-      loadUserName()
-      isLineReady.value = false
+      loadUserName();
+      isLineReady.value = false;
       nextTick(() => {
-        updateLinePosition(false)
-        window.setTimeout(() => updateLinePosition(false), 240)
-      })
+        updateLinePosition(false);
+        window.setTimeout(() => updateLinePosition(false), 240);
+      });
     }
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 watch(
   () => props.settings.accentColor,
   () => {
-    nextTick(() => updateLinePosition(false))
-  }
-)
+    nextTick(() => updateLinePosition(false));
+  },
+);
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.isOpen) emit('close')
+  if (e.key === "Escape" && props.isOpen) emit("close");
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', onKeydown)
-  window.addEventListener('resize', () => updateLinePosition(false))
+  window.addEventListener("keydown", onKeydown);
+  window.addEventListener("resize", () => updateLinePosition(false));
   if (props.isOpen) {
-    nextTick(() => updateLinePosition(false))
+    nextTick(() => updateLinePosition(false));
   }
-})
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-  window.removeEventListener('resize', () => updateLinePosition(false))
-})
+  window.removeEventListener("keydown", onKeydown);
+  window.removeEventListener("resize", () => updateLinePosition(false));
+});
 </script>
 
 <template>
@@ -251,13 +251,16 @@ onUnmounted(() => {
               @click="saveUserName"
             >
               <Check v-if="isSaved" class="h-3 w-3 animate-bounce" />
-              <span>{{ isSaved ? 'Saved' : 'Save' }}</span>
+              <span>{{ isSaved ? "Saved" : "Save" }}</span>
             </button>
           </div>
         </div>
 
         <!-- Navigation Tabs with fluid moving underline indicator -->
-        <div ref="tabContainerRef" class="relative flex border-b border-white/10 px-5 pt-2.5 select-none">
+        <div
+          ref="tabContainerRef"
+          class="relative flex border-b border-white/10 px-5 pt-2.5 select-none"
+        >
           <!-- The Single Animated Moving Underline Indicator (Crisp Apple fluid curve & natural glide) -->
           <div
             class="pointer-events-none absolute bottom-0 left-0 h-[2.5px] rounded-full will-change-[transform,width,opacity]"
@@ -300,7 +303,9 @@ onUnmounted(() => {
         </div>
 
         <!-- Drawer Content with Curved Slide & Fade Motion -->
-        <div class="flex-1 overflow-y-auto p-5 scrollbar-thin [scrollbar-gutter:stable]">
+        <div
+          class="flex-1 overflow-y-auto p-5 scrollbar-thin [scrollbar-gutter:stable]"
+        >
           <Transition name="tab-fade" mode="out-in">
             <SettingsThemeSection
               v-if="currentTab === 'theme'"

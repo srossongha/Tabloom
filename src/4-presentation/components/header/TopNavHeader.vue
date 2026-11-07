@@ -222,7 +222,7 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="relative z-10 flex w-full items-center justify-between px-8 py-5 select-none"
+    class="relative z-10 flex h-20 shrink-0 w-full items-center justify-between px-8 select-none"
   >
     <!-- Brand Logo in top-left header if enabled -->
     <div v-if="props.showLogo" class="flex items-center gap-2.5">
