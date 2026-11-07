@@ -253,7 +253,7 @@ const containerMaxWidth = computed(() => {
     <Transition name="drawer-backdrop">
       <div
         v-if="isDesignerOpen && props.settings"
-        class="mt-2.5 w-full rounded-2xl border border-white/15 dark:border-white/15 light:border-black/10 bg-[#0e0720]/95 dark:bg-[#0e0720]/95 light:bg-white/95 p-4 shadow-2xl shadow-black/40 backdrop-blur-2xl text-white dark:text-white light:text-slate-900 select-none animate-in fade-in zoom-in-95 duration-200"
+        class="mt-2.5 w-full rounded-2xl border border-white/15 dark:border-white/15 light:border-black/10 bg-[#0e0720]/98 dark:bg-[#0e0720]/98 light:bg-white p-4 shadow-2xl shadow-black/60 text-white dark:text-white light:text-slate-900 select-none animate-in fade-in zoom-in-95 duration-200"
       >
         <div class="flex items-center justify-between pb-3 border-b border-white/10 dark:border-white/10 light:border-black/10">
           <div class="flex items-center gap-2">

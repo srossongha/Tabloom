@@ -197,7 +197,7 @@ onUnmounted(() => {
     <Transition name="drawer-backdrop">
       <div
         v-if="props.isOpen"
-        class="fixed inset-0 bg-black/60 backdrop-blur-md pointer-events-auto transition-opacity cursor-pointer"
+        class="fixed inset-0 bg-black/65 pointer-events-auto transition-opacity cursor-pointer"
         @click="emit('close')"
       />
     </Transition>
@@ -206,7 +206,7 @@ onUnmounted(() => {
     <Transition name="drawer-slide">
       <aside
         v-if="props.isOpen"
-        class="settings-drawer-panel fixed inset-y-0 right-0 flex w-full max-w-sm sm:max-w-md flex-col border-l border-white/10 bg-[#0e0720]/95 shadow-2xl backdrop-blur-2xl pointer-events-auto"
+        class="settings-drawer-panel fixed inset-y-0 right-0 flex w-full max-w-sm sm:max-w-md flex-col border-l border-white/10 bg-[#0e0720]/98 shadow-2xl shadow-black/80 pointer-events-auto"
       >
         <!-- Drawer Header -->
         <div

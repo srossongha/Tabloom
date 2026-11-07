@@ -49,8 +49,8 @@ const RESOLUTION_SCALE = 0.5
 function initParticles(w: number, h: number) {
   particles = []
   if (props.mode === 'off' || w <= 0 || h <= 0) return
-  // Cap at 22 particles for absolute negligible compute on mobile / low-end chips
-  const count = Math.min(22, Math.max(6, Math.floor((props.density / 100) * 24)))
+  // Cap at 16 particles for ultra-lightweight GPU footprint on low-end chips
+  const count = Math.min(16, Math.max(6, Math.floor((props.density / 100) * 18)))
 
   for (let i = 0; i < count; i++) {
     const isBottom = props.mode === 'sakura-horizon' && Math.random() > 0.4
@@ -61,10 +61,10 @@ function initParticles(w: number, h: number) {
       y,
       prevX: x,
       prevY: y,
-      size: Math.random() * 1.8 + 0.8,
-      vx: (Math.random() - 0.5) * 0.22,
-      vy: props.mode === 'starfield' ? -(Math.random() * 0.3 + 0.1) : (Math.random() - 0.5) * 0.22,
-      alpha: Math.random() * 0.45 + 0.2,
+      size: Math.random() * 1.6 + 0.8,
+      vx: (Math.random() - 0.5) * 0.20,
+      vy: props.mode === 'starfield' ? -(Math.random() * 0.25 + 0.1) : (Math.random() - 0.5) * 0.20,
+      alpha: Math.random() * 0.40 + 0.2,
       color: isBottom ? 'rgba(244, 63, 94, ' : Math.random() > 0.5 ? 'rgba(168, 85, 247, ' : 'rgba(56, 189, 248, ',
     })
   }
@@ -142,14 +142,25 @@ function stop() {
 }
 
 function resetIdleTimer() {
+  if (props.paused || props.mode === 'off' || typeof document === 'undefined' || document.hidden) return
   if (idleTimeout) clearTimeout(idleTimeout)
-  if (!isRunning && !props.paused && props.mode !== 'off' && typeof document !== 'undefined' && !document.hidden) {
+  if (!isRunning) {
     start()
   }
-  // Sleep after 15s of zero user activity to guarantee 0% idle CPU and GPU draw
+  // Sleep after 8s of zero user activity to guarantee 0% idle CPU and GPU draw
   idleTimeout = window.setTimeout(() => {
     stop()
-  }, 15000)
+  }, 8000)
+}
+
+let lastMoveTime = 0
+function onThrottledPointerMove() {
+  if (props.paused || props.mode === 'off' || typeof document === 'undefined' || document.hidden) return
+  const now = Date.now()
+  if (now - lastMoveTime > 1500) {
+    lastMoveTime = now
+    resetIdleTimer()
+  }
 }
 
 function handleVisibility() {
@@ -184,7 +195,7 @@ onMounted(() => {
   window.addEventListener('resize', handleResize, { passive: true })
   window.addEventListener('blur', stop, { passive: true })
   window.addEventListener('focus', resetIdleTimer, { passive: true })
-  window.addEventListener('pointermove', resetIdleTimer, { passive: true })
+  window.addEventListener('pointermove', onThrottledPointerMove, { passive: true })
   window.addEventListener('keydown', resetIdleTimer, { passive: true })
   document.addEventListener('visibilitychange', handleVisibility, { passive: true })
 })
@@ -197,7 +208,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('blur', stop)
   window.removeEventListener('focus', resetIdleTimer)
-  window.removeEventListener('pointermove', resetIdleTimer)
+  window.removeEventListener('pointermove', onThrottledPointerMove)
   window.removeEventListener('keydown', resetIdleTimer)
   document.removeEventListener('visibilitychange', handleVisibility)
 })

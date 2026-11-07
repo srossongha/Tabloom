@@ -119,7 +119,7 @@ function onPointerDown(e: PointerEvent | MouseEvent) {
         navigator.vibrate(20)
       } catch {}
     }
-  }, 220)
+  }, 420)
 }
 
 function onPointerMove(e: PointerEvent | MouseEvent) {
@@ -326,7 +326,7 @@ function onDrop(event: DragEvent) {
           v-if="props.activeView === 'openTabs' && props.tile.tabId"
           type="button"
           aria-label="Close tab"
-          class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500 hover:text-white cursor-pointer"
+          class="rounded-full bg-black/80 p-1 text-white/80 hover:bg-rose-500 hover:text-white shadow-sm cursor-pointer"
           @click.stop.prevent="emit('closeTab', props.tile.tabId!)"
           @pointerdown.stop
         >
@@ -336,7 +336,7 @@ function onDrop(event: DragEvent) {
           <button
             type="button"
             aria-label="Edit tile"
-            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-white/20 hover:text-white cursor-pointer"
+            class="rounded-full bg-black/80 p-1 text-white/80 hover:bg-white/25 hover:text-white shadow-sm cursor-pointer"
             @click.stop.prevent="emit('edit', props.tile)"
             @pointerdown.stop
           >
@@ -345,7 +345,7 @@ function onDrop(event: DragEvent) {
           <button
             type="button"
             aria-label="Delete tile"
-            class="rounded-full bg-black/50 p-1 text-white/70 backdrop-blur-md hover:bg-rose-500/80 hover:text-white cursor-pointer"
+            class="rounded-full bg-black/80 p-1 text-white/80 hover:bg-rose-500/90 hover:text-white shadow-sm cursor-pointer"
             @click.stop.prevent="emit('delete', props.tile)"
             @pointerdown.stop
           >
@@ -379,7 +379,7 @@ function onDrop(event: DragEvent) {
     <Transition name="modal">
       <div
         v-if="isHeld"
-        class="absolute left-1/2 -translate-x-1/2 z-50 w-72 sm:w-80 rounded-2xl border border-white/20 bg-[#0e0720]/95 p-4 shadow-2xl shadow-black/80 backdrop-blur-2xl text-white select-none animate-in fade-in zoom-in-95 duration-200"
+        class="absolute left-1/2 -translate-x-1/2 z-50 w-72 sm:w-80 rounded-2xl border border-white/20 bg-[#0e0720]/98 p-4 shadow-2xl shadow-black/90 text-white select-none animate-in fade-in zoom-in-95 duration-200"
         :class="[
           previewPlacement === 'bottom'
             ? 'top-[calc(100%+14px)]'
@@ -444,7 +444,7 @@ function onDrop(event: DragEvent) {
 
           <!-- Style Badge Pill -->
           <span
-            class="absolute top-2 left-2 rounded-full border border-white/20 bg-black/60 px-2 py-0.5 text-[9px] font-mono backdrop-blur-md"
+            class="absolute top-2 left-2 rounded-full border border-white/20 bg-black/80 px-2 py-0.5 text-[9px] font-mono shadow-sm"
             :style="{ color: 'var(--accent)' }"
           >
             {{ props.tile.displayMode === 'full-cover' ? 'Full Tile Cover' : 'Icon Badge' }}

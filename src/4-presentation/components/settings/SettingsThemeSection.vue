@@ -110,6 +110,30 @@ const WALLPAPER_PRESETS: Array<{
     url: "/image/pine-forest.webp",
   },
   {
+    id: "alpine-lake",
+    name: "Alpine Lake",
+    type: "dark",
+    url: "/image/alpine-lake.webp",
+  },
+  {
+    id: "misty-canopy",
+    name: "Misty Canopy",
+    type: "dark",
+    url: "/image/misty-canopy.webp",
+  },
+  {
+    id: "misty-pines",
+    name: "Misty Pines",
+    type: "dark",
+    url: "/image/misty-pines.webp",
+  },
+  {
+    id: "mountain-summit",
+    name: "Mountain Summit",
+    type: "dark",
+    url: "/image/mountain-summit.webp",
+  },
+  {
     id: "cosmic-aurora",
     name: "Cosmic Aurora",
     type: "dark",

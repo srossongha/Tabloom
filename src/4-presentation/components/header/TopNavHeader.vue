@@ -315,7 +315,7 @@ onUnmounted(() => {
                 ? 'Close Customize'
                 : 'Customize Tabloom (Settings)'
             "
-            class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
+            class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
             :class="[
               props.isSettingsOpen
                 ? 'bg-white/15 border-white/20'
@@ -332,7 +332,7 @@ onUnmounted(() => {
             @click="emit('openSettings')"
           >
             <SlidersHorizontal
-              class="h-4 w-4 transition-transform duration-380 group-hover:scale-110"
+              class="h-4 w-4 transition-transform duration-200 group-hover:scale-105"
               :style="{
                 color: props.isSettingsOpen ? activeAccent : undefined,
               }"
@@ -348,7 +348,7 @@ onUnmounted(() => {
         :title="
           isExpanded ? 'Collapse navigation' : 'Expand navigation & settings'
         "
-        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
+        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
         :class="[
           isExpanded
             ? 'border-white/20 bg-white/15'
@@ -361,7 +361,7 @@ onUnmounted(() => {
         @click="toggleExpanded"
       >
         <Settings
-          class="h-4 w-4 transition-transform duration-380 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          class="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           :class="[
             isExpanded
               ? 'rotate-90'
