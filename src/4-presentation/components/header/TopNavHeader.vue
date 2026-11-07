@@ -1,7 +1,7 @@
 <!--
-  TopNavHeader component displaying the brand badge, view switcher pill, and settings trigger.
+  TopNavHeader component displaying the brand badge, view switcher pill, and single gear settings trigger.
   Coordinates navigation between Bookmarks, Open Tabs, Most Visited, and Last Session views
-  with a fluid sliding curve mask animation, momentum stretching, and customizable active accent color.
+  with a fluid sliding curve mask animation, and single gear button for opening settings.
 -->
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
@@ -11,7 +11,6 @@ import {
   Layers,
   Sparkles,
   Clock,
-  SlidersHorizontal,
 } from "lucide-vue-next";
 import type { NavigationTab } from "../../../1-domain/entities/BrowserItem";
 import {
@@ -25,24 +24,20 @@ interface Props {
   accentColor?: string;
   showLogo?: boolean;
   showNavTabs?: boolean;
+  isSettingsOpen?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   accentColor: "#10b981",
   showLogo: true,
   showNavTabs: true,
+  isSettingsOpen: false,
 });
 
 const emit = defineEmits<{
   (e: "selectView", view: NavigationTab): void;
   (e: "openSettings"): void;
 }>();
-
-const isNavExpanded = ref(false);
-
-function toggleNav() {
-  isNavExpanded.value = !isNavExpanded.value;
-}
 
 const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
   { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
@@ -86,14 +81,15 @@ watch(
 
 const isSliding = ref(false);
 const slideDuration = ref(380);
-const slideDirection = ref<"left" | "right">("right");
 let slideTimer: number | undefined;
 
 function setTabRef(id: NavigationTab, el: any) {
   if (el) {
     tabRefs.value[id] = el as HTMLElement;
-    if (id === optimisticActiveView.value && !pillReady.value) {
-      moveToTab(id, false);
+    if (id === optimisticActiveView.value) {
+      nextTick(() => {
+        moveToTab(id, false);
+      });
     }
   }
 }
@@ -107,10 +103,9 @@ function moveToTab(view: NavigationTab, animated = true) {
     const targetIdx = TAB_ORDER[view] ?? 0;
     const dist = Math.abs(targetIdx - currentIdx);
 
-    slideDirection.value = targetIdx >= currentIdx ? "right" : "left";
     // Dynamic speed curve duration proportional to distance:
-    // 1 tab jump: 300ms, 2 tabs jump: 380ms, 3 tabs jump (e.g. Bookmarks -> Last session): 450ms
-    slideDuration.value = dist <= 1 ? 300 : dist === 2 ? 380 : 450;
+    // 1 tab jump: 300ms, 2 tabs jump: 380ms, 3 tabs jump (e.g. Bookmarks -> Last session): 440ms
+    slideDuration.value = dist <= 1 ? 300 : dist === 2 ? 380 : 440;
     isSliding.value = true;
 
     if (slideTimer) clearTimeout(slideTimer);
@@ -134,20 +129,13 @@ function handleTabClick(view: NavigationTab) {
   emit("selectView", view);
 }
 
-function onNavExpandEntered() {
-  nextTick(() => {
-    moveToTab(props.activeView, false);
-  });
-}
-
 function updatePillPosition() {
   moveToTab(props.activeView, false);
 }
 
 watch(
-  () => [isNavExpanded.value, props.accentColor],
+  () => props.accentColor,
   async () => {
-    if (!isNavExpanded.value) return;
     await nextTick();
     requestAnimationFrame(updatePillPosition);
   },
@@ -155,6 +143,9 @@ watch(
 
 onMounted(() => {
   window.addEventListener("resize", updatePillPosition);
+  nextTick(() => {
+    updatePillPosition();
+  });
 });
 
 onUnmounted(() => {
@@ -180,98 +171,85 @@ onUnmounted(() => {
     </div>
     <div v-else />
 
-    <!-- Center/Right view switcher pill & action buttons -->
-    <div class="flex items-center gap-2.5">
-      <!-- Collapsible Navigation Tabs Pill with Fluid Expand Transition -->
-      <Transition name="nav-expand" @after-enter="onNavExpandEntered">
-        <nav
-          v-if="props.showNavTabs && isNavExpanded"
-          class="relative flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
-          role="tablist"
+    <!-- Center/Right view switcher pill & single gear button -->
+    <div class="flex items-center gap-3">
+      <!-- Navigation Tabs Pill (The Bar) -->
+      <nav
+        v-if="props.showNavTabs"
+        class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
+        role="tablist"
+      >
+        <!-- Animated Sliding Mask Indicator (moves between tabs with smooth curved speed) -->
+        <div
+          class="pointer-events-none absolute left-0 top-1.5 bottom-1.5 rounded-full will-change-[transform,width,opacity]"
+          :style="{
+            transform: `translateX(${pillLeft}px)`,
+            width: `${pillWidth}px`,
+            transitionProperty: 'transform, width, opacity, box-shadow',
+            transitionDuration: `${slideDuration}ms`,
+            transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
+            opacity: pillReady ? 1 : 0,
+            backgroundColor: activeAccent,
+            boxShadow: isSliding
+              ? `0 6px 20px 0 ${accentGlow}, 0 0 14px 2px ${activeAccent}44`
+              : `0 4px 14px 0 ${accentGlow}`,
+          }"
+        />
+
+        <button
+          v-for="tab in TABS"
+          :key="tab.id"
+          :ref="(el) => setTabRef(tab.id, el)"
+          role="tab"
+          :aria-selected="optimisticActiveView === tab.id"
+          class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none"
+          :class="[
+            optimisticActiveView === tab.id
+              ? 'shadow-none'
+              : 'text-white/70 hover:bg-white/10 hover:text-white',
+          ]"
+          :style="{
+            color: optimisticActiveView === tab.id ? activeTextColor : undefined,
+          }"
+          @click="handleTabClick(tab.id)"
         >
-          <!-- Animated Sliding Mask Indicator (moves between tabs like a physical sliding pill with fluid speed curve) -->
-          <div
-            class="pointer-events-none absolute left-0 top-1.5 bottom-1.5 rounded-full will-change-[transform,width,opacity]"
-            :style="{
-              transform: `translateX(${pillLeft}px) scaleX(${isSliding ? 1.05 : 1})`,
-              transformOrigin:
-                slideDirection === 'right' ? 'left center' : 'right center',
-              width: `${pillWidth}px`,
-              transitionProperty: 'transform, width, opacity, box-shadow',
-              transitionDuration: `${slideDuration}ms`,
-              transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
-              opacity: pillReady ? 1 : 0,
-              backgroundColor: activeAccent,
-              boxShadow: isSliding
-                ? `0 6px 20px 0 ${accentGlow}, 0 0 14px 2px ${activeAccent}44`
-                : `0 4px 14px 0 ${accentGlow}`,
-            }"
+          <component
+            :is="tab.icon"
+            class="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)]"
+            :class="{ 'scale-110': optimisticActiveView === tab.id }"
           />
+          <span>{{ tab.label }}</span>
+        </button>
+      </nav>
 
-          <button
-            v-for="tab in TABS"
-            :key="tab.id"
-            :ref="(el) => setTabRef(tab.id, el)"
-            role="tab"
-            :aria-selected="optimisticActiveView === tab.id"
-            class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none"
-            :class="[
-              optimisticActiveView === tab.id
-                ? 'shadow-none'
-                : 'text-white/70 hover:bg-white/10 hover:text-white',
-            ]"
-            :style="{
-              color: optimisticActiveView === tab.id ? activeTextColor : undefined,
-            }"
-            @click="handleTabClick(tab.id)"
-          >
-            <component
-              :is="tab.icon"
-              class="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)]"
-              :class="{ 'scale-110': optimisticActiveView === tab.id }"
-            />
-            <span>{{ tab.label }}</span>
-          </button>
-        </nav>
-      </Transition>
-
-      <!-- Toggle Navigation Button: Gear rotates smoothly and reveals the navigation tabs pill -->
+      <!-- The Gear Button (Alone - Single Circle) -->
       <button
         type="button"
-        aria-label="Toggle navigation tabs"
-        :title="
-          isNavExpanded ? 'Hide navigation views' : 'Show navigation views'
-        "
-        class="flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+        aria-label="Customize settings"
+        :title="props.isSettingsOpen ? 'Close settings' : 'Customize Tabloom (Settings)'"
+        class="group flex h-10 w-10 items-center justify-center rounded-full border shadow-lg transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
-          isNavExpanded
+          props.isSettingsOpen
             ? 'bg-white/15'
             : 'border-white/10 bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/15',
         ]"
         :style="{
-          borderColor: isNavExpanded ? `${activeAccent}66` : undefined,
-          boxShadow: isNavExpanded ? `0 4px 14px 0 ${accentGlow}` : undefined,
+          borderColor: props.isSettingsOpen ? `${activeAccent}66` : undefined,
+          boxShadow: props.isSettingsOpen ? `0 4px 14px 0 ${accentGlow}` : undefined,
         }"
-        @click="toggleNav"
-      >
-        <Settings
-          class="h-4 w-4 transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)]"
-          :class="[isNavExpanded ? 'rotate-180' : 'rotate-0 text-white/80']"
-          :style="{
-            color: isNavExpanded ? activeAccent : undefined,
-          }"
-        />
-      </button>
-
-      <!-- Dedicated Settings button: Opens Customize Tabloom settings drawer -->
-      <button
-        type="button"
-        aria-label="Customize settings"
-        title="Customize Tabloom (Settings)"
-        class="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/80 shadow-lg transition-all duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)] hover:scale-110 hover:bg-white/15 hover:text-white active:scale-90 cursor-pointer backdrop-blur-xl"
         @click="emit('openSettings')"
       >
-        <SlidersHorizontal class="h-4 w-4" />
+        <Settings
+          class="h-4 w-4 transition-transform duration-400 ease-[cubic-bezier(0.34,1.4,0.64,1)]"
+          :class="[
+            props.isSettingsOpen
+              ? 'rotate-90'
+              : 'rotate-0 text-white/80 group-hover:rotate-45 group-hover:text-white',
+          ]"
+          :style="{
+            color: props.isSettingsOpen ? activeAccent : undefined,
+          }"
+        />
       </button>
     </div>
   </header>

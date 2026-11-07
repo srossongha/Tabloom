@@ -497,6 +497,17 @@ body.theme-light,
 .theme-light aside .border-white\/10 {
   border-color: rgba(15, 23, 42, 0.09) !important;
 }
+.theme-light aside select,
+.theme-light .settings-drawer-panel select {
+  background-color: rgba(241, 245, 249, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+}
+.theme-light aside select option,
+.theme-light .settings-drawer-panel select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
 .theme-light label.border-white\/5,
 .theme-light .bg-white\/\[0\.03\] {
   background-color: rgba(241, 245, 249, 0.85) !important;

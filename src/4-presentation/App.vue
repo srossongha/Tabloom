@@ -196,8 +196,9 @@ function onExportConfig() {
         :accent-color="settingsStore.settings.value.accentColor"
         :show-logo="settingsStore.settings.value.showLogo"
         :show-nav-tabs="settingsStore.settings.value.showNavTabs"
+        :is-settings-open="isSettingsOpen"
         @select-view="nav.setView"
-        @open-settings="isSettingsOpen = true"
+        @open-settings="isSettingsOpen = !isSettingsOpen"
       />
 
       <!-- Left side panel: Clock & Sticky Note (stays on the place you drew) -->
