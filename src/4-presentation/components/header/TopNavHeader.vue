@@ -244,7 +244,7 @@ onUnmounted(() => {
       <Transition name="header-expand">
         <div
           v-if="isExpanded && props.showNavTabs"
-          class="flex shrink-0 items-center gap-2.5 origin-right whitespace-nowrap"
+          class="relative z-10 flex shrink-0 items-center gap-2.5 origin-right whitespace-nowrap"
         >
           <!-- Navigation Tabs Pill (The Bar for the 4) -->
           <nav
@@ -308,7 +308,7 @@ onUnmounted(() => {
                 ? 'Close Customize'
                 : 'Customize Tabloom (Settings)'
             "
-            class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+            class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
             :class="[
               props.isSettingsOpen
                 ? 'bg-white/15 border-white/20'
@@ -341,7 +341,7 @@ onUnmounted(() => {
         :title="
           isExpanded ? 'Collapse navigation' : 'Expand navigation & settings'
         "
-        class="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
         :class="[
           isExpanded
             ? 'border-white/20 bg-white/15'
@@ -370,11 +370,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Fluid Slide-out & Collapse Animation (Zero squish, zero clipping) */
+/* Fluid Slide-out & Collapse Animation (Zero squish, zero clipping, fully rounded capsule) */
 .header-expand-enter-active {
   transition:
-    transform 440ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 360ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform 460ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: right center;
   will-change: transform, opacity;
 }
@@ -390,7 +390,7 @@ onUnmounted(() => {
 .header-expand-enter-from,
 .header-expand-leave-to {
   opacity: 0;
-  transform: translateX(18px) scale(0.96);
+  transform: translateX(12px) scale(0.97);
 }
 
 .header-expand-enter-to,
