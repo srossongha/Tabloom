@@ -146,7 +146,7 @@ const containerMaxWidth = computed(() => {
         :key="item.id"
         :ref="(el) => setModeRef(item.id, el)"
         type="button"
-        class="relative z-10 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200 select-none cursor-pointer bg-transparent"
+        class="relative z-10 flex h-6.5 items-center justify-center gap-1.5 rounded-full pl-2.5 pr-3 text-xs font-medium leading-none transition-colors duration-200 select-none cursor-pointer bg-transparent"
         :class="[
           props.modelValue === item.id
             ? 'shadow-none'
@@ -157,8 +157,8 @@ const containerMaxWidth = computed(() => {
         }"
         @click="handleModeClick(item.id)"
       >
-        <component :is="item.icon" class="h-3 w-3" />
-        <span>{{ item.label }}</span>
+        <component :is="item.icon" class="h-3 w-3 shrink-0" />
+        <span class="inline-flex items-center leading-none -translate-y-[0.5px]">{{ item.label }}</span>
       </button>
     </div>
   </div>

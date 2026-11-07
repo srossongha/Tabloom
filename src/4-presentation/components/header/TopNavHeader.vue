@@ -260,7 +260,7 @@ onUnmounted(() => {
               :ref="(el) => setTabRef(tab.id, el)"
               role="tab"
               :aria-selected="optimisticActiveView === tab.id"
-              class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200 select-none bg-transparent cursor-pointer"
+              class="relative z-10 flex h-7.5 items-center justify-center gap-1.5 rounded-full pl-3.5 pr-4 text-xs font-medium leading-none transition-colors duration-200 select-none bg-transparent cursor-pointer"
               :class="[
                 optimisticActiveView === tab.id
                   ? 'shadow-none'
@@ -274,10 +274,10 @@ onUnmounted(() => {
             >
               <component
                 :is="tab.icon"
-                class="h-3.5 w-3.5 transition-transform duration-200 ease-out"
+                class="h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-out"
                 :class="{ 'scale-105': optimisticActiveView === tab.id }"
               />
-              <span>{{ tab.label }}</span>
+              <span class="inline-flex items-center leading-none -translate-y-[0.5px]">{{ tab.label }}</span>
             </button>
           </nav>
 
