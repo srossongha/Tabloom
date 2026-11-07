@@ -4,13 +4,14 @@
   Features fluid curved motion animations for opening/closing and tab transitions.
 -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { X, Palette, Sliders, Database, Check } from 'lucide-vue-next'
 import type {
   AppSettings,
   ThemePreset,
 } from '../../../1-domain/entities/AppSettings'
 import type { BookmarkFolder } from '../../../1-domain/entities/BrowserItem'
+import { parseHexOrRgb } from '../../../2-application/services/colorUtils'
 import SettingsThemeSection from './SettingsThemeSection.vue'
 import SettingsLayoutSection from './SettingsLayoutSection.vue'
 import SettingsGeneralSection from './SettingsGeneralSection.vue'
@@ -42,6 +43,65 @@ const TABS: Array<{ id: DrawerTab; label: string; icon: any }> = [
   { id: 'layout', label: 'Layout', icon: Sliders },
   { id: 'data', label: 'Data', icon: Database },
 ]
+
+const activeAccent = computed(() => props.settings.accentColor || '#10b981')
+
+const accentGlow = computed(() => {
+  const rgb = parseHexOrRgb(activeAccent.value)
+  if (!rgb) return 'rgba(16, 185, 129, 0.45)'
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.45)`
+})
+
+// Dynamic Moving Underline Indicator State
+const tabContainerRef = ref<HTMLElement | null>(null)
+const tabRefs = ref<Record<string, HTMLElement | null>>({})
+const lineLeft = ref(0)
+const lineWidth = ref(0)
+const isLineReady = ref(false)
+const isAnimated = ref(false)
+
+function setDrawerTabRef(id: DrawerTab, el: any) {
+  if (el) {
+    tabRefs.value[id] = el as HTMLElement
+    if (id === currentTab.value) {
+      nextTick(() => {
+        updateLinePosition(false)
+      })
+    }
+  }
+}
+
+function updateLinePosition(animated = true) {
+  isAnimated.value = animated && isLineReady.value
+  const targetEl = tabRefs.value[currentTab.value]
+  const containerEl = tabContainerRef.value
+  if (!targetEl || !containerEl) return
+
+  let left = 0
+  let width = 0
+
+  if (targetEl.offsetParent === containerEl) {
+    left = targetEl.offsetLeft + 8
+    width = Math.max(16, targetEl.offsetWidth - 16)
+  } else {
+    const targetRect = targetEl.getBoundingClientRect()
+    const contRect = containerEl.getBoundingClientRect()
+    left = Math.round(targetRect.left - contRect.left + 8)
+    width = Math.max(16, Math.round(targetRect.width - 16))
+  }
+
+  lineLeft.value = left
+  lineWidth.value = width
+  isLineReady.value = true
+}
+
+function selectTab(id: DrawerTab) {
+  if (currentTab.value === id) return
+  currentTab.value = id
+  nextTick(() => {
+    updateLinePosition(true)
+  })
+}
 
 const userNameInput = ref('')
 const isSaved = ref(false)
@@ -86,16 +146,40 @@ async function saveUserName() {
 watch(
   () => props.isOpen,
   (open) => {
-    if (open) loadUserName()
+    if (open) {
+      loadUserName()
+      nextTick(() => {
+        updateLinePosition(false)
+        window.setTimeout(() => updateLinePosition(false), 280)
+      })
+    }
   },
   { immediate: true }
+)
+
+watch(
+  () => props.settings.accentColor,
+  () => {
+    nextTick(() => updateLinePosition(false))
+  }
 )
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && props.isOpen) emit('close')
 }
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener('resize', () => updateLinePosition(false))
+  if (props.isOpen) {
+    nextTick(() => updateLinePosition(false))
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('resize', () => updateLinePosition(false))
+})
 </script>
 
 <template>
@@ -161,27 +245,45 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </div>
         </div>
 
-        <!-- Navigation Tabs with fluid curved active pill -->
-        <div class="relative flex border-b border-white/10 px-5 pt-2.5">
+        <!-- Navigation Tabs with fluid moving underline indicator -->
+        <div ref="tabContainerRef" class="relative flex border-b border-white/10 px-5 pt-2.5 select-none">
+          <!-- The Single Animated Moving Underline Indicator -->
+          <div
+            class="pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full will-change-[transform,width,opacity]"
+            :style="{
+              transform: `translate3d(${lineLeft}px, 0, 0)`,
+              width: `${lineWidth}px`,
+              transition: isAnimated
+                ? 'transform 320ms cubic-bezier(0.34, 1.36, 0.64, 1), width 320ms cubic-bezier(0.34, 1.36, 0.64, 1), opacity 200ms ease'
+                : 'none',
+              opacity: isLineReady ? 1 : 0,
+              backgroundColor: activeAccent,
+              boxShadow: `0 0 10px 1px ${accentGlow}`,
+            }"
+          />
+
           <button
             v-for="t in TABS"
             :key="t.id"
-            class="relative flex flex-1 items-center justify-center gap-1.5 py-2 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            :ref="(el) => setDrawerTabRef(t.id, el)"
+            type="button"
+            class="relative flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors duration-200 cursor-pointer select-none"
             :class="[
               currentTab === t.id
-                ? 'text-emerald-400 font-semibold'
-                : 'text-white/50 hover:text-white/85',
+                ? 'font-semibold text-emerald-400 dark:text-emerald-400 light:text-emerald-600'
+                : 'text-white/50 hover:text-white/85 dark:text-white/50 dark:hover:text-white/85 light:text-slate-500 light:hover:text-slate-900',
             ]"
-            @click="currentTab = t.id"
+            :style="{
+              color: currentTab === t.id ? activeAccent : undefined,
+            }"
+            @click="selectTab(t.id)"
           >
-            <component :is="t.icon" class="h-3.5 w-3.5" />
-            <span>{{ t.label }}</span>
-
-            <!-- Curved glowing active indicator pill -->
-            <span
-              v-if="currentTab === t.id"
-              class="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            <component
+              :is="t.icon"
+              class="h-3.5 w-3.5 transition-transform duration-200"
+              :class="{ 'scale-110': currentTab === t.id }"
             />
+            <span>{{ t.label }}</span>
           </button>
         </div>
 
