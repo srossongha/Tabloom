@@ -17,6 +17,7 @@ declare module 'vue' {
     CosmicCanvas: typeof import('./4-presentation/components/background/CosmicCanvas.vue')['default']
     CustomizeDrawer: typeof import('./4-presentation/components/settings/CustomizeDrawer.vue')['default']
     DynamicGreeting: typeof import('./4-presentation/components/greeting/DynamicGreeting.vue')['default']
+    SegmentedPillControl: typeof import('./4-presentation/components/common/SegmentedPillControl.vue')['default']
     SettingsGeneralSection: typeof import('./4-presentation/components/settings/SettingsGeneralSection.vue')['default']
     SettingsLayoutSection: typeof import('./4-presentation/components/settings/SettingsLayoutSection.vue')['default']
     SettingsThemeSection: typeof import('./4-presentation/components/settings/SettingsThemeSection.vue')['default']

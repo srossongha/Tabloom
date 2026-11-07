@@ -8,6 +8,9 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { X, Upload, Palette, Image as ImageIcon, Sparkles, Pin } from 'lucide-vue-next'
 import type { Tile, IconMode, TileDisplayMode } from '../../../1-domain/entities/Tile'
 import { resolveFaviconUrl, generateMonogram } from '../../../3-infrastructure/favicon/faviconService'
+import SegmentedPillControl, {
+  type SegmentedOption,
+} from '../common/SegmentedPillControl.vue'
 
 interface Props {
   isOpen: boolean
@@ -27,6 +30,11 @@ const emit = defineEmits<{
     pinned: boolean
   }): void
 }>()
+
+const DISPLAY_MODES: Array<SegmentedOption<TileDisplayMode>> = [
+  { id: 'icon', label: 'Standard Icon Badge', icon: Sparkles },
+  { id: 'full-cover', label: 'Full Tile Image Cover', icon: ImageIcon },
+]
 
 const title = ref('')
 const url = ref('')
@@ -204,44 +212,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <!-- Display Style: Icon vs Full Tile Image Cover -->
             <div>
               <label class="block text-xs font-medium text-slate-700 dark:text-white/70 mb-1.5">Tile Display Style</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  class="flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer"
-                  :class="[
-                    displayMode === 'icon'
-                      ? 'shadow-sm font-semibold'
-                      : 'border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-black/[0.06] dark:hover:bg-white/10',
-                  ]"
-                  :style="displayMode === 'icon' ? {
-                    borderColor: 'var(--accent)',
-                    backgroundColor: 'var(--accent-15)',
-                    color: 'var(--accent)',
-                  } : undefined"
-                  @click="displayMode = 'icon'"
-                >
-                  <Sparkles class="h-3.5 w-3.5" :style="{ color: 'var(--accent)' }" />
-                  <span>Standard Icon Badge</span>
-                </button>
-                <button
-                  type="button"
-                  class="flex items-center justify-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer"
-                  :class="[
-                    displayMode === 'full-cover'
-                      ? 'shadow-sm font-semibold'
-                      : 'border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-black/[0.06] dark:hover:bg-white/10',
-                  ]"
-                  :style="displayMode === 'full-cover' ? {
-                    borderColor: 'var(--accent)',
-                    backgroundColor: 'var(--accent-15)',
-                    color: 'var(--accent)',
-                  } : undefined"
-                  @click="displayMode = 'full-cover'"
-                >
-                  <ImageIcon class="h-3.5 w-3.5" :style="{ color: 'var(--accent)' }" />
-                  <span>Full Tile Image Cover</span>
-                </button>
-              </div>
+              <SegmentedPillControl
+                v-model="displayMode"
+                :options="DISPLAY_MODES"
+                :accent-color="'var(--accent)'"
+              />
               <p v-if="displayMode === 'full-cover'" class="text-[11px] mt-1" :style="{ color: 'var(--accent)' }">
                 The image fills the entire tile surface. Clicking anywhere on the tile opens the URL.
               </p>

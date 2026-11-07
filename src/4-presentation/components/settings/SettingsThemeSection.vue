@@ -4,7 +4,7 @@
   Supports local IndexedDB storage for zero-lag performance or account-synced URLs.
 -->
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import {
   Upload,
   Trash2,
@@ -32,6 +32,9 @@ import {
 } from "../../../3-infrastructure/storage/mediaStorageService";
 import { isColorBright } from "../../../2-application/services/colorUtils";
 import TabBrandingSection from "./TabBrandingSection.vue";
+import SegmentedPillControl, {
+  type SegmentedOption,
+} from "../common/SegmentedPillControl.vue";
 
 interface Props {
   settings: AppSettings;
@@ -43,11 +46,26 @@ const emit = defineEmits<{
   (e: "applyPreset", preset: ThemePreset): void;
 }>();
 
-const THEME_MODES: Array<{ id: ThemeMode; label: string; icon: any }> = [
+const THEME_MODES: Array<SegmentedOption<ThemeMode>> = [
   { id: "dark", label: "Dark", icon: Moon },
   { id: "light", label: "Light", icon: Sun },
   { id: "auto", label: "Auto", icon: Sparkles },
 ];
+
+const BACKGROUND_MODES: Array<SegmentedOption<string>> = [
+  { id: "gradient", label: "Gradient Colors", icon: Palette },
+  { id: "wallpaper", label: "Custom Wallpaper", icon: HardDrive },
+];
+
+const activeBackgroundMode = computed(() => {
+  return props.settings.showCustomWallpaper && props.settings.customWallpaper
+    ? "wallpaper"
+    : "gradient";
+});
+
+function onSelectBackgroundMode(mode: string) {
+  emit("update", { showCustomWallpaper: mode === "wallpaper" });
+}
 
 const DARK_PRESETS: Array<{ id: ThemePreset; label: string; color: string }> = [
   { id: "cosmic-purple", label: "Cosmic Purple", color: "#2b1055" },
@@ -323,36 +341,12 @@ onMounted(() => {
           >{{ props.settings.themeMode || "auto" }}</span
         >
       </div>
-      <div
-        class="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1"
-      >
-        <button
-          v-for="m in THEME_MODES"
-          :key="m.id"
-          type="button"
-          class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] active:scale-95 cursor-pointer"
-          :class="[
-            (props.settings.themeMode || 'auto') === m.id
-              ? 'shadow-sm font-semibold'
-              : 'text-white/60 hover:bg-white/10 hover:text-white',
-          ]"
-          :style="
-            (props.settings.themeMode || 'auto') === m.id
-              ? {
-                  backgroundColor: props.settings.accentColor,
-                  color: isColorBright(props.settings.accentColor)
-                    ? '#0f172a'
-                    : '#ffffff',
-                  boxShadow: `0 4px 12px 0 ${props.settings.accentColor}40`,
-                }
-              : undefined
-          "
-          @click="onSelectThemeMode(m.id)"
-        >
-          <component :is="m.icon" class="h-3.5 w-3.5" />
-          <span>{{ m.label }}</span>
-        </button>
-      </div>
+      <SegmentedPillControl
+        :model-value="props.settings.themeMode || 'auto'"
+        :options="THEME_MODES"
+        :accent-color="props.settings.accentColor"
+        @change="onSelectThemeMode($event as ThemeMode)"
+      />
     </div>
 
     <!-- Theme Presets: Dark Collection -->
@@ -653,59 +647,13 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Mode Selector: Gradient Colors vs Custom Wallpaper -->
-      <div
-        class="grid grid-cols-2 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1"
-      >
-        <button
-          type="button"
-          class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
-          :class="[
-            !props.settings.showCustomWallpaper ||
-            !props.settings.customWallpaper
-              ? 'shadow-sm font-semibold'
-              : 'text-white/60 hover:bg-white/10 hover:text-white',
-          ]"
-          :style="
-            !props.settings.showCustomWallpaper ||
-            !props.settings.customWallpaper
-              ? {
-                  backgroundColor: props.settings.accentColor,
-                  color: isColorBright(props.settings.accentColor)
-                    ? '#0f172a'
-                    : '#ffffff',
-                }
-              : undefined
-          "
-          @click="emit('update', { showCustomWallpaper: false })"
-        >
-          <Palette class="h-3.5 w-3.5" />
-          <span>Gradient Colors</span>
-        </button>
-        <button
-          type="button"
-          class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
-          :class="[
-            props.settings.showCustomWallpaper && props.settings.customWallpaper
-              ? 'shadow-sm font-semibold'
-              : 'text-white/60 hover:bg-white/10 hover:text-white',
-          ]"
-          :style="
-            props.settings.showCustomWallpaper && props.settings.customWallpaper
-              ? {
-                  backgroundColor: props.settings.accentColor,
-                  color: isColorBright(props.settings.accentColor)
-                    ? '#0f172a'
-                    : '#ffffff',
-                }
-              : undefined
-          "
-          @click="emit('update', { showCustomWallpaper: true })"
-        >
-          <HardDrive class="h-3.5 w-3.5" />
-          <span>Media Wallpaper</span>
-        </button>
-      </div>
+      <!-- Mode Selector: Gradient Colors vs Media Wallpaper -->
+      <SegmentedPillControl
+        :model-value="activeBackgroundMode"
+        :options="BACKGROUND_MODES"
+        :accent-color="props.settings.accentColor"
+        @change="onSelectBackgroundMode"
+      />
 
       <!-- Active Local Wallpaper Badge -->
       <div
