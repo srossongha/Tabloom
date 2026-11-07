@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tabloom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A fresh, calm new tab that blooms every time you open it.",
   "chrome_url_overrides": {
     "newtab": "index.html"

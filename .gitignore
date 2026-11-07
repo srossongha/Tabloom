@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 *.zip
+scratch/
 
 # Editor directories and files
 .vscode/*
