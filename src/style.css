@@ -442,49 +442,95 @@ header nav button,
   color: #ffffff !important;
 }
 
-/* Sticky Notes in Light Mode (Pastel physical sticky notes with saturated readable ink) */
+/* Sticky Notes (Physical Post-it Notes with strictly sharp 90-degree corners) */
+.sticky-note-card,
+.sticky-note-pad,
+.sticky-note-peeled,
+.sticky-note-layer {
+  border-radius: 0px !important;
+}
+
 .theme-light .sticky-note-card {
   box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.06),
-    0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+    0 10px 25px -5px rgba(0, 0, 0, 0.08),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
 }
 .theme-light .sticky-note-card[data-color="amber"] {
-  background-color: rgba(254, 243, 199, 0.88) !important;
-  border-color: rgba(245, 158, 11, 0.35) !important;
+  background-color: rgba(254, 240, 138, 0.95) !important;
+  border-color: rgba(234, 179, 8, 0.45) !important;
 }
 .theme-light .sticky-note-card[data-color="amber"] textarea {
-  color: #78350f !important;
+  color: #713f12 !important;
 }
 .theme-light .sticky-note-card[data-color="emerald"] {
-  background-color: rgba(209, 250, 229, 0.88) !important;
-  border-color: rgba(16, 185, 129, 0.35) !important;
+  background-color: rgba(209, 250, 229, 0.95) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
 }
 .theme-light .sticky-note-card[data-color="emerald"] textarea {
   color: #064e3b !important;
 }
 .theme-light .sticky-note-card[data-color="rose"] {
-  background-color: rgba(255, 228, 230, 0.88) !important;
-  border-color: rgba(244, 63, 94, 0.35) !important;
+  background-color: rgba(255, 228, 230, 0.95) !important;
+  border-color: rgba(244, 63, 94, 0.45) !important;
 }
 .theme-light .sticky-note-card[data-color="rose"] textarea {
   color: #881337 !important;
 }
 .theme-light .sticky-note-card[data-color="purple"] {
-  background-color: rgba(243, 232, 255, 0.88) !important;
-  border-color: rgba(168, 85, 247, 0.35) !important;
+  background-color: rgba(243, 232, 255, 0.95) !important;
+  border-color: rgba(168, 85, 247, 0.45) !important;
 }
 .theme-light .sticky-note-card[data-color="purple"] textarea {
   color: #581c87 !important;
 }
+.theme-light .sticky-note-card[data-color="sky"] {
+  background-color: rgba(224, 242, 254, 0.95) !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
+}
+.theme-light .sticky-note-card[data-color="sky"] textarea {
+  color: #0369a1 !important;
+}
 .theme-light .sticky-note-card[data-color="glass"] {
-  background-color: rgba(255, 255, 255, 0.88) !important;
-  border-color: rgba(15, 23, 42, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
 }
 .theme-light .sticky-note-card[data-color="glass"] textarea {
   color: #0f172a !important;
 }
 .theme-light .sticky-note-card textarea::placeholder {
   color: rgba(100, 116, 139, 0.7) !important;
+}
+
+/* Light mode adhesive tape strips with sharp corners and authentic paper tone */
+.theme-light .sticky-note-card[data-color="amber"] > div:first-child {
+  background-color: rgba(253, 224, 71, 0.55) !important;
+  border-bottom-color: rgba(234, 179, 8, 0.35) !important;
+  color: #713f12 !important;
+}
+.theme-light .sticky-note-card[data-color="emerald"] > div:first-child {
+  background-color: rgba(167, 243, 208, 0.55) !important;
+  border-bottom-color: rgba(16, 185, 129, 0.35) !important;
+  color: #064e3b !important;
+}
+.theme-light .sticky-note-card[data-color="rose"] > div:first-child {
+  background-color: rgba(254, 205, 211, 0.55) !important;
+  border-bottom-color: rgba(244, 63, 94, 0.35) !important;
+  color: #881337 !important;
+}
+.theme-light .sticky-note-card[data-color="purple"] > div:first-child {
+  background-color: rgba(221, 214, 254, 0.55) !important;
+  border-bottom-color: rgba(168, 85, 247, 0.35) !important;
+  color: #581c87 !important;
+}
+.theme-light .sticky-note-card[data-color="sky"] > div:first-child {
+  background-color: rgba(186, 230, 253, 0.55) !important;
+  border-bottom-color: rgba(56, 189, 248, 0.35) !important;
+  color: #0369a1 !important;
+}
+.theme-light .sticky-note-card[data-color="glass"] > div:first-child {
+  background-color: rgba(241, 245, 249, 0.95) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
 }
 
 /* Settings Drawer in Light Mode */

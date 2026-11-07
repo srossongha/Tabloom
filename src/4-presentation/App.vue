@@ -207,7 +207,7 @@ function onExportConfig() {
           settingsStore.settings.value.showSideClock ||
           settingsStore.settings.value.showStickyNote
         "
-        class="pointer-events-auto fixed top-24 left-5 z-20 hidden w-52 flex-col gap-3 select-none min-[1024px]:flex xl:left-8 xl:w-56 2xl:left-10 2xl:w-60"
+        class="pointer-events-auto fixed top-24 left-5 z-20 hidden w-52 flex-col gap-3 select-none min-[860px]:flex xl:left-8 xl:w-56 2xl:left-10 2xl:w-60"
         aria-label="Side Widgets"
       >
         <SideClockWidget
