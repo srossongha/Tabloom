@@ -31,6 +31,21 @@ const DEFAULT_STARTER_TILES: Tile[] = [
   { id: 'starter_6', title: 'Minecraft', url: 'https://minecraft.net', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 3, lastUsedAt: Date.now(), order: 5, source: 'custom' },
 ]
 
+function deduplicateTilesByUrl(raw: Tile[]): Tile[] {
+  const seenUrls = new Set<string>()
+  const seenIds = new Set<string>()
+  const result: Tile[] = []
+  for (const t of raw) {
+    const normUrl = t.url.trim().toLowerCase().replace(/\/$/, '')
+    if (t.id && seenIds.has(t.id)) continue
+    if (seenUrls.has(normUrl)) continue
+    if (t.id) seenIds.add(t.id)
+    seenUrls.add(normUrl)
+    result.push(t)
+  }
+  return result
+}
+
 function loadInitialCustomTiles(): Tile[] {
   const current = storagePort.getSync ? storagePort.getSync<Tile[]>(CUSTOM_KEY, []) : []
   if (current && current.length > 0) return current
@@ -48,19 +63,31 @@ function loadInitialOverrides(): Record<string, TileOverride> {
 const customTiles = ref<Tile[]>(loadInitialCustomTiles())
 const overrides = ref<Record<string, TileOverride>>(loadInitialOverrides())
 const telemetry = ref<Record<string, { useCount: number; lastUsedAt: number }>>(storagePort.getSync ? storagePort.getSync(TELEMETRY_KEY, {}) : {})
-const tiles = ref<Tile[]>([])
+const tiles = ref<Tile[]>(deduplicateTilesByUrl(customTiles.value))
 const bookmarkFolders = ref<BookmarkFolder[]>([])
 const isLoading = ref<boolean>(false)
 
 // Real-time listener for cross-device/cross-tab sync updates
 if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' || area === 'local') {
-      if (changes[CUSTOM_KEY]) {
-        customTiles.value = (changes[CUSTOM_KEY].newValue as Tile[]) || []
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes[CUSTOM_KEY]?.newValue) {
+      const raw = changes[CUSTOM_KEY].newValue
+      const val =
+        raw && typeof raw === 'object' && '__tabloom_val' in raw
+          ? raw.__tabloom_val
+          : raw
+      if (Array.isArray(val) && val.length > 0) {
+        customTiles.value = val
       }
-      if (changes[OVERRIDES_KEY]) {
-        overrides.value = (changes[OVERRIDES_KEY].newValue as Record<string, TileOverride>) || {}
+    }
+    if (changes[OVERRIDES_KEY]?.newValue) {
+      const raw = changes[OVERRIDES_KEY].newValue
+      const val =
+        raw && typeof raw === 'object' && '__tabloom_val' in raw
+          ? raw.__tabloom_val
+          : raw
+      if (val && typeof val === 'object') {
+        overrides.value = val as Record<string, TileOverride>
       }
     }
   })
@@ -100,8 +127,8 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
           order: i,
           source: 'custom',
         }))
-        const existingHostnames = new Set(customTiles.value.map((t) => extractHostname(t.url)))
-        const uniqueImported = imported.filter((t) => !existingHostnames.has(extractHostname(t.url)))
+        const existingUrls = new Set(customTiles.value.map((t) => t.url.trim().toLowerCase().replace(/\/$/, '')))
+        const uniqueImported = imported.filter((t) => !existingUrls.has(t.url.trim().toLowerCase().replace(/\/$/, '')))
         customTiles.value = [...customTiles.value, ...uniqueImported]
         await storagePort.set(CUSTOM_KEY, customTiles.value)
       } else if (customTiles.value.length === 0) {
@@ -140,13 +167,18 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   }
 
   function applyOverrides(raw: Tile[], hiddenUrls: string[]): Tile[] {
-    const hiddenSet = new Set(hiddenUrls.map((u) => extractHostname(u)))
-    return raw.filter((t) => !hiddenSet.has(extractHostname(t.url))).map((t) => {
+    const hiddenSet = new Set(hiddenUrls.map((u) => u.toLowerCase().trim().replace(/\/$/, '')))
+    return raw.filter((t) => {
+      const norm = t.url.toLowerCase().trim().replace(/\/$/, '')
+      return !hiddenSet.has(norm)
+    }).map((t) => {
       const o = overrides.value[t.id] || overrides.value[t.url]
       const tel = telemetry.value[t.url]
       return {
         ...t,
         ...(o || {}),
+        colSpan: o?.colSpan ?? t.colSpan ?? 1,
+        rowSpan: o?.rowSpan ?? t.rowSpan ?? 1,
         useCount: (o?.order !== undefined ? t.useCount : 0) + (tel?.useCount || t.useCount),
         lastUsedAt: Math.max(t.lastUsedAt, tel?.lastUsedAt || 0),
       }
@@ -158,7 +190,7 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
     if (tiles.value.length === 0) isLoading.value = true
     try {
       if (view === 'bookmarks') {
-        const processed = deduplicateTilesByHost(applyOverrides(customTiles.value, settings.hiddenUrls))
+        const processed = deduplicateTilesByUrl(applyOverrides(customTiles.value, settings.hiddenUrls))
         tiles.value = processed.slice(0, settings.maxDiscoveredTiles)
         return
       }
@@ -186,8 +218,26 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   }
 
   async function updateTile(id: string, patch: Partial<Tile>) {
-    customTiles.value = customTiles.value.map((t) => (t.id === id ? { ...t, ...patch } : t))
-    overrides.value = { ...overrides.value, [id]: { ...(overrides.value[id] || {}), ...patch } }
+    const existingIdx = customTiles.value.findIndex((t) => t.id === id)
+    if (existingIdx >= 0) {
+      customTiles.value = customTiles.value.map((t) => (t.id === id ? { ...t, ...patch } : t))
+    } else {
+      const found = tiles.value.find((t) => t.id === id)
+      if (found) {
+        customTiles.value = [{ ...found, ...patch, source: 'custom' }, ...customTiles.value]
+      }
+    }
+
+    const target = tiles.value.find((t) => t.id === id) || customTiles.value.find((t) => t.id === id)
+    const nextOverrides: Record<string, TileOverride> = {
+      ...overrides.value,
+      [id]: { ...(overrides.value[id] || {}), ...patch },
+    }
+    if (target?.url) {
+      nextOverrides[target.url] = { ...(nextOverrides[target.url] || {}), ...patch }
+    }
+    overrides.value = nextOverrides
+
     await Promise.all([
       storagePort.set(CUSTOM_KEY, customTiles.value),
       storagePort.set(OVERRIDES_KEY, overrides.value),
@@ -196,12 +246,8 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   }
 
   async function deleteTile(tile: Tile, onHideUrl?: (url: string) => void) {
-    customTiles.value = customTiles.value.filter(
-      (t) => t.id !== tile.id && extractHostname(t.url) !== extractHostname(tile.url)
-    )
-    tiles.value = tiles.value.filter(
-      (t) => t.id !== tile.id && extractHostname(t.url) !== extractHostname(tile.url)
-    )
+    customTiles.value = customTiles.value.filter((t) => t.id !== tile.id)
+    tiles.value = tiles.value.filter((t) => t.id !== tile.id)
     await storagePort.set(CUSTOM_KEY, customTiles.value)
     if (onHideUrl) onHideUrl(tile.url)
   }
@@ -211,11 +257,12 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
     const fresh = await browserPort.getBookmarks()
     if (!fresh || fresh.length === 0) return 0
 
-    const existingHostnames = new Set(customTiles.value.map((t) => extractHostname(t.url)))
+    const existingUrls = new Set(customTiles.value.map((t) => t.url.trim().toLowerCase().replace(/\/$/, '')))
     const newItems: Tile[] = []
 
     fresh.forEach((b, i) => {
-      if (!existingHostnames.has(extractHostname(b.url))) {
+      const norm = b.url.trim().toLowerCase().replace(/\/$/, '')
+      if (!existingUrls.has(norm)) {
         newItems.push({
           id: `bm_tile_${b.id || Date.now() + '_' + i}`,
           title: b.title || extractHostname(b.url),

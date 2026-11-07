@@ -100,27 +100,38 @@ const userNameInput = ref("");
 const isSaved = ref(false);
 
 async function loadUserName() {
+  if (props.settings.userName && props.settings.userName !== 'User') {
+    userNameInput.value = props.settings.userName;
+    return;
+  }
   if (typeof chrome !== "undefined" && chrome.storage?.sync) {
     try {
       const res = await new Promise<{ userName?: string }>((resolve) => {
         chrome.storage.sync.get(["userName"], resolve);
       });
-      if (res && typeof res.userName === "string") {
+      if (res && typeof res.userName === "string" && res.userName.trim()) {
         userNameInput.value = res.userName;
         return;
       }
     } catch {}
   }
-  userNameInput.value = localStorage.getItem("userName") || "";
+  userNameInput.value = localStorage.getItem("userName") || props.settings.userName || "";
 }
 
 async function saveUserName() {
-  const trimmed = userNameInput.value.trim().slice(0, 30);
+  const trimmed = userNameInput.value.trim().slice(0, 30) || "User";
   userNameInput.value = trimmed;
+
+  emit("updateSettings", { userName: trimmed });
 
   if (typeof chrome !== "undefined" && chrome.storage?.sync) {
     try {
       await chrome.storage.sync.set({ userName: trimmed });
+    } catch {}
+  }
+  if (typeof chrome !== "undefined" && chrome.storage?.local) {
+    try {
+      await chrome.storage.local.set({ userName: trimmed });
     } catch {}
   }
   try {

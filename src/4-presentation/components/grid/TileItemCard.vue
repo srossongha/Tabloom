@@ -5,7 +5,7 @@
   drag-and-drop reordering, and tactile feedback.
 -->
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import {
   Pencil,
   Trash2,
@@ -171,15 +171,27 @@ function handleGlobalClick(e: MouseEvent) {
   }
 }
 
-onMounted(() => {
+function addHoldListeners() {
   window.addEventListener('keydown', handleGlobalKeydown)
   window.addEventListener('click', handleGlobalClick)
+}
+
+function removeHoldListeners() {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+  window.removeEventListener('click', handleGlobalClick)
+}
+
+watch(isHeld, (held) => {
+  if (held) {
+    addHoldListeners()
+  } else {
+    removeHoldListeners()
+  }
 })
 
 onUnmounted(() => {
   clearHoldTimer()
-  window.removeEventListener('keydown', handleGlobalKeydown)
-  window.removeEventListener('click', handleGlobalClick)
+  removeHoldListeners()
 })
 
 // --- Drag & Drop ---

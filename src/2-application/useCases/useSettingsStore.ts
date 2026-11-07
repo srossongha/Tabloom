@@ -4,8 +4,8 @@
  */
 import { ref } from 'vue'
 import {
-  AppSettingsSchema,
   DEFAULT_APP_SETTINGS,
+  sanitizeAppSettings,
   type AppSettings,
   type ThemePreset,
 } from '../../1-domain/entities/AppSettings'
@@ -28,8 +28,13 @@ function loadInitialSettings(): AppSettings {
   if (raw && raw.dataSourceMode === 'smart-blend') {
     raw.dataSourceMode = 'bookmarks-only'
   }
-  const parsed = AppSettingsSchema.safeParse(raw ?? DEFAULT_APP_SETTINGS)
-  return parsed.success ? parsed.data : { ...DEFAULT_APP_SETTINGS }
+  if (raw && typeof raw === 'object' && !raw.userName) {
+    try {
+      const localName = localStorage.getItem('userName')
+      if (localName) raw.userName = localName
+    } catch {}
+  }
+  return sanitizeAppSettings(raw)
 }
 
 const settings = ref<AppSettings>(loadInitialSettings())
@@ -68,11 +73,20 @@ if (typeof document !== 'undefined') applyCssVariables(settings.value)
 
 // Real-time listener for cross-device/cross-tab sync updates
 if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if ((area === 'sync' || area === 'local') && changes[SETTINGS_KEY]) {
-      const parsed = AppSettingsSchema.safeParse(changes[SETTINGS_KEY].newValue)
-      if (parsed.success) {
-        settings.value = parsed.data
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes[SETTINGS_KEY]?.newValue) {
+      const rawNew = changes[SETTINGS_KEY].newValue
+      const newVal =
+        rawNew && typeof rawNew === 'object' && '__tabloom_val' in rawNew
+          ? rawNew.__tabloom_val
+          : rawNew
+      if (newVal && typeof newVal === 'object') {
+        const obj = newVal as Record<string, unknown>
+        // Never wipe out local-only wallpaper if cloud payload stripped it
+        if (!obj.customWallpaper && settings.value.customWallpaper) {
+          obj.customWallpaper = settings.value.customWallpaper
+        }
+        settings.value = sanitizeAppSettings(obj)
         applyCssVariables(settings.value)
       }
     }
@@ -95,16 +109,40 @@ export function useSettingsStore(storage?: IStoragePort) {
       raw.dataSourceMode = 'bookmarks-only'
       await storagePort.set(SETTINGS_KEY, raw)
     }
-    const parsed = AppSettingsSchema.safeParse(raw ?? settings.value)
-    if (parsed.success) {
-      settings.value = parsed.data
-      applyCssVariables(settings.value)
+    if (raw && typeof raw === 'object' && !raw.userName) {
+      try {
+        const localName = localStorage.getItem('userName')
+        if (localName) raw.userName = localName
+      } catch {}
     }
+    const sanitized = sanitizeAppSettings(raw ?? settings.value)
+    // If local wallpaper exists, ensure customWallpaper is not accidentally blanked
+    if (!sanitized.customWallpaper && settings.value.customWallpaper) {
+      sanitized.customWallpaper = settings.value.customWallpaper
+    }
+    settings.value = sanitized
+    applyCssVariables(settings.value)
   }
 
   async function updateSettings(partial: Partial<AppSettings>) {
-    settings.value = { ...settings.value, ...partial }
+    const merged = sanitizeAppSettings({ ...settings.value, ...partial })
+    settings.value = merged
     applyCssVariables(settings.value)
+
+    if (partial.userName !== undefined) {
+      try {
+        localStorage.setItem('userName', partial.userName)
+      } catch {}
+      if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
+        try {
+          chrome.storage.sync.set({ userName: partial.userName })
+        } catch {}
+      }
+      window.dispatchEvent(
+        new CustomEvent('tabloom:userNameChanged', { detail: partial.userName })
+      )
+    }
+
     await storagePort.set(SETTINGS_KEY, settings.value)
   }
 
@@ -129,12 +167,9 @@ export function useSettingsStore(storage?: IStoragePort) {
   function importConfigJson(jsonText: string): boolean {
     try {
       const obj = JSON.parse(jsonText)
-      const parsed = AppSettingsSchema.safeParse(obj)
-      if (parsed.success) {
-        updateSettings(parsed.data)
-        return true
-      }
-      return false
+      const sanitized = sanitizeAppSettings(obj)
+      updateSettings(sanitized)
+      return true
     } catch {
       return false
     }

@@ -31,31 +31,43 @@ function updateClock() {
   now.value = new Date();
 }
 
+function stopTimer() {
+  if (timer) {
+    clearInterval(timer);
+    timer = undefined;
+  }
+}
+
+function startTimer() {
+  now.value = new Date();
+  if (!timer) {
+    timer = window.setInterval(updateClock, 1000);
+  }
+}
+
 function handleVisibility() {
   if (typeof document === "undefined") return;
   if (document.hidden) {
-    if (timer) {
-      clearInterval(timer);
-      timer = undefined;
-    }
+    stopTimer();
   } else {
-    now.value = new Date();
-    if (!timer) {
-      timer = window.setInterval(updateClock, 1000);
-    }
+    startTimer();
   }
 }
 
 onMounted(() => {
-  timer = window.setInterval(updateClock, 1000);
+  startTimer();
   document.addEventListener("visibilitychange", handleVisibility, {
     passive: true,
   });
+  window.addEventListener("blur", stopTimer, { passive: true });
+  window.addEventListener("focus", startTimer, { passive: true });
 });
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
+  stopTimer();
   document.removeEventListener("visibilitychange", handleVisibility);
+  window.removeEventListener("blur", stopTimer);
+  window.removeEventListener("focus", startTimer);
 });
 
 const hoursFormatted = computed(() => {

@@ -256,7 +256,7 @@ onUnmounted(() => {
           <!-- Navigation Tabs Pill (The Bar for the 4) -->
           <nav
             ref="navRef"
-            class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 bg-white/[0.06] dark:bg-white/[0.06] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
+            class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 bg-white/[0.08] dark:bg-white/[0.08] p-1.5 shadow-xl shadow-black/20 backdrop-blur-md"
             role="tablist"
           >
             <!-- Animated Sliding Mask Indicator (Concentric inset-y, mathematically centered) -->
@@ -283,7 +283,7 @@ onUnmounted(() => {
               :ref="(el) => setTabRef(tab.id, el)"
               role="tab"
               :aria-selected="optimisticActiveView === tab.id"
-              class="relative z-10 inline-flex h-[30px] items-center justify-center gap-1.5 rounded-full px-3.5 text-xs font-medium transition-colors duration-200 select-none bg-transparent cursor-pointer"
+              class="relative z-10 inline-flex h-[30px] items-center justify-center gap-1.5 rounded-full px-3.5 text-xs font-medium transition-colors duration-200 select-none bg-transparent cursor-pointer outline-none focus:outline-none focus-visible:outline-none"
               :class="[
                 optimisticActiveView === tab.id
                   ? 'shadow-none'
@@ -315,11 +315,11 @@ onUnmounted(() => {
                 ? 'Close Customize'
                 : 'Customize Tabloom (Settings)'
             "
-            class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+            class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
             :class="[
               props.isSettingsOpen
                 ? 'bg-white/15 border-white/20'
-                : 'border-white/10 dark:border-white/10 bg-white/[0.06] dark:bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/15',
+                : 'border-white/10 dark:border-white/10 bg-white/[0.08] dark:bg-white/[0.08] text-white/80 hover:text-white hover:bg-white/15',
             ]"
             :style="{
               borderColor: props.isSettingsOpen
@@ -348,11 +348,11 @@ onUnmounted(() => {
         :title="
           isExpanded ? 'Collapse navigation' : 'Expand navigation & settings'
         "
-        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-xl"
+        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
         :class="[
           isExpanded
             ? 'border-white/20 bg-white/15'
-            : 'border-white/10 dark:border-white/10 bg-white/[0.06] dark:bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/15',
+            : 'border-white/10 dark:border-white/10 bg-white/[0.08] dark:bg-white/[0.08] text-white/80 hover:text-white hover:bg-white/15',
         ]"
         :style="{
           borderColor: isExpanded ? `${activeAccent}66` : undefined,
@@ -383,7 +383,6 @@ onUnmounted(() => {
     transform 460ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 380ms cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: right center;
-  will-change: transform, opacity;
 }
 
 .header-expand-leave-active {
@@ -391,7 +390,6 @@ onUnmounted(() => {
     transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 240ms ease;
   transform-origin: right center;
-  will-change: transform, opacity;
 }
 
 .header-expand-enter-from,

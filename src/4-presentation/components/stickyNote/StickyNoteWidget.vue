@@ -296,6 +296,12 @@ function persistNotesNow() {
     localStorage.setItem(STORAGE_NOTES_KEY, JSON.stringify(payload))
   } catch {}
 
+  if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+    try {
+      chrome.storage.local.set({ [STORAGE_NOTES_KEY]: payload }, () => {})
+    } catch {}
+  }
+
   if (typeof chrome !== 'undefined' && chrome.storage?.sync) {
     try {
       chrome.storage.sync.set({ [STORAGE_NOTES_KEY]: payload }, () => {

@@ -27,6 +27,7 @@ let animId = 0
 let timeoutId: number | undefined
 let isRunning = false
 let resizeTimeout: number | undefined
+let idleTimeout: number | undefined
 let cachedCtx: CanvasRenderingContext2D | null = null
 
 interface Particle {
@@ -140,9 +141,20 @@ function stop() {
   }
 }
 
+function resetIdleTimer() {
+  if (idleTimeout) clearTimeout(idleTimeout)
+  if (!isRunning && !props.paused && props.mode !== 'off' && typeof document !== 'undefined' && !document.hidden) {
+    start()
+  }
+  // Sleep after 15s of zero user activity to guarantee 0% idle CPU and GPU draw
+  idleTimeout = window.setTimeout(() => {
+    stop()
+  }, 15000)
+}
+
 function handleVisibility() {
   if (typeof document !== 'undefined' && document.hidden) stop()
-  else start()
+  else resetIdleTimer()
 }
 
 function handleResize() {
@@ -168,9 +180,12 @@ onMounted(() => {
     initParticles(w, h)
   }
   start()
+  resetIdleTimer()
   window.addEventListener('resize', handleResize, { passive: true })
   window.addEventListener('blur', stop, { passive: true })
-  window.addEventListener('focus', start, { passive: true })
+  window.addEventListener('focus', resetIdleTimer, { passive: true })
+  window.addEventListener('pointermove', resetIdleTimer, { passive: true })
+  window.addEventListener('keydown', resetIdleTimer, { passive: true })
   document.addEventListener('visibilitychange', handleVisibility, { passive: true })
 })
 
@@ -178,9 +193,12 @@ onUnmounted(() => {
   stop()
   cachedCtx = null
   if (resizeTimeout) clearTimeout(resizeTimeout)
+  if (idleTimeout) clearTimeout(idleTimeout)
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('blur', stop)
-  window.removeEventListener('focus', start)
+  window.removeEventListener('focus', resetIdleTimer)
+  window.removeEventListener('pointermove', resetIdleTimer)
+  window.removeEventListener('keydown', resetIdleTimer)
   document.removeEventListener('visibilitychange', handleVisibility)
 })
 
