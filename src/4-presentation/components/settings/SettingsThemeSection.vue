@@ -30,6 +30,7 @@ import {
   mediaStorageService,
   type MediaMetadata,
 } from "../../../3-infrastructure/storage/mediaStorageService";
+import { convertImageToWebP } from "../../../2-application/services/imageOptimizerService";
 import { isColorBright } from "../../../2-application/services/colorUtils";
 import TabBrandingSection from "./TabBrandingSection.vue";
 import SegmentedPillControl, {
@@ -103,40 +104,34 @@ const WALLPAPER_PRESETS: Array<{
   type: "light" | "dark";
 }> = [
   {
-    id: "sakura-blossom",
-    name: "Sakura Minimal",
-    type: "light",
-    url: "https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "pastel-clouds",
-    name: "Pastel Horizon",
-    type: "light",
-    url: "https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "calm-botanical",
-    name: "Calm Studio",
-    type: "light",
-    url: "https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1920&q=80",
-  },
-  {
-    id: "deep-forest",
+    id: "pine-forest",
     name: "Pine Forest",
     type: "dark",
-    url: "https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=80",
+    url: "/image/pine-forest.webp",
   },
   {
-    id: "cosmic-nebula",
-    name: "Cosmic Sky",
+    id: "cosmic-aurora",
+    name: "Cosmic Aurora",
     type: "dark",
-    url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80",
+    url: "/image/cosmic-aurora.webp",
   },
   {
-    id: "cyber-city",
-    name: "Midnight Lights",
+    id: "emerald-tree",
+    name: "Emerald Tree",
     type: "dark",
-    url: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80",
+    url: "/image/emerald-tree.webp",
+  },
+  {
+    id: "botanical-minimal",
+    name: "Calm Botanical",
+    type: "light",
+    url: "/image/botanical-minimal.webp",
+  },
+  {
+    id: "deep-canopy",
+    name: "Deep Canopy",
+    type: "dark",
+    url: "/image/forest.webp",
   },
 ];
 
@@ -218,20 +213,34 @@ async function onWallpaperUpload(e: Event) {
 
     const isVideo =
       file.type.startsWith("video/") || file.name.match(/\.(mp4|webm)$/i);
-    await mediaStorageService.saveMedia("wallpaper", file, file.name);
+
+    let fileToSave: File | Blob = file;
+    let fileNameToSave = file.name;
+
+    if (!isVideo) {
+      uploadMessage.value = "Converting image to high-performance .webp...";
+      const result = await convertImageToWebP(file, file.name);
+      fileToSave = result.blob;
+      fileNameToSave = result.fileName;
+    }
+
+    await mediaStorageService.saveMedia("wallpaper", fileToSave, fileNameToSave);
     await refreshMediaInfo();
 
     emit("update", {
       customWallpaper: "local:wallpaper",
       wallpaperType: isVideo ? "video" : "image",
+      showCustomWallpaper: true,
     });
     window.dispatchEvent(
       new CustomEvent("tabloom:mediaUpdated", { detail: { id: "wallpaper" } }),
     );
-    uploadMessage.value = `${isVideo ? "Video" : "Wallpaper"} "${file.name}" saved locally!`;
+    uploadMessage.value = isVideo
+      ? `Video "${file.name}" saved locally!`
+      : `Wallpaper converted to .webp ("${fileNameToSave}") & cached!`;
     setTimeout(() => {
       uploadMessage.value = "";
-    }, 3000);
+    }, 4000);
   } finally {
     (e.target as HTMLInputElement).value = "";
   }

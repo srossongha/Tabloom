@@ -56,7 +56,7 @@ export class MediaStorageService {
     name: string
   ): Promise<string> {
     const db = await this.getDB()
-    const mimeType = file.type || (id === 'audio' ? 'audio/mpeg' : 'image/jpeg')
+    const mimeType = file.type || (id === 'audio' ? 'audio/mpeg' : 'image/webp')
 
     const record: StoredMediaRecord = {
       id,

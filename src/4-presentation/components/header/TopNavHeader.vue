@@ -348,7 +348,7 @@ onUnmounted(() => {
         :title="
           isExpanded ? 'Collapse navigation' : 'Expand navigation & settings'
         "
-        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
+        class="group relative z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-lg transition-all duration-380 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-110 active:scale-90 cursor-pointer backdrop-blur-md outline-none focus:outline-none focus-visible:outline-none"
         :class="[
           isExpanded
             ? 'border-white/20 bg-white/15'
@@ -361,7 +361,7 @@ onUnmounted(() => {
         @click="toggleExpanded"
       >
         <Settings
-          class="h-4 w-4 transition-transform duration-380 ease-[cubic-bezier(0.4,0,0.2,1)]"
+          class="h-4 w-4 transition-transform duration-380 ease-[cubic-bezier(0.16,1,0.3,1)]"
           :class="[
             isExpanded
               ? 'rotate-90'
@@ -377,30 +377,37 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Fluid Slide-out & Collapse Animation (Zero squish, zero clipping, fully rounded capsule) */
+/*
+  Fluid Slide-out & Collapse Animation directly from the Gear Button anchor.
+  - Exactly 50px offset = 40px circle + 10px gap, perfectly aligning with the gear center.
+  - transform-origin: right center ensures the bar emerges fluidly to the left from the gear.
+  - Zero square cutoff clipping, pristine rounded capsule borders preserved.
+*/
 .header-expand-enter-active {
   transition:
-    transform 460ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform 440ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 360ms cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: right center;
+  will-change: transform, opacity;
 }
 
 .header-expand-leave-active {
   transition:
-    transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 240ms ease;
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 260ms ease;
   transform-origin: right center;
+  will-change: transform, opacity;
 }
 
 .header-expand-enter-from,
 .header-expand-leave-to {
   opacity: 0;
-  transform: translateX(12px) scale(0.97);
+  transform: translate3d(50px, 0, 0) scaleX(0.88);
 }
 
 .header-expand-enter-to,
 .header-expand-leave-from {
   opacity: 1;
-  transform: translateX(0) scale(1);
+  transform: translate3d(0, 0, 0) scaleX(1);
 }
 </style>
