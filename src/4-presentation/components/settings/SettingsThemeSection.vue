@@ -271,26 +271,25 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Active Accent Color (Navigation Tabs & Highlights) -->
+    <!-- Active Bookmarks & Navigation Tab Color -->
     <div class="space-y-3 border-t border-white/10 pt-3">
       <div class="flex items-center justify-between">
         <div>
-          <span class="block font-medium text-white/80">Active Accent Color</span>
-          <span class="text-[11px] text-white/45">Navigation tab indicator, active buttons & glows</span>
+          <span class="block font-medium text-white/90">Bookmarks & Tab Color</span>
+          <span class="text-[11px] text-white/45">Change the active Bookmarks tab color in your top bar</span>
         </div>
-        <!-- Live mini preview of active tab with chosen accent -->
-        <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-sm">
+        <!-- Live replica of the Bookmarks button from user's screenshot -->
+        <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-sm select-none">
           <div
-            class="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium shadow-sm transition-all duration-300"
+            class="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shadow-sm transition-all duration-300"
             :style="{
               backgroundColor: props.settings.accentColor,
               color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
             }"
           >
-            <Bookmark class="h-3 w-3" />
-            <span>Active</span>
+            <Bookmark class="h-3.5 w-3.5" />
+            <span>Bookmarks</span>
           </div>
-          <span class="px-1 text-[10px] text-white/40">Tab</span>
         </div>
       </div>
 
@@ -323,7 +322,7 @@ onMounted(() => {
         class="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-2 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] cursor-pointer"
       >
         <div class="flex items-center gap-2">
-          <span class="text-xs text-white/70">Custom Accent Hex</span>
+          <span class="text-xs text-white/70">Custom Tab Color</span>
           <span class="font-mono text-xs font-semibold text-white/90 uppercase">{{ props.settings.accentColor }}</span>
         </div>
         <input
