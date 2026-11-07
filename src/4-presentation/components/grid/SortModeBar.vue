@@ -121,11 +121,11 @@ const containerMaxWidth = computed(() => {
         :key="item.id"
         :ref="(el) => setModeRef(item.id, el)"
         type="button"
-        class="relative z-10 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 select-none cursor-pointer"
+        class="relative z-10 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 select-none cursor-pointer bg-transparent"
         :class="[
           props.modelValue === item.id
             ? 'shadow-none'
-            : 'text-white/60 hover:bg-white/10 hover:text-white',
+            : 'text-white/60 hover:text-white dark:text-white/60 dark:hover:text-white light:text-slate-600 light:hover:text-slate-900',
         ]"
         :style="{
           color: props.modelValue === item.id ? activeTextColor : undefined,

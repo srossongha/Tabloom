@@ -351,6 +351,16 @@ body.theme-light,
   border-color: rgba(15, 23, 42, 0.09) !important;
 }
 
+/* Segmented Control Tabs: buttons are transparent click targets so only the single active indicator is visible */
+nav[role="tablist"] button,
+.theme-light nav[role="tablist"] button,
+.theme-dark nav[role="tablist"] button,
+header nav button,
+.theme-light header nav button {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
 .theme-light .hover\:bg-white\/10:hover,
 .theme-light .hover\:bg-white\/15:hover,
 .theme-light .hover\:bg-white\/\[0\.10\]:hover,

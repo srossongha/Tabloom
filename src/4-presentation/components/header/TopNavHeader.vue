@@ -202,11 +202,11 @@ onUnmounted(() => {
           :ref="(el) => setTabRef(tab.id, el)"
           role="tab"
           :aria-selected="optimisticActiveView === tab.id"
-          class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none"
+          class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none bg-transparent"
           :class="[
             optimisticActiveView === tab.id
               ? 'shadow-none'
-              : 'text-white/70 hover:bg-white/10 hover:text-white',
+              : 'text-white/70 hover:text-white dark:text-white/70 dark:hover:text-white light:text-slate-600 light:hover:text-slate-900',
           ]"
           :style="{
             color: optimisticActiveView === tab.id ? activeTextColor : undefined,
