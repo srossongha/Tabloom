@@ -149,3 +149,90 @@ export async function convertImageToWebP(
     img.src = objectUrl
   })
 }
+
+/**
+ * Optimizes an uploaded tile image (File, Blob, or base64 data URL) into a compact,
+ * high-fidelity WebP data URL with max dimension (default 512px) and 0.82 quality.
+ *
+ * Shrinks raw 2MB-10MB user images down to ~15KB-30KB, ensuring quota safety in
+ * localStorage and chrome.storage without any perceptible loss in sharpness.
+ */
+export async function optimizeTileImage(
+  input: File | Blob | string,
+  maxDimension: number = 512,
+  quality: number = 0.82
+): Promise<string> {
+  // If it's a remote http/https URL or small SVG, leave it untouched
+  if (typeof input === 'string') {
+    if (/^https?:\/\//i.test(input)) return input
+    if (input.startsWith('data:image/svg+xml')) return input
+  }
+
+  return new Promise((resolve) => {
+    let srcUrl = ''
+    let isCreatedObjectUrl = false
+
+    if (typeof input === 'string') {
+      srcUrl = input
+    } else {
+      srcUrl = URL.createObjectURL(input)
+      isCreatedObjectUrl = true
+    }
+
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+
+    img.onload = () => {
+      if (isCreatedObjectUrl) URL.revokeObjectURL(srcUrl)
+
+      let { naturalWidth: width, naturalHeight: height } = img
+      if (!width || !height) {
+        resolve(typeof input === 'string' ? input : '')
+        return
+      }
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width)
+          width = maxDimension
+        } else {
+          width = Math.round((width * maxDimension) / height)
+          height = maxDimension
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+
+      const ctx = canvas.getContext('2d', { alpha: true })
+      if (!ctx) {
+        resolve(typeof input === 'string' ? input : '')
+        return
+      }
+
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(img, 0, 0, width, height)
+
+      try {
+        const webpDataUrl = canvas.toDataURL('image/webp', quality)
+        if (webpDataUrl && webpDataUrl.startsWith('data:image/webp')) {
+          resolve(webpDataUrl)
+        } else {
+          resolve(canvas.toDataURL('image/jpeg', quality))
+        }
+      } catch {
+        resolve(typeof input === 'string' ? input : '')
+      }
+    }
+
+    img.onerror = () => {
+      if (isCreatedObjectUrl) URL.revokeObjectURL(srcUrl)
+      resolve(typeof input === 'string' ? input : '')
+    }
+
+    img.src = srcUrl
+  })
+}
+

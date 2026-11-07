@@ -203,11 +203,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="greeting-container relative z-10 flex min-h-[76px] flex-col items-center justify-center text-center px-4 pt-5 pb-1 select-none">
-    <h1 class="font-serif font-light text-2xl sm:text-3xl md:text-4xl text-white/90 tracking-tight drop-shadow-sm">
+  <div class="greeting-container relative z-10 flex min-h-[88px] flex-col items-center justify-center text-center px-4 pt-6 pb-2 select-none">
+    <h1 class="font-serif font-normal text-3xl sm:text-4xl md:text-5xl text-white/95 tracking-tight drop-shadow-md leading-tight">
       {{ displayLine1 }}
     </h1>
-    <p class="mt-1.5 text-xs sm:text-sm text-white/50 tracking-wide font-normal">
+    <p class="mt-2 text-sm sm:text-base text-white/75 tracking-wide font-normal drop-shadow-sm">
       {{ displayLine2 }}
     </p>
   </div>

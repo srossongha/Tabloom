@@ -250,7 +250,29 @@ export class StorageAdapter implements IStoragePort {
         __tabloom_ts: Date.now(),
       }
       localStorage.setItem(key, JSON.stringify(envelope))
-    } catch {}
+    } catch (err: any) {
+      if (err?.name === 'QuotaExceededError' || err?.code === 22) {
+        console.warn(`[Tabloom Storage] LocalStorage quota reached for "${key}". Purging oversized cache keys...`)
+        try {
+          // Free up memory by purging non-critical/bloated items
+          const wall = localStorage.getItem(LOCAL_WALLPAPER_KEY)
+          if (wall && wall.length > 50000) {
+            localStorage.removeItem(LOCAL_WALLPAPER_KEY)
+          }
+          localStorage.removeItem('home_tiles_imported_bookmarks')
+          localStorage.removeItem('test_big')
+          localStorage.removeItem('test_big_6')
+
+          const envelope: StorageEnvelope<T> = {
+            __tabloom_val: val,
+            __tabloom_ts: Date.now(),
+          }
+          localStorage.setItem(key, JSON.stringify(envelope))
+        } catch (retryErr) {
+          console.error(`[Tabloom Storage] LocalStorage write failed after quota purge:`, retryErr)
+        }
+      }
+    }
   }
 
   private async getLocalWallpaper(): Promise<string> {
@@ -283,13 +305,21 @@ export class StorageAdapter implements IStoragePort {
   }
 
   private async saveLocalWallpaper(dataUrl: string): Promise<void> {
-    try {
-      const envelope: StorageEnvelope<string> = {
-        __tabloom_val: dataUrl,
-        __tabloom_ts: Date.now(),
-      }
-      localStorage.setItem(LOCAL_WALLPAPER_KEY, JSON.stringify(envelope))
-    } catch {}
+    // Only cache to localStorage if lightweight to preserve 5MB quota for shortcuts & settings
+    if (dataUrl.length <= 100000) {
+      try {
+        const envelope: StorageEnvelope<string> = {
+          __tabloom_val: dataUrl,
+          __tabloom_ts: Date.now(),
+        }
+        localStorage.setItem(LOCAL_WALLPAPER_KEY, JSON.stringify(envelope))
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem(LOCAL_WALLPAPER_KEY)
+      } catch {}
+    }
+
     if (this.hasLocal()) {
       try {
         await new Promise<void>((resolve) => {
@@ -307,5 +337,17 @@ export class StorageAdapter implements IStoragePort {
     }
   }
 }
+
+// One-time startup safeguard: purge oversized wallpaper strings from localStorage to guarantee free quota
+try {
+  if (typeof localStorage !== 'undefined') {
+    const wall = localStorage.getItem(LOCAL_WALLPAPER_KEY)
+    if (wall && wall.length > 100000) {
+      localStorage.removeItem(LOCAL_WALLPAPER_KEY)
+    }
+    localStorage.removeItem('test_big')
+    localStorage.removeItem('test_big_6')
+  }
+} catch {}
 
 export const defaultStorageAdapter = new StorageAdapter()

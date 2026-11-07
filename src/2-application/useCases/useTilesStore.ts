@@ -31,12 +31,17 @@ const DEFAULT_STARTER_TILES: Tile[] = [
   { id: 'starter_6', title: 'Minecraft', url: 'https://minecraft.net', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 3, lastUsedAt: Date.now(), order: 5, source: 'custom' },
 ]
 
+function normalizeUrlKey(url: string): string {
+  if (!url) return ''
+  return url.trim().toLowerCase().replace(/\/$/, '')
+}
+
 function deduplicateTilesByUrl(raw: Tile[]): Tile[] {
   const seenUrls = new Set<string>()
   const seenIds = new Set<string>()
   const result: Tile[] = []
   for (const t of raw) {
-    const normUrl = t.url.trim().toLowerCase().replace(/\/$/, '')
+    const normUrl = normalizeUrlKey(t.url)
     if (t.id && seenIds.has(t.id)) continue
     if (seenUrls.has(normUrl)) continue
     if (t.id) seenIds.add(t.id)
@@ -89,6 +94,38 @@ if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
       if (val && typeof val === 'object') {
         overrides.value = val as Record<string, TileOverride>
       }
+    }
+  })
+}
+
+// Browser window storage event listener for instantaneous cross-tab updates (e.g. Cmd+T or multiple tabs)
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === CUSTOM_KEY && event.newValue) {
+      try {
+        const parsed = JSON.parse(event.newValue)
+        const val =
+          parsed && typeof parsed === 'object' && '__tabloom_val' in parsed
+            ? parsed.__tabloom_val
+            : parsed
+        if (Array.isArray(val) && val.length > 0) {
+          customTiles.value = val
+          tiles.value = deduplicateTilesByUrl(val).slice(0, 36)
+        }
+      } catch {}
+    }
+    if (event.key === OVERRIDES_KEY && event.newValue) {
+      try {
+        const parsed = JSON.parse(event.newValue)
+        const val =
+          parsed && typeof parsed === 'object' && '__tabloom_val' in parsed
+            ? parsed.__tabloom_val
+            : parsed
+        if (val && typeof val === 'object') {
+          overrides.value = val as Record<string, TileOverride>
+          tiles.value = deduplicateTilesByUrl(customTiles.value).slice(0, 36)
+        }
+      } catch {}
     }
   })
 }
@@ -169,13 +206,14 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   }
 
   function applyOverrides(raw: Tile[], hiddenUrls: string[]): Tile[] {
-    const hiddenSet = new Set(hiddenUrls.map((u) => u.toLowerCase().trim().replace(/\/$/, '')))
+    const hiddenSet = new Set(hiddenUrls.map((u) => normalizeUrlKey(u)))
     return raw.filter((t) => {
-      const norm = t.url.toLowerCase().trim().replace(/\/$/, '')
+      const norm = normalizeUrlKey(t.url)
       return !hiddenSet.has(norm)
     }).map((t) => {
-      const o = overrides.value[t.id] || overrides.value[t.url]
-      const tel = telemetry.value[t.url]
+      const norm = normalizeUrlKey(t.url)
+      const o = overrides.value[t.id] || (norm ? overrides.value[norm] : undefined) || overrides.value[t.url]
+      const tel = telemetry.value[t.url] || (norm ? telemetry.value[norm] : undefined)
       return {
         ...t,
         ...(o || {}),
@@ -243,9 +281,19 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
     if (!cleanPatch.customIcon && nextOverrides[id]) delete nextOverrides[id].customIcon
 
     if (target?.url) {
+      const normUrl = normalizeUrlKey(target.url)
       nextOverrides[target.url] = { ...(nextOverrides[target.url] || {}), ...cleanPatch }
-      if (!cleanPatch.tintColor && nextOverrides[target.url]) delete nextOverrides[target.url].tintColor
-      if (!cleanPatch.customIcon && nextOverrides[target.url]) delete nextOverrides[target.url].customIcon
+      if (normUrl && normUrl !== target.url) {
+        nextOverrides[normUrl] = { ...(nextOverrides[normUrl] || {}), ...cleanPatch }
+      }
+      if (!cleanPatch.tintColor) {
+        if (nextOverrides[target.url]) delete nextOverrides[target.url].tintColor
+        if (normUrl && nextOverrides[normUrl]) delete nextOverrides[normUrl].tintColor
+      }
+      if (!cleanPatch.customIcon) {
+        if (nextOverrides[target.url]) delete nextOverrides[target.url].customIcon
+        if (normUrl && nextOverrides[normUrl]) delete nextOverrides[normUrl].customIcon
+      }
     }
     overrides.value = nextOverrides
 
@@ -262,6 +310,8 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
     delete nextOverrides[id]
     if (target?.url) {
       delete nextOverrides[target.url]
+      const normUrl = normalizeUrlKey(target.url)
+      if (normUrl) delete nextOverrides[normUrl]
     }
     overrides.value = nextOverrides
 

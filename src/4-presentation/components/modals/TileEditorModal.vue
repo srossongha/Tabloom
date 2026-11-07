@@ -8,6 +8,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { X, Upload, Palette, Image as ImageIcon, Sparkles, Pin, RotateCcw } from 'lucide-vue-next'
 import type { Tile, IconMode, TileDisplayMode } from '../../../1-domain/entities/Tile'
 import { resolveFaviconUrl, generateMonogram } from '../../../3-infrastructure/favicon/faviconService'
+import { optimizeTileImage } from '../../../2-application/services/imageOptimizerService'
 import SegmentedPillControl, {
   type SegmentedOption,
 } from '../common/SegmentedPillControl.vue'
@@ -89,9 +90,17 @@ watch(() => props.tile, (curr) => {
   }
 }, { immediate: true })
 
-function handleFileUpload(e: Event) {
+async function handleFileUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
+  try {
+    const optimized = await optimizeTileImage(file, 512, 0.82)
+    if (optimized) {
+      customIcon.value = optimized
+      iconMode.value = 'upload'
+      return
+    }
+  } catch {}
   const reader = new FileReader()
   reader.onload = () => {
     customIcon.value = reader.result as string
@@ -100,9 +109,17 @@ function handleFileUpload(e: Event) {
   reader.readAsDataURL(file)
 }
 
-function onSave() {
+async function onSave() {
   let finalUrl = url.value.trim()
   if (!/^https?:\/\//i.test(finalUrl)) finalUrl = `https://${finalUrl}`
+
+  let finalIcon = customIcon.value.trim() || undefined
+  if (finalIcon && finalIcon.startsWith('data:') && finalIcon.length > 50000) {
+    try {
+      finalIcon = await optimizeTileImage(finalIcon, 512, 0.82)
+    } catch {}
+  }
+
   emit('save', {
     title: title.value.trim() || finalUrl,
     url: finalUrl,
@@ -110,7 +127,7 @@ function onSave() {
     displayMode: displayMode.value,
     colSpan: colSpan.value,
     rowSpan: rowSpan.value,
-    customIcon: customIcon.value.trim() || undefined,
+    customIcon: finalIcon,
     tintColor: tintColor.value.trim() || undefined,
     pinned: pinned.value,
   })
@@ -334,7 +351,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               <div class="flex gap-2">
                 <select
                   v-model="iconMode"
-                  class="settings-select flex-1 rounded-lg border border-white/15 bg-white/5 p-2 text-xs text-white outline-none cursor-pointer"
+                  class="settings-select flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 pr-9 text-xs text-white outline-none cursor-pointer"
                 >
                   <option value="auto">Auto Favicon (Domain)</option>
                   <option value="custom-url">Image URL</option>

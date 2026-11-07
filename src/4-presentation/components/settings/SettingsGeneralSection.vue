@@ -43,7 +43,7 @@ function onHtmlFile(e: Event) {
       <label class="block font-medium text-white/70">Data Source Mode</label>
       <select
         :value="props.settings.dataSourceMode"
-        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200"
+        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 pr-10 text-xs text-white outline-none cursor-pointer transition-all duration-200"
         @change="
           emit('update', {
             dataSourceMode: ($event.target as HTMLSelectElement)
@@ -70,7 +70,7 @@ function onHtmlFile(e: Event) {
       <label class="block font-medium text-white/70">Bookmark Folder</label>
       <select
         :value="props.settings.bookmarkFolder"
-        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200"
+        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 pr-10 text-xs text-white outline-none cursor-pointer transition-all duration-200"
         @change="
           emit('update', {
             bookmarkFolder: ($event.target as HTMLSelectElement).value,
@@ -91,7 +91,7 @@ function onHtmlFile(e: Event) {
       <label class="block font-medium text-white/70">Search Engine</label>
       <select
         :value="props.settings.searchEngine"
-        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200"
+        class="settings-select mt-1 w-full rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 pr-10 text-xs text-white outline-none cursor-pointer transition-all duration-200"
         @change="
           emit('update', {
             searchEngine: ($event.target as HTMLSelectElement)

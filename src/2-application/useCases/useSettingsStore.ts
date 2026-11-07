@@ -93,6 +93,29 @@ if (typeof chrome !== 'undefined' && chrome.storage?.onChanged) {
   })
 }
 
+// Browser window storage event listener for instantaneous cross-tab updates (e.g. Cmd+T or multiple tabs)
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === SETTINGS_KEY && event.newValue) {
+      try {
+        const parsed = JSON.parse(event.newValue)
+        const val =
+          parsed && typeof parsed === 'object' && '__tabloom_val' in parsed
+            ? parsed.__tabloom_val
+            : parsed
+        if (val && typeof val === 'object') {
+          const obj = val as Record<string, unknown>
+          if (!obj.customWallpaper && settings.value.customWallpaper) {
+            obj.customWallpaper = settings.value.customWallpaper
+          }
+          settings.value = sanitizeAppSettings(obj)
+          applyCssVariables(settings.value)
+        }
+      } catch {}
+    }
+  })
+}
+
 export function useSettingsStore(storage?: IStoragePort) {
   if (storage) storagePort = storage
 

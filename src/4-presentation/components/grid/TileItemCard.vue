@@ -211,7 +211,7 @@ function onDrop(event: DragEvent) {
 <template>
   <div
     ref="holdCardRef"
-    class="relative group flex flex-col items-center justify-start gap-2 select-none"
+    class="tile-root relative group flex flex-col items-center justify-start gap-2 select-none"
     :style="tileRootStyle"
     draggable="true"
     @dragstart="onDragStart"

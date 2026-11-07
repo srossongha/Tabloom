@@ -205,7 +205,7 @@ onUnmounted(() => {
       >
         <!-- Drawer Header -->
         <div
-          class="flex items-center justify-between border-b border-white/10 px-5 py-4"
+          class="flex items-center justify-between border-b border-white/10 px-6 py-4"
         >
           <div class="flex items-center gap-2">
             <h2 class="text-sm font-semibold tracking-wide text-white">
@@ -222,7 +222,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Your Name Section -->
-        <div class="border-b border-white/10 px-5 py-3.5">
+        <div class="border-b border-white/10 px-6 py-3.5">
           <label class="block text-xs font-medium text-white/70 mb-1.5">
             Your name
           </label>
@@ -257,7 +257,7 @@ onUnmounted(() => {
         <!-- Navigation Tabs with fluid moving underline indicator -->
         <div
           ref="tabContainerRef"
-          class="relative flex border-b border-white/10 px-5 pt-2.5 select-none"
+          class="relative flex border-b border-white/10 px-6 pt-2.5 select-none"
         >
           <!-- The Single Animated Moving Underline Indicator (Crisp Apple fluid curve & natural glide) -->
           <div
@@ -302,7 +302,7 @@ onUnmounted(() => {
 
         <!-- Drawer Content with Curved Slide & Fade Motion -->
         <div
-          class="flex-1 overflow-y-auto p-5 scrollbar-thin [scrollbar-gutter:stable]"
+          class="flex-1 overflow-y-auto px-6 py-5 scrollbar-thin [scrollbar-gutter:stable]"
         >
           <Transition name="tab-fade" mode="out-in">
             <SettingsThemeSection

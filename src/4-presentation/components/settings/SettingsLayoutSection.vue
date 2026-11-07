@@ -640,7 +640,7 @@ function onImportFile(e: Event) {
       <span class="block font-medium text-white/70">Particles Engine</span>
       <select
         :value="props.settings.particleMode"
-        class="settings-select w-full rounded-lg border border-white/15 bg-white/5 p-2 text-white outline-none cursor-pointer transition-all duration-200"
+        class="settings-select w-full rounded-lg border border-white/15 bg-white/5 px-3.5 py-2.5 pr-10 text-xs text-white outline-none cursor-pointer transition-all duration-200"
         :style="{ '--tw-ring-color': props.settings.accentColor }"
         @change="
           emit('update', {
