@@ -1,7 +1,7 @@
 <!--
   TopNavHeader component displaying the brand badge, view switcher pill, and settings trigger.
   Coordinates navigation between Bookmarks, Open Tabs, Most Visited, and Last Session views
-  with a fluid sliding mask animation and customizable active accent color.
+  with a fluid sliding curve mask animation, momentum stretching, and customizable active accent color.
 -->
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from "vue";
@@ -51,6 +51,13 @@ const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
   { id: "lastSession", label: "Last session", icon: Clock },
 ];
 
+const TAB_ORDER: Record<NavigationTab, number> = {
+  bookmarks: 0,
+  openTabs: 1,
+  mostVisited: 2,
+  lastSession: 3,
+};
+
 const activeAccent = computed(() => props.accentColor || "#10b981");
 
 const activeTextColor = computed(() => {
@@ -68,40 +75,82 @@ const pillLeft = ref(0);
 const pillWidth = ref(0);
 const pillReady = ref(false);
 
+const optimisticActiveView = ref<NavigationTab>(props.activeView);
+watch(
+  () => props.activeView,
+  (val) => {
+    optimisticActiveView.value = val;
+    moveToTab(val, true);
+  },
+);
+
+const isSliding = ref(false);
+const slideDuration = ref(380);
+const slideDirection = ref<"left" | "right">("right");
+let slideTimer: number | undefined;
+
 function setTabRef(id: NavigationTab, el: any) {
   if (el) {
     tabRefs.value[id] = el as HTMLElement;
-    if (id === props.activeView) {
-      pillLeft.value = (el as HTMLElement).offsetLeft;
-      pillWidth.value = (el as HTMLElement).offsetWidth;
-      pillReady.value = true;
+    if (id === optimisticActiveView.value && !pillReady.value) {
+      moveToTab(id, false);
     }
   }
 }
 
-function updatePillPosition() {
-  const activeEl = tabRefs.value[props.activeView];
-  if (!activeEl) return;
-  pillLeft.value = activeEl.offsetLeft;
-  pillWidth.value = activeEl.offsetWidth;
+function moveToTab(view: NavigationTab, animated = true) {
+  const targetEl = tabRefs.value[view];
+  if (!targetEl) return;
+
+  if (animated && pillReady.value) {
+    const currentIdx = TAB_ORDER[optimisticActiveView.value] ?? 0;
+    const targetIdx = TAB_ORDER[view] ?? 0;
+    const dist = Math.abs(targetIdx - currentIdx);
+
+    slideDirection.value = targetIdx >= currentIdx ? "right" : "left";
+    // Dynamic speed curve duration proportional to distance:
+    // 1 tab jump: 300ms, 2 tabs jump: 380ms, 3 tabs jump (e.g. Bookmarks -> Last session): 450ms
+    slideDuration.value = dist <= 1 ? 300 : dist === 2 ? 380 : 450;
+    isSliding.value = true;
+
+    if (slideTimer) clearTimeout(slideTimer);
+    slideTimer = window.setTimeout(() => {
+      isSliding.value = false;
+    }, slideDuration.value);
+  } else {
+    slideDuration.value = 0;
+    isSliding.value = false;
+  }
+
+  pillLeft.value = targetEl.offsetLeft;
+  pillWidth.value = targetEl.offsetWidth;
   pillReady.value = true;
 }
 
 function handleTabClick(view: NavigationTab) {
+  if (view === optimisticActiveView.value) return;
+  optimisticActiveView.value = view;
+  moveToTab(view, true);
   emit("selectView", view);
+}
+
+function onNavExpandEntered() {
   nextTick(() => {
-    updatePillPosition();
+    moveToTab(props.activeView, false);
   });
 }
 
+function updatePillPosition() {
+  moveToTab(props.activeView, false);
+}
+
 watch(
-  () => [props.activeView, isNavExpanded.value, props.accentColor],
+  () => [isNavExpanded.value, props.accentColor],
   async () => {
     if (!isNavExpanded.value) return;
     await nextTick();
     requestAnimationFrame(updatePillPosition);
   },
-  { deep: true },
 );
 
 onMounted(() => {
@@ -109,6 +158,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (slideTimer) clearTimeout(slideTimer);
   window.removeEventListener("resize", updatePillPosition);
 });
 </script>
@@ -133,21 +183,28 @@ onUnmounted(() => {
     <!-- Center/Right view switcher pill & action buttons -->
     <div class="flex items-center gap-2.5">
       <!-- Collapsible Navigation Tabs Pill with Fluid Expand Transition -->
-      <Transition name="nav-expand" @after-enter="updatePillPosition">
+      <Transition name="nav-expand" @after-enter="onNavExpandEntered">
         <nav
           v-if="props.showNavTabs && isNavExpanded"
           class="relative flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
           role="tablist"
         >
-          <!-- Animated Sliding Mask Indicator (moves between tabs like a physical sliding pill) -->
+          <!-- Animated Sliding Mask Indicator (moves between tabs like a physical sliding pill with fluid speed curve) -->
           <div
-            class="pointer-events-none absolute top-1.5 bottom-1.5 rounded-full transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,width,opacity]"
+            class="pointer-events-none absolute left-0 top-1.5 bottom-1.5 rounded-full will-change-[transform,width,opacity]"
             :style="{
-              transform: `translateX(${pillLeft}px)`,
+              transform: `translateX(${pillLeft}px) scaleX(${isSliding ? 1.05 : 1})`,
+              transformOrigin:
+                slideDirection === 'right' ? 'left center' : 'right center',
               width: `${pillWidth}px`,
+              transitionProperty: 'transform, width, opacity, box-shadow',
+              transitionDuration: `${slideDuration}ms`,
+              transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
               opacity: pillReady ? 1 : 0,
               backgroundColor: activeAccent,
-              boxShadow: `0 4px 14px 0 ${accentGlow}`,
+              boxShadow: isSliding
+                ? `0 6px 20px 0 ${accentGlow}, 0 0 14px 2px ${activeAccent}44`
+                : `0 4px 14px 0 ${accentGlow}`,
             }"
           />
 
@@ -156,22 +213,22 @@ onUnmounted(() => {
             :key="tab.id"
             :ref="(el) => setTabRef(tab.id, el)"
             role="tab"
-            :aria-selected="props.activeView === tab.id"
-            class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none"
+            :aria-selected="optimisticActiveView === tab.id"
+            class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none"
             :class="[
-              props.activeView === tab.id
+              optimisticActiveView === tab.id
                 ? 'shadow-none'
                 : 'text-white/70 hover:bg-white/10 hover:text-white',
             ]"
             :style="{
-              color: props.activeView === tab.id ? activeTextColor : undefined,
+              color: optimisticActiveView === tab.id ? activeTextColor : undefined,
             }"
             @click="handleTabClick(tab.id)"
           >
             <component
               :is="tab.icon"
-              class="h-3.5 w-3.5 transition-transform duration-200"
-              :class="{ 'scale-110': props.activeView === tab.id }"
+              class="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)]"
+              :class="{ 'scale-110': optimisticActiveView === tab.id }"
             />
             <span>{{ tab.label }}</span>
           </button>
