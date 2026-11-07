@@ -211,12 +211,17 @@ function onExportConfig() {
       >
         <SideClockWidget
           v-if="settingsStore.settings.value.showSideClock"
+          :clock-theme="settingsStore.settings.value.clockTheme"
           :use-24h="settingsStore.settings.value.clock24h"
           :show-year-progress="settingsStore.settings.value.showYearProgress"
+          :is-light="isLightMode"
           @toggle-format="
             settingsStore.updateSettings({
               clock24h: !settingsStore.settings.value.clock24h,
             })
+          "
+          @update-theme="
+            (theme) => settingsStore.updateSettings({ clockTheme: theme })
           "
         />
         <StickyNoteWidget v-if="settingsStore.settings.value.showStickyNote" />

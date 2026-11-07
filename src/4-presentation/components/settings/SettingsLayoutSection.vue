@@ -3,16 +3,49 @@
   Includes particles management, Zod-validated JSON configuration import/export, and defaults reset.
 -->
 <script setup lang="ts">
-import { Download, Upload, RotateCcw } from 'lucide-vue-next'
+import { Download, Upload, RotateCcw, Clock, Monitor, Landmark, Sparkles } from 'lucide-vue-next'
 import type {
   AppSettings,
   ParticleMode,
+  ClockTheme,
 } from '../../../1-domain/entities/AppSettings'
 
 interface Props {
   settings: AppSettings
 }
 const props = defineProps<Props>()
+
+const CLOCK_THEMES: Array<{
+  id: ClockTheme
+  label: string
+  desc: string
+  icon: any
+}> = [
+  {
+    id: 'digital-lcd',
+    label: 'Digital LCD',
+    desc: '7-segment with ghost lines',
+    icon: Monitor,
+  },
+  {
+    id: 'digital-clean',
+    label: 'Digital Clean',
+    desc: 'Active 7-segment lines only',
+    icon: Sparkles,
+  },
+  {
+    id: 'clock-tower',
+    label: 'Clock Tower',
+    desc: 'Roman numeral tower dial',
+    icon: Landmark,
+  },
+  {
+    id: 'minimal',
+    label: 'Minimal Clean',
+    desc: 'Modern typography display',
+    icon: Clock,
+  },
+]
 
 const emit = defineEmits<{
   (e: 'update', partial: Partial<AppSettings>): void
@@ -230,6 +263,37 @@ function onImportFile(e: Event) {
             />
             <span>Custom Media</span>
           </label>
+        </div>
+
+        <!-- Clock Theme Style Selector -->
+        <div v-if="props.settings.showSideClock" class="mt-3 space-y-2 border-t border-white/10 pt-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-semibold text-emerald-400 tracking-wider uppercase">
+              Clock Theme
+            </span>
+            <span class="text-[10px] text-white/40">4 distinct styles</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              v-for="ct in CLOCK_THEMES"
+              :key="ct.id"
+              type="button"
+              class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200"
+              :class="[
+                props.settings.clockTheme === ct.id
+                  ? 'border-emerald-500 bg-emerald-500/15 text-white shadow-sm ring-1 ring-emerald-500/50'
+                  : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
+              ]"
+              @click="emit('update', { clockTheme: ct.id })"
+            >
+              <div class="flex items-center gap-1.5 w-full">
+                <component :is="ct.icon" class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
+              </div>
+              <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
+            </button>
+          </div>
         </div>
       </div>
 

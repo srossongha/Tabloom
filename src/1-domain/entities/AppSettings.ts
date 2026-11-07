@@ -45,10 +45,19 @@ export type DataSourceMode = z.infer<typeof DataSourceModeSchema>
 export const WallpaperTypeSchema = z.enum(['image', 'video', 'auto']).default('auto')
 export type WallpaperType = z.infer<typeof WallpaperTypeSchema>
 
+export const ClockThemeSchema = z.enum([
+  'minimal',
+  'digital-lcd',
+  'digital-clean',
+  'clock-tower',
+]).default('digital-lcd')
+export type ClockTheme = z.infer<typeof ClockThemeSchema>
+
 export const AppSettingsSchema = z.object({
   appName: z.string().default('Tabloom'),
   themePreset: ThemePresetSchema.default('cosmic-purple'),
   themeMode: ThemeModeSchema,
+  clockTheme: ClockThemeSchema,
   bgStart: z.string().default('#2b1055'),
   bgEnd: z.string().default('#090314'),
   tileBg: z.string().default('rgba(43, 16, 85, 0.45)'),
