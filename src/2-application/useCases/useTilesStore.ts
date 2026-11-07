@@ -63,7 +63,7 @@ function loadInitialOverrides(): Record<string, TileOverride> {
 const customTiles = ref<Tile[]>(loadInitialCustomTiles())
 const overrides = ref<Record<string, TileOverride>>(loadInitialOverrides())
 const telemetry = ref<Record<string, { useCount: number; lastUsedAt: number }>>(storagePort.getSync ? storagePort.getSync(TELEMETRY_KEY, {}) : {})
-const tiles = ref<Tile[]>(deduplicateTilesByUrl(customTiles.value))
+const tiles = ref<Tile[]>(deduplicateTilesByUrl(customTiles.value).slice(0, 36))
 const bookmarkFolders = ref<BookmarkFolder[]>([])
 const isLoading = ref<boolean>(false)
 
@@ -128,8 +128,10 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
           source: 'custom',
         }))
         const existingUrls = new Set(customTiles.value.map((t) => t.url.trim().toLowerCase().replace(/\/$/, '')))
-        const uniqueImported = imported.filter((t) => !existingUrls.has(t.url.trim().toLowerCase().replace(/\/$/, '')))
-        customTiles.value = [...customTiles.value, ...uniqueImported]
+        const uniqueImported = imported
+          .filter((t) => !existingUrls.has(t.url.trim().toLowerCase().replace(/\/$/, '')))
+          .slice(0, 48)
+        customTiles.value = [...customTiles.value, ...uniqueImported].slice(0, 72)
         await storagePort.set(CUSTOM_KEY, customTiles.value)
       } else if (customTiles.value.length === 0) {
         // Fallback for clean browser profiles with zero bookmarks: use top sites as starters
@@ -278,9 +280,9 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
     })
 
     if (newItems.length > 0) {
-      customTiles.value = [...customTiles.value, ...newItems]
+      customTiles.value = [...customTiles.value, ...newItems].slice(0, 72)
       await storagePort.set(CUSTOM_KEY, customTiles.value)
-      tiles.value = deduplicateTilesByHost(applyOverrides(customTiles.value, []))
+      tiles.value = deduplicateTilesByHost(applyOverrides(customTiles.value, [])).slice(0, 36)
     }
     return newItems.length
   }

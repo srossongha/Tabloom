@@ -402,10 +402,29 @@ header nav button,
     0 8px 10px -6px rgba(0, 0, 0, 0.03) !important;
 }
 
-/* Favicon icon badge in Light Mode */
-.theme-light .border-white\/10.bg-white\/\[0\.08\] {
+/* Favicon icon badge in Light Mode (scoped to tile icons only, never header controls) */
+.theme-light .tile-icon-box.border-white\/10.bg-white\/\[0\.08\],
+.theme-light .tile-icon-box {
   background-color: rgba(241, 245, 249, 0.9) !important;
   border-color: rgba(15, 23, 42, 0.09) !important;
+}
+
+/* Header navigation bar & circular controls in Light Mode */
+.theme-light header nav {
+  background-color: rgba(255, 255, 255, 0.55) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+}
+
+.theme-light header button {
+  background-color: rgba(255, 255, 255, 0.50) !important;
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  color: #334155 !important;
+}
+
+.theme-light header button:hover {
+  background-color: rgba(255, 255, 255, 0.80) !important;
+  color: #0f172a !important;
 }
 
 /* Add shortcut dashed card in Light Mode */

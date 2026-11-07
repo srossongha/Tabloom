@@ -41,7 +41,7 @@ const emit = defineEmits<{
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
-const optionRefs = ref<Record<string, HTMLElement | null>>({});
+const optionRefs: Record<string, HTMLElement | null> = {};
 
 const pillLeft = ref(0);
 const pillWidth = ref(0);
@@ -65,17 +65,12 @@ let resizeObserver: ResizeObserver | null = null;
 
 function setOptionRef(id: T, el: any) {
   if (el) {
-    optionRefs.value[String(id)] = el as HTMLElement;
-    if (id === props.modelValue) {
-      nextTick(() => {
-        moveToOption(id, false);
-      });
-    }
+    optionRefs[String(id)] = el as HTMLElement;
   }
 }
 
 function moveToOption(val: T, animated = true) {
-  const targetEl = optionRefs.value[String(val)];
+  const targetEl = optionRefs[String(val)];
   const contEl = containerRef.value;
   if (!targetEl || !contEl) return;
 

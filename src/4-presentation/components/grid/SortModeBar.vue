@@ -95,7 +95,7 @@ const accentGlow = computed(() => {
 });
 
 const containerRef = ref<HTMLElement | null>(null);
-const modeRefs = ref<Record<string, HTMLElement | null>>({});
+const modeRefs: Record<string, HTMLElement | null> = {};
 const pillLeft = ref(0);
 const pillTop = ref(0);
 const pillWidth = ref(0);
@@ -104,17 +104,12 @@ const pillReady = ref(false);
 
 function setModeRef(id: SortMode, el: any) {
   if (el) {
-    modeRefs.value[id] = el as HTMLElement;
-    if (id === props.modelValue) {
-      nextTick(() => {
-        updatePillPosition();
-      });
-    }
+    modeRefs[id] = el as HTMLElement;
   }
 }
 
 function updatePillPosition() {
-  const activeEl = modeRefs.value[props.modelValue];
+  const activeEl = modeRefs[props.modelValue];
   const contEl = containerRef.value;
   if (!activeEl || !contEl) return;
 

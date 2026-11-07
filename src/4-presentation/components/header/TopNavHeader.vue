@@ -90,7 +90,7 @@ watch(
 );
 
 const navRef = ref<HTMLElement | null>(null);
-const tabRefs = ref<Record<string, HTMLElement | null>>({});
+const tabRefs: Record<string, HTMLElement | null> = {};
 const pillLeft = ref(0);
 const pillTop = ref(0);
 const pillWidth = ref(0);
@@ -102,7 +102,9 @@ watch(
   () => props.activeView,
   (val) => {
     optimisticActiveView.value = val;
-    moveToTab(val, true);
+    nextTick(() => {
+      moveToTab(val, true);
+    });
   },
 );
 
@@ -113,18 +115,13 @@ let resizeObserver: ResizeObserver | null = null;
 
 function setTabRef(id: NavigationTab, el: any) {
   if (el) {
-    tabRefs.value[id] = el as HTMLElement;
-    if (id === optimisticActiveView.value) {
-      nextTick(() => {
-        moveToTab(id, false);
-      });
-    }
+    tabRefs[id] = el as HTMLElement;
   }
 }
 
 function moveToTab(view: NavigationTab, animated = true) {
   if (!isExpanded.value) return;
-  const targetEl = tabRefs.value[view];
+  const targetEl = tabRefs[view];
   const navEl = navRef.value;
   if (!targetEl || !navEl) return;
 
@@ -385,16 +382,16 @@ onUnmounted(() => {
 */
 .header-expand-enter-active {
   transition:
-    transform 440ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 360ms cubic-bezier(0.16, 1, 0.3, 1);
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 320ms cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: right center;
   will-change: transform, opacity;
 }
 
 .header-expand-leave-active {
   transition:
-    transform 340ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 260ms ease;
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 240ms ease;
   transform-origin: right center;
   will-change: transform, opacity;
 }
@@ -402,12 +399,13 @@ onUnmounted(() => {
 .header-expand-enter-from,
 .header-expand-leave-to {
   opacity: 0;
-  transform: translate3d(50px, 0, 0) scaleX(0.88);
+  transform: translate3d(36px, 0, 0);
+  pointer-events: none;
 }
 
 .header-expand-enter-to,
 .header-expand-leave-from {
   opacity: 1;
-  transform: translate3d(0, 0, 0) scaleX(1);
+  transform: translate3d(0, 0, 0);
 }
 </style>

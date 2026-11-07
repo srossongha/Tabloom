@@ -54,7 +54,7 @@ const accentGlow = computed(() => {
 
 // Dynamic Moving Underline Indicator State
 const tabContainerRef = ref<HTMLElement | null>(null);
-const tabRefs = ref<Record<string, HTMLElement | null>>({});
+const tabRefs: Record<string, HTMLElement | null> = {};
 const lineLeft = ref(0);
 const lineWidth = ref(0);
 const isLineReady = ref(false);
@@ -62,18 +62,13 @@ const isAnimated = ref(true);
 
 function setDrawerTabRef(id: DrawerTab, el: any) {
   if (el) {
-    tabRefs.value[id] = el as HTMLElement;
-    if (id === currentTab.value) {
-      nextTick(() => {
-        updateLinePosition(false);
-      });
-    }
+    tabRefs[id] = el as HTMLElement;
   }
 }
 
 function updateLinePosition(animated = true) {
   isAnimated.value = animated;
-  const targetEl = tabRefs.value[currentTab.value];
+  const targetEl = tabRefs[currentTab.value];
   const containerEl = tabContainerRef.value;
   if (!targetEl || !containerEl) return;
 

@@ -97,7 +97,10 @@ watch(
 
 const visibleTiles = computed(() => {
   const filtered = filterTiles(tilesStore.tiles.value, nav.searchQuery.value);
-  return sortTiles(filtered, nav.sortMode.value);
+  const sorted = sortTiles(filtered, nav.sortMode.value);
+  // Strictly bound DOM nodes to maxDiscoveredTiles (capped at 48 max) to prevent main-thread freezing
+  const limit = Math.max(8, Math.min(48, settingsStore.settings.value.maxDiscoveredTiles || 24));
+  return sorted.slice(0, limit);
 });
 
 let scrollTicking = false;
