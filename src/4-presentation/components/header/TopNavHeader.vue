@@ -249,18 +249,17 @@ onUnmounted(() => {
           <!-- Navigation Tabs Pill (The Bar for the 4) -->
           <nav
             ref="navRef"
-            class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
+            class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 bg-white/[0.06] dark:bg-white/[0.06] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
             role="tablist"
           >
-            <!-- Animated Sliding Mask Indicator (Fluid glide, zero overshoot) -->
+            <!-- Animated Sliding Mask Indicator (Concentric inset-y, mathematically centered) -->
             <div
-              class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
+              class="pointer-events-none absolute inset-y-1.5 left-0 rounded-full will-change-[transform,width,opacity]"
               :style="{
-                transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
+                transform: `translate3d(${pillLeft}px, 0, 0)`,
                 width: `${pillWidth}px`,
-                height: `${pillHeight}px`,
                 transitionProperty:
-                  'transform, width, height, opacity, box-shadow',
+                  'transform, width, opacity, box-shadow',
                 transitionDuration: `${slideDuration}ms`,
                 transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 opacity: pillReady ? 1 : 0,
@@ -277,11 +276,11 @@ onUnmounted(() => {
               :ref="(el) => setTabRef(tab.id, el)"
               role="tab"
               :aria-selected="optimisticActiveView === tab.id"
-              class="relative z-10 flex h-7.5 items-center justify-center gap-1.5 rounded-full px-3.5 text-xs font-medium leading-none transition-colors duration-200 select-none bg-transparent cursor-pointer"
+              class="relative z-10 inline-flex h-[30px] items-center justify-center gap-1.5 rounded-full px-3.5 text-xs font-medium transition-colors duration-200 select-none bg-transparent cursor-pointer"
               :class="[
                 optimisticActiveView === tab.id
                   ? 'shadow-none'
-                  : 'text-white/70 hover:text-white dark:text-white/70 dark:hover:text-white light:text-slate-600 light:hover:text-slate-900',
+                  : 'text-white/70 hover:text-white dark:text-white/70 dark:hover:text-white',
               ]"
               :style="{
                 color:
@@ -294,7 +293,7 @@ onUnmounted(() => {
                 class="h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-out"
                 :class="{ 'scale-105': optimisticActiveView === tab.id }"
               />
-              <span class="inline-flex items-center leading-none">{{
+              <span class="inline-flex items-center text-xs font-medium">{{
                 tab.label
               }}</span>
             </button>
@@ -313,7 +312,7 @@ onUnmounted(() => {
             :class="[
               props.isSettingsOpen
                 ? 'bg-white/15 border-white/20'
-                : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] text-white/80 hover:text-white hover:bg-white/15 light:text-slate-700 light:hover:text-slate-900',
+                : 'border-white/10 dark:border-white/10 bg-white/[0.06] dark:bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/15',
             ]"
             :style="{
               borderColor: props.isSettingsOpen
@@ -346,7 +345,7 @@ onUnmounted(() => {
         :class="[
           isExpanded
             ? 'border-white/20 bg-white/15'
-            : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] text-white/80 hover:text-white hover:bg-white/15 light:text-slate-700 light:hover:text-slate-900',
+            : 'border-white/10 dark:border-white/10 bg-white/[0.06] dark:bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/15',
         ]"
         :style="{
           borderColor: isExpanded ? `${activeAccent}66` : undefined,
@@ -359,7 +358,7 @@ onUnmounted(() => {
           :class="[
             isExpanded
               ? 'rotate-90'
-              : 'rotate-0 text-white/80 group-hover:rotate-45 group-hover:text-white light:text-slate-700 light:group-hover:text-slate-900',
+              : 'rotate-0 text-white/80 group-hover:rotate-45 group-hover:text-white',
           ]"
           :style="{
             color: isExpanded ? activeAccent : undefined,

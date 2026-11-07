@@ -238,7 +238,6 @@ function onSelectThemeMode(mode: 'dark' | 'light' | 'auto') {
       tileBg: 'rgba(255, 255, 255, 0.85)',
       textColor: '#0f172a',
       themePreset: 'cotton-white',
-      showCustomWallpaper: false,
     })
   } else if (mode === 'dark') {
     emit('update', {
@@ -313,7 +312,7 @@ onMounted(() => {
     <div class="space-y-1.5">
       <div class="flex items-center justify-between">
         <span class="font-medium text-white/70">Theme Mode</span>
-        <span class="text-[11px] font-mono text-emerald-400 capitalize">{{ props.settings.themeMode || 'auto' }}</span>
+        <span class="text-[11px] font-mono capitalize" :style="{ color: props.settings.accentColor }">{{ props.settings.themeMode || 'auto' }}</span>
       </div>
       <div class="grid grid-cols-3 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
         <button
@@ -323,9 +322,14 @@ onMounted(() => {
           class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] active:scale-95 cursor-pointer"
           :class="[
             (props.settings.themeMode || 'auto') === m.id
-              ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-950/30 font-semibold'
+              ? 'shadow-sm font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
+          :style="(props.settings.themeMode || 'auto') === m.id ? {
+            backgroundColor: props.settings.accentColor,
+            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+            boxShadow: `0 4px 12px 0 ${props.settings.accentColor}40`,
+          } : undefined"
           @click="onSelectThemeMode(m.id)"
         >
           <component :is="m.icon" class="h-3.5 w-3.5" />
@@ -348,9 +352,13 @@ onMounted(() => {
           class="flex items-center gap-2 rounded-lg border p-2 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           :class="[
             props.settings.themePreset === p.id
-              ? 'border-emerald-400 bg-white/10 text-white shadow-md shadow-emerald-950/20'
+              ? 'bg-white/10 text-white shadow-md'
               : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white',
           ]"
+          :style="props.settings.themePreset === p.id ? {
+            borderColor: props.settings.accentColor,
+            boxShadow: `0 0 12px 0 ${props.settings.accentColor}30`,
+          } : undefined"
           @click="emit('applyPreset', p.id)"
         >
           <span
@@ -376,9 +384,13 @@ onMounted(() => {
           class="flex items-center gap-2 rounded-lg border p-2 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           :class="[
             props.settings.themePreset === p.id
-              ? 'border-emerald-400 bg-white/10 text-white shadow-md shadow-emerald-950/20'
+              ? 'bg-white/10 text-white shadow-md'
               : 'border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white',
           ]"
+          :style="props.settings.themePreset === p.id ? {
+            borderColor: props.settings.accentColor,
+            boxShadow: `0 0 12px 0 ${props.settings.accentColor}30`,
+          } : undefined"
           @click="emit('applyPreset', p.id)"
         >
           <span
@@ -543,13 +555,18 @@ onMounted(() => {
           class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200"
           :class="[
             props.settings.clockTheme === ct.id
-              ? 'border-emerald-500 bg-emerald-500/15 text-white shadow-sm ring-1 ring-emerald-500/50'
+              ? 'text-white shadow-sm'
               : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
           ]"
+          :style="props.settings.clockTheme === ct.id ? {
+            borderColor: props.settings.accentColor,
+            backgroundColor: `${props.settings.accentColor}18`,
+            boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+          } : undefined"
           @click="emit('update', { clockTheme: ct.id })"
         >
           <div class="flex items-center gap-1.5 w-full">
-            <component :is="ct.icon" class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <component :is="ct.icon" class="h-3.5 w-3.5 shrink-0" :style="{ color: props.settings.accentColor }" />
             <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
           </div>
           <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
@@ -583,9 +600,13 @@ onMounted(() => {
           class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
           :class="[
             !props.settings.showCustomWallpaper || !props.settings.customWallpaper
-              ? 'bg-emerald-500 text-white shadow-sm font-semibold'
+              ? 'shadow-sm font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
+          :style="(!props.settings.showCustomWallpaper || !props.settings.customWallpaper) ? {
+            backgroundColor: props.settings.accentColor,
+            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+          } : undefined"
           @click="emit('update', { showCustomWallpaper: false })"
         >
           <Palette class="h-3.5 w-3.5" />
@@ -596,9 +617,13 @@ onMounted(() => {
           class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
           :class="[
             props.settings.showCustomWallpaper && props.settings.customWallpaper
-              ? 'bg-emerald-500 text-white shadow-sm font-semibold'
+              ? 'shadow-sm font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
+          :style="(props.settings.showCustomWallpaper && props.settings.customWallpaper) ? {
+            backgroundColor: props.settings.accentColor,
+            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+          } : undefined"
           @click="emit('update', { showCustomWallpaper: true })"
         >
           <HardDrive class="h-3.5 w-3.5" />

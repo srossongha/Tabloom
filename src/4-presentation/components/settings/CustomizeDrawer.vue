@@ -234,12 +234,20 @@ onUnmounted(() => {
               type="text"
               maxlength="30"
               placeholder="User"
-              class="flex-1 rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-white placeholder-white/30 outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:border-emerald-400 focus:bg-white/[0.1] focus:ring-1 focus:ring-emerald-400/30"
+              class="flex-1 rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-white placeholder-white/30 outline-none transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus:bg-white/[0.1] focus:ring-1"
+              :style="{
+                '--tw-ring-color': activeAccent,
+              }"
               @keydown.enter="saveUserName"
             />
             <button
               type="button"
-              class="flex items-center gap-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 cursor-pointer"
+              class="flex items-center gap-1 rounded-lg px-3.5 py-1.5 text-xs font-medium shadow-sm transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 cursor-pointer"
+              :style="{
+                backgroundColor: 'var(--accent)',
+                color: 'var(--accent-contrast)',
+                boxShadow: `0 2px 8px 0 var(--accent-glow, rgba(0,0,0,0.2))`,
+              }"
               @click="saveUserName"
             >
               <Check v-if="isSaved" class="h-3 w-3 animate-bounce" />

@@ -63,6 +63,7 @@ const domain = computed(() => {
 
 // --- Hold-to-Preview State Machine ---
 const isHeld = ref(false)
+const previewPlacement = ref<'top' | 'bottom'>('top')
 const holdCardRef = ref<HTMLElement | null>(null)
 let holdTimer: ReturnType<typeof setTimeout> | null = null
 let pointerStartX = 0
@@ -78,6 +79,10 @@ function onPointerDown(e: PointerEvent | MouseEvent) {
   didHoldTrigger = false
 
   holdTimer = setTimeout(() => {
+    if (holdCardRef.value) {
+      const rect = holdCardRef.value.getBoundingClientRect()
+      previewPlacement.value = rect.top < 260 ? 'bottom' : 'top'
+    }
     isHeld.value = true
     didHoldTrigger = true
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -91,7 +96,7 @@ function onPointerDown(e: PointerEvent | MouseEvent) {
 function onPointerMove(e: PointerEvent | MouseEvent) {
   if (!holdTimer) return
   const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY)
-  if (dist > 8) {
+  if (dist > 18) {
     clearHoldTimer()
   }
 }
@@ -296,14 +301,19 @@ function onDrop(event: DragEvent) {
     <Transition name="modal">
       <div
         v-if="isHeld"
-        class="absolute bottom-[calc(100%+12px)] left-1/2 -translate-x-1/2 z-50 w-72 sm:w-80 rounded-2xl border border-white/20 bg-[#0e0720]/95 p-4 shadow-2xl shadow-black/80 backdrop-blur-2xl text-white select-none animate-in fade-in zoom-in-95 duration-200"
+        class="absolute left-1/2 -translate-x-1/2 z-50 w-72 sm:w-80 rounded-2xl border border-white/20 bg-[#0e0720]/95 p-4 shadow-2xl shadow-black/80 backdrop-blur-2xl text-white select-none animate-in fade-in zoom-in-95 duration-200"
+        :class="[
+          previewPlacement === 'bottom'
+            ? 'top-[calc(100%+14px)]'
+            : 'bottom-[calc(100%+14px)]',
+        ]"
         @click.stop
         @pointerdown.stop
       >
         <!-- Popover Header with Dismiss Button -->
         <div class="flex items-center justify-between pb-2.5 border-b border-white/10">
           <div class="flex items-center gap-1.5">
-            <Eye class="h-3.5 w-3.5 text-emerald-400" />
+            <Eye class="h-3.5 w-3.5" :style="{ color: 'var(--accent)' }" />
             <span class="text-xs font-semibold uppercase tracking-wider text-white/90">
               Tile Preview
             </span>
@@ -355,7 +365,10 @@ function onDrop(event: DragEvent) {
           </template>
 
           <!-- Style Badge Pill -->
-          <span class="absolute top-2 left-2 rounded-full border border-white/20 bg-black/60 px-2 py-0.5 text-[9px] font-mono text-emerald-300 backdrop-blur-md">
+          <span
+            class="absolute top-2 left-2 rounded-full border border-white/20 bg-black/60 px-2 py-0.5 text-[9px] font-mono backdrop-blur-md"
+            :style="{ color: 'var(--accent)' }"
+          >
             {{ props.tile.displayMode === 'full-cover' ? 'Full Tile Cover' : 'Icon Badge' }}
           </span>
         </div>
@@ -363,7 +376,7 @@ function onDrop(event: DragEvent) {
         <!-- Details Info -->
         <div class="mt-3 space-y-1">
           <div class="flex items-center gap-1.5 text-xs text-white/90 font-medium truncate">
-            <Globe class="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+            <Globe class="h-3.5 w-3.5 shrink-0" :style="{ color: 'var(--accent)' }" />
             <span class="truncate" :title="props.tile.url">{{ domain }}</span>
           </div>
           <div class="text-[11px] text-white/50 truncate font-mono" :title="props.tile.url">
@@ -375,7 +388,11 @@ function onDrop(event: DragEvent) {
         <div class="mt-3.5 flex items-center gap-2 pt-2.5 border-t border-white/10">
           <button
             type="button"
-            class="flex-1 flex items-center justify-center gap-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 py-1.5 text-xs font-medium text-white shadow-sm transition-transform active:scale-95 cursor-pointer"
+            class="flex-1 flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-medium shadow-sm transition-transform active:scale-95 cursor-pointer"
+            :style="{
+              backgroundColor: 'var(--accent)',
+              color: 'var(--accent-contrast)',
+            }"
             @click="emit('click', props.tile); dismissPreview()"
           >
             <ExternalLink class="h-3 w-3" />
@@ -402,8 +419,15 @@ function onDrop(event: DragEvent) {
           </button>
         </div>
 
-        <!-- Arrow pointer down to held tile -->
-        <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-3 w-3 rotate-45 border-r border-b border-white/20 bg-[#0e0720]/95" />
+        <!-- Arrow pointer connecting to held tile -->
+        <div
+          v-if="previewPlacement === 'top'"
+          class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-3 w-3 rotate-45 border-r border-b border-white/20 bg-[#0e0720]/95"
+        />
+        <div
+          v-else
+          class="absolute -top-1.5 left-1/2 -translate-x-1/2 h-3 w-3 rotate-45 border-l border-t border-white/20 bg-[#0e0720]/95"
+        />
       </div>
     </Transition>
   </div>

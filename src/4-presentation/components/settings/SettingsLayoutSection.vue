@@ -113,13 +113,22 @@ function onImportFile(e: Event) {
           class="flex flex-col items-start gap-1 p-2.5 rounded-lg border text-left transition-all duration-200 cursor-pointer"
           :class="[
             props.settings.tileStyle === ts.id
-              ? 'border-emerald-500 bg-emerald-500/15 text-white shadow-sm ring-1 ring-emerald-500/50'
+              ? 'text-white shadow-sm'
               : 'border-white/10 bg-white/[0.04] text-white/70 hover:border-white/20 hover:bg-white/[0.08] hover:text-white',
           ]"
+          :style="props.settings.tileStyle === ts.id ? {
+            borderColor: props.settings.accentColor,
+            backgroundColor: `${props.settings.accentColor}20`,
+            boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+          } : undefined"
           @click="emit('update', { tileStyle: ts.id })"
         >
           <div class="flex items-center gap-1.5 w-full">
-            <component :is="ts.icon" class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <component
+              :is="ts.icon"
+              class="h-3.5 w-3.5 shrink-0"
+              :style="{ color: props.settings.tileStyle === ts.id ? props.settings.accentColor : undefined }"
+            />
             <span class="font-medium text-[11px] truncate">{{ ts.label }}</span>
           </div>
           <span class="text-[9px] text-white/40 leading-tight">{{ ts.desc }}</span>
@@ -417,13 +426,22 @@ function onImportFile(e: Event) {
               class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200"
               :class="[
                 props.settings.clockTheme === ct.id
-                  ? 'border-emerald-500 bg-emerald-500/15 text-white shadow-sm ring-1 ring-emerald-500/50'
+                  ? 'text-white shadow-sm'
                   : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
               ]"
+              :style="props.settings.clockTheme === ct.id ? {
+                borderColor: props.settings.accentColor,
+                backgroundColor: `${props.settings.accentColor}18`,
+                boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+              } : undefined"
               @click="emit('update', { clockTheme: ct.id })"
             >
               <div class="flex items-center gap-1.5 w-full">
-                <component :is="ct.icon" class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                <component
+                  :is="ct.icon"
+                  class="h-3.5 w-3.5 shrink-0"
+                  :style="{ color: props.settings.clockTheme === ct.id ? props.settings.accentColor : undefined }"
+                />
                 <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
               </div>
               <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>

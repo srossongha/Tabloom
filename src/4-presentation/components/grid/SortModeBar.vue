@@ -230,13 +230,19 @@ const containerMaxWidth = computed(() => {
         class="flex h-8.5 items-center gap-1.5 rounded-full border px-3 text-xs font-medium shadow-lg shadow-black/15 backdrop-blur-xl transition-all duration-200 cursor-pointer select-none"
         :class="[
           isDesignerOpen
-            ? 'border-emerald-400 bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50'
+            ? 'shadow-md ring-1'
             : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.05] dark:bg-white/[0.05] light:bg-black/[0.04] text-white/70 hover:bg-white/[0.1] hover:text-white dark:text-white/70 dark:hover:text-white light:text-slate-700 light:hover:text-slate-900',
         ]"
+        :style="isDesignerOpen ? {
+          borderColor: activeAccent,
+          backgroundColor: `${activeAccent}25`,
+          color: activeAccent,
+          '--tw-ring-color': `${activeAccent}50`,
+        } : undefined"
         title="Customize grid layout, margins, paddings, and 2D Minecraft style"
         @click="isDesignerOpen = !isDesignerOpen"
       >
-        <SlidersHorizontal class="h-3.5 w-3.5 text-emerald-400" />
+        <SlidersHorizontal class="h-3.5 w-3.5" :style="{ color: isDesignerOpen ? activeAccent : undefined }" />
         <span class="hidden sm:inline">Customize Grid</span>
         <span class="sm:hidden">Grid</span>
         <ChevronUp v-if="isDesignerOpen" class="h-3 w-3 opacity-60" />
@@ -252,11 +258,14 @@ const containerMaxWidth = computed(() => {
       >
         <div class="flex items-center justify-between pb-3 border-b border-white/10 dark:border-white/10 light:border-black/10">
           <div class="flex items-center gap-2">
-            <Box class="h-4 w-4 text-emerald-400" />
+            <Box class="h-4 w-4" :style="{ color: activeAccent }" />
             <span class="text-xs font-semibold tracking-wide uppercase">
               Grid & Tile Designer
             </span>
-            <span class="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-mono text-emerald-300">
+            <span
+              class="rounded-full px-2 py-0.5 text-[10px] font-mono"
+              :style="{ backgroundColor: `${activeAccent}20`, color: activeAccent }"
+            >
               Live Preview
             </span>
           </div>
@@ -283,13 +292,22 @@ const containerMaxWidth = computed(() => {
                 class="flex flex-col items-start gap-1 rounded-xl border p-2.5 text-left transition-all duration-200 cursor-pointer"
                 :class="[
                   props.settings.tileStyle === ts.id
-                    ? 'border-emerald-400 bg-emerald-500/20 shadow-md ring-1 ring-emerald-400/50'
+                    ? 'shadow-md ring-1'
                     : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.04] dark:bg-white/[0.04] light:bg-black/[0.03] hover:border-white/20 hover:bg-white/[0.08]',
                 ]"
+                :style="props.settings.tileStyle === ts.id ? {
+                  borderColor: activeAccent,
+                  backgroundColor: `${activeAccent}20`,
+                  '--tw-ring-color': `${activeAccent}50`,
+                } : undefined"
                 @click="emit('updateSettings', { tileStyle: ts.id })"
               >
                 <div class="flex items-center gap-1.5 w-full">
-                  <component :is="ts.icon" class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                  <component
+                    :is="ts.icon"
+                    class="h-3.5 w-3.5 shrink-0"
+                    :style="{ color: props.settings.tileStyle === ts.id ? activeAccent : undefined }"
+                  />
                   <span class="text-xs font-semibold truncate">{{ ts.label }}</span>
                 </div>
                 <span class="text-[9px] text-white/50 dark:text-white/50 light:text-slate-500 leading-tight">
@@ -302,7 +320,7 @@ const containerMaxWidth = computed(() => {
             <div class="pt-2">
               <div class="flex items-center justify-between text-xs">
                 <span class="text-white/80 dark:text-white/80 light:text-slate-700 font-medium">Grid Columns</span>
-                <span class="font-mono text-emerald-400 font-semibold">{{ props.settings.gridCols }} Columns</span>
+                <span class="font-mono font-semibold" :style="{ color: activeAccent }">{{ props.settings.gridCols }} Columns</span>
               </div>
               <div class="flex flex-wrap gap-1.5 pt-1.5">
                 <button
@@ -312,9 +330,14 @@ const containerMaxWidth = computed(() => {
                   class="flex-1 min-w-[36px] rounded-lg border py-1 text-center text-xs font-mono font-medium transition-all cursor-pointer"
                   :class="[
                     props.settings.gridCols === cols
-                      ? 'border-emerald-400 bg-emerald-500 text-white shadow-sm font-bold'
+                      ? 'shadow-sm font-bold'
                       : 'border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.04] dark:bg-white/[0.04] light:bg-black/[0.03] hover:bg-white/[0.1] text-white/70 dark:text-white/70 light:text-slate-700',
                   ]"
+                  :style="props.settings.gridCols === cols ? {
+                    borderColor: activeAccent,
+                    backgroundColor: activeAccent,
+                    color: activeTextColor,
+                  } : undefined"
                   @click="emit('updateSettings', { gridCols: cols })"
                 >
                   {{ cols }}
@@ -329,14 +352,15 @@ const containerMaxWidth = computed(() => {
             <div>
               <div class="flex justify-between text-xs font-medium">
                 <span class="text-white/80 dark:text-white/80 light:text-slate-700">Tile Spacing (Margin / Gap)</span>
-                <span class="font-mono text-emerald-400">{{ props.settings.tileGap }}px</span>
+                <span class="font-mono" :style="{ color: activeAccent }">{{ props.settings.tileGap }}px</span>
               </div>
               <input
                 type="range"
                 min="4"
                 max="48"
                 :value="props.settings.tileGap"
-                class="mt-1 w-full accent-emerald-500 cursor-pointer"
+                class="mt-1 w-full cursor-pointer"
+                :style="{ accentColor: activeAccent }"
                 @input="
                   emit('updateSettings', {
                     tileGap: Number(($event.target as HTMLInputElement).value),
@@ -349,14 +373,15 @@ const containerMaxWidth = computed(() => {
             <div>
               <div class="flex justify-between text-xs font-medium">
                 <span class="text-white/80 dark:text-white/80 light:text-slate-700">Grid Outer Margin / Padding</span>
-                <span class="font-mono text-emerald-400">{{ props.settings.gridPadding ?? 24 }}px</span>
+                <span class="font-mono" :style="{ color: activeAccent }">{{ props.settings.gridPadding ?? 24 }}px</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max="64"
                 :value="props.settings.gridPadding ?? 24"
-                class="mt-1 w-full accent-emerald-500 cursor-pointer"
+                class="mt-1 w-full cursor-pointer"
+                :style="{ accentColor: activeAccent }"
                 @input="
                   emit('updateSettings', {
                     gridPadding: Number(($event.target as HTMLInputElement).value),
@@ -369,14 +394,15 @@ const containerMaxWidth = computed(() => {
             <div>
               <div class="flex justify-between text-xs font-medium">
                 <span class="text-white/80 dark:text-white/80 light:text-slate-700">Card Height</span>
-                <span class="font-mono text-emerald-400">{{ props.settings.cardHeight }}px</span>
+                <span class="font-mono" :style="{ color: activeAccent }">{{ props.settings.cardHeight }}px</span>
               </div>
               <input
                 type="range"
                 min="70"
                 max="220"
                 :value="props.settings.cardHeight"
-                class="mt-1 w-full accent-emerald-500 cursor-pointer"
+                class="mt-1 w-full cursor-pointer"
+                :style="{ accentColor: activeAccent }"
                 @input="
                   emit('updateSettings', {
                     cardHeight: Number(($event.target as HTMLInputElement).value),
@@ -389,14 +415,15 @@ const containerMaxWidth = computed(() => {
             <div>
               <div class="flex justify-between text-xs font-medium">
                 <span class="text-white/80 dark:text-white/80 light:text-slate-700">Tile Inner Padding</span>
-                <span class="font-mono text-emerald-400">{{ props.settings.tilePadding ?? 16 }}px</span>
+                <span class="font-mono" :style="{ color: activeAccent }">{{ props.settings.tilePadding ?? 16 }}px</span>
               </div>
               <input
                 type="range"
                 min="4"
                 max="32"
                 :value="props.settings.tilePadding ?? 16"
-                class="mt-1 w-full accent-emerald-500 cursor-pointer"
+                class="mt-1 w-full cursor-pointer"
+                :style="{ accentColor: activeAccent }"
                 @input="
                   emit('updateSettings', {
                     tilePadding: Number(($event.target as HTMLInputElement).value),
@@ -409,7 +436,7 @@ const containerMaxWidth = computed(() => {
             <div>
               <div class="flex justify-between text-xs font-medium">
                 <span class="text-white/80 dark:text-white/80 light:text-slate-700">Corner Radius</span>
-                <span class="font-mono text-emerald-400">
+                <span class="font-mono" :style="{ color: activeAccent }">
                   {{ props.settings.tileStyle === 'minecraft-2d' || props.settings.tileStyle === 'retro-pixel' ? '0px (Strict 2D Block)' : `${props.settings.tileRadius}px` }}
                 </span>
               </div>
@@ -419,7 +446,8 @@ const containerMaxWidth = computed(() => {
                 max="32"
                 :disabled="props.settings.tileStyle === 'minecraft-2d' || props.settings.tileStyle === 'retro-pixel'"
                 :value="props.settings.tileRadius"
-                class="mt-1 w-full accent-emerald-500 cursor-pointer disabled:opacity-40"
+                class="mt-1 w-full cursor-pointer disabled:opacity-40"
+                :style="{ accentColor: activeAccent }"
                 @input="
                   emit('updateSettings', {
                     tileRadius: Number(($event.target as HTMLInputElement).value),

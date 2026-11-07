@@ -565,7 +565,7 @@ function onPeelCornerPointerDown(e: PointerEvent) {
   current.x = initialX
   current.y = initialY
   current.rotation = Number((Math.random() * 2.4 - 1.2).toFixed(1))
-  current.zIndex = ++maxZIndex.value
+  current.zIndex = getNextNoteZIndex()
   current.updatedAt = Date.now()
 
   // Put a new sheet on pad

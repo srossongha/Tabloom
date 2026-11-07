@@ -408,7 +408,7 @@ header nav button,
   background-color: rgba(255, 255, 255, 0.5) !important;
 }
 .theme-light .border-dashed.border-white\/15:hover {
-  border-color: #059669 !important;
+  border-color: var(--accent) !important;
   background-color: rgba(255, 255, 255, 0.88) !important;
 }
 .theme-light .border-dashed .border-white\/10 {
@@ -444,11 +444,36 @@ header nav button,
   color: #64748b !important;
 }
 
-/* Dynamic Accent Buttons & Badges */
+/* Dynamic Accent Buttons, Highlights & Badges */
 .bg-emerald-500,
-button[class*="bg-emerald-500"] {
+button[class*="bg-emerald-500"],
+[class*="bg-emerald-500"] {
   background-color: var(--accent) !important;
   color: var(--accent-contrast) !important;
+}
+
+[class*="text-emerald-"],
+.text-emerald-300,
+.text-emerald-400,
+.text-emerald-500 {
+  color: var(--accent) !important;
+}
+
+[class*="border-emerald-"],
+.border-emerald-400,
+.border-emerald-500 {
+  border-color: var(--accent) !important;
+}
+
+[class*="ring-emerald-"],
+.ring-emerald-400,
+.ring-emerald-500 {
+  --tw-ring-color: var(--accent) !important;
+}
+
+[class*="accent-emerald-"],
+.accent-emerald-500 {
+  accent-color: var(--accent) !important;
 }
 
 .theme-light .bg-emerald-500,
@@ -565,7 +590,7 @@ button[class*="bg-emerald-500"] {
 }
 .theme-light aside input[type="text"]:focus {
   background-color: #ffffff !important;
-  border-color: #059669 !important;
+  border-color: var(--accent) !important;
 }
 .theme-light aside .border-white\/10 {
   border-color: rgba(15, 23, 42, 0.09) !important;
