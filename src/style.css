@@ -141,20 +141,22 @@ body,
   opacity: 1;
 }
 
-/* Settings Drawer Tab Switching: Curved fade & subtle lift */
-.tab-fade-enter-active,
-.tab-fade-leave-active {
+/* Settings Drawer Tab Switching: Clean crisp fade */
+.tab-fade-enter-active {
   transition:
-    opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tab-fade-leave-active {
+  transition: opacity 100ms ease;
 }
 .tab-fade-enter-from {
   opacity: 0;
-  transform: translateY(8px) scale(0.99);
+  transform: translateY(6px);
 }
 .tab-fade-leave-to {
   opacity: 0;
-  transform: translateY(-8px) scale(0.99);
+  transform: translateY(-4px);
 }
 
 /* Navigation Tabs Pill: Fluid curved expansion from gear */

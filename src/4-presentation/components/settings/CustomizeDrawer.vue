@@ -58,7 +58,6 @@ const tabRefs = ref<Record<string, HTMLElement | null>>({})
 const lineLeft = ref(0)
 const lineWidth = ref(0)
 const isLineReady = ref(false)
-const isAnimated = ref(false)
 
 function setDrawerTabRef(id: DrawerTab, el: any) {
   if (el) {
@@ -72,22 +71,17 @@ function setDrawerTabRef(id: DrawerTab, el: any) {
 }
 
 function updateLinePosition(animated = true) {
-  isAnimated.value = animated && isLineReady.value
   const targetEl = tabRefs.value[currentTab.value]
   const containerEl = tabContainerRef.value
   if (!targetEl || !containerEl) return
 
-  let left = 0
-  let width = 0
+  // With containerEl having position: relative, targetEl.offsetLeft gives the exact local position
+  const left = targetEl.offsetLeft
+  const width = targetEl.offsetWidth
 
-  if (targetEl.offsetParent === containerEl) {
-    left = targetEl.offsetLeft + 8
-    width = Math.max(16, targetEl.offsetWidth - 16)
-  } else {
-    const targetRect = targetEl.getBoundingClientRect()
-    const contRect = containerEl.getBoundingClientRect()
-    left = Math.round(targetRect.left - contRect.left + 8)
-    width = Math.max(16, Math.round(targetRect.width - 16))
+  if (width === 0) {
+    requestAnimationFrame(() => updateLinePosition(animated))
+    return
   }
 
   lineLeft.value = left
@@ -148,9 +142,10 @@ watch(
   (open) => {
     if (open) {
       loadUserName()
+      isLineReady.value = false
       nextTick(() => {
         updateLinePosition(false)
-        window.setTimeout(() => updateLinePosition(false), 280)
+        window.setTimeout(() => updateLinePosition(false), 240)
       })
     }
   },
@@ -247,15 +242,15 @@ onUnmounted(() => {
 
         <!-- Navigation Tabs with fluid moving underline indicator -->
         <div ref="tabContainerRef" class="relative flex border-b border-white/10 px-5 pt-2.5 select-none">
-          <!-- The Single Animated Moving Underline Indicator -->
+          <!-- The Single Animated Moving Underline Indicator (Crisp Apple-style deceleration) -->
           <div
             class="pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full will-change-[transform,width,opacity]"
             :style="{
               transform: `translate3d(${lineLeft}px, 0, 0)`,
               width: `${lineWidth}px`,
-              transition: isAnimated
-                ? 'transform 320ms cubic-bezier(0.34, 1.36, 0.64, 1), width 320ms cubic-bezier(0.34, 1.36, 0.64, 1), opacity 200ms ease'
-                : 'none',
+              transition: isLineReady
+                ? 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease'
+                : 'opacity 180ms ease',
               opacity: isLineReady ? 1 : 0,
               backgroundColor: activeAccent,
               boxShadow: `0 0 10px 1px ${accentGlow}`,
@@ -288,7 +283,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Drawer Content with Curved Slide & Fade Motion -->
-        <div class="flex-1 overflow-y-auto p-5 scrollbar-thin">
+        <div class="flex-1 overflow-y-auto p-5 scrollbar-thin [scrollbar-gutter:stable]">
           <Transition name="tab-fade" mode="out-in">
             <SettingsThemeSection
               v-if="currentTab === 'theme'"

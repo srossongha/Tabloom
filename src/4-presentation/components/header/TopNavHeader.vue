@@ -49,13 +49,6 @@ const TABS: Array<{ id: NavigationTab; label: string; icon: unknown }> = [
   { id: "lastSession", label: "Last session", icon: Clock },
 ];
 
-const TAB_ORDER: Record<NavigationTab, number> = {
-  bookmarks: 0,
-  openTabs: 1,
-  mostVisited: 2,
-  lastSession: 3,
-};
-
 const activeAccent = computed(() => props.accentColor || "#10b981");
 
 const activeTextColor = computed(() => {
@@ -83,7 +76,6 @@ function toggleExpanded() {
   if (isExpanded.value) {
     nextTick(() => {
       updatePillPosition();
-      window.setTimeout(updatePillPosition, 380);
     });
   }
 }
@@ -113,7 +105,7 @@ watch(
 );
 
 const isSliding = ref(false);
-const slideDuration = ref(380);
+const slideDuration = ref(260);
 let slideTimer: number | undefined;
 
 function setTabRef(id: NavigationTab, el: any) {
@@ -132,35 +124,35 @@ function moveToTab(view: NavigationTab, animated = true) {
   const navEl = navRef.value;
   if (!targetEl || !navEl) return;
 
-  const targetRect = targetEl.getBoundingClientRect();
-  const navRect = navEl.getBoundingClientRect();
+  // Use offsetLeft/offsetTop/offsetWidth/offsetHeight for 100% stable,
+  // transform-independent layout coordinates relative to navRef.
+  const left = targetEl.offsetLeft;
+  const top = targetEl.offsetTop;
+  const width = targetEl.offsetWidth;
+  const height = targetEl.offsetHeight;
 
-  const relLeft = Math.round(targetRect.left - navRect.left);
-  const relTop = Math.round(targetRect.top - navRect.top);
-  const relWidth = Math.round(targetRect.width);
-  const relHeight = Math.round(targetRect.height);
+  if (width === 0) {
+    requestAnimationFrame(() => moveToTab(view, false));
+    return;
+  }
 
   if (animated && pillReady.value) {
-    const currentIdx = TAB_ORDER[optimisticActiveView.value] ?? 0;
-    const targetIdx = TAB_ORDER[view] ?? 0;
-    const dist = Math.abs(targetIdx - currentIdx);
-
-    slideDuration.value = dist <= 1 ? 300 : dist === 2 ? 380 : 440;
+    slideDuration.value = 260;
     isSliding.value = true;
 
     if (slideTimer) clearTimeout(slideTimer);
     slideTimer = window.setTimeout(() => {
       isSliding.value = false;
-    }, slideDuration.value);
+    }, 260);
   } else {
     slideDuration.value = 0;
     isSliding.value = false;
   }
 
-  pillLeft.value = relLeft;
-  pillTop.value = relTop;
-  pillWidth.value = relWidth;
-  pillHeight.value = relHeight;
+  pillLeft.value = left;
+  pillTop.value = top;
+  pillWidth.value = width;
+  pillHeight.value = height;
   pillReady.value = true;
 }
 
@@ -236,7 +228,7 @@ onUnmounted(() => {
       <Transition name="header-expand">
         <div
           v-if="isExpanded && props.showNavTabs"
-          class="flex items-center gap-2.5 origin-right"
+          class="flex shrink-0 items-center gap-2.5 origin-right whitespace-nowrap"
         >
           <!-- Navigation Tabs Pill (The Bar for the 4) -->
           <nav
@@ -244,22 +236,21 @@ onUnmounted(() => {
             class="relative flex items-center gap-1 rounded-full border border-white/10 dark:border-white/10 light:border-black/10 bg-white/[0.06] dark:bg-white/[0.06] light:bg-black/[0.04] p-1.5 shadow-xl shadow-black/20 backdrop-blur-xl"
             role="tablist"
           >
-            <!-- Animated Sliding Mask Indicator (Uniform concentric 6px padding & curved velocity) -->
+            <!-- Animated Sliding Mask Indicator (Fluid Apple-style glide, zero overshoot) -->
             <div
               class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
               :style="{
                 transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
                 width: `${pillWidth}px`,
                 height: `${pillHeight}px`,
-                transitionProperty:
-                  'transform, width, height, opacity, box-shadow',
+                transitionProperty: 'transform, width, height, opacity, box-shadow',
                 transitionDuration: `${slideDuration}ms`,
-                transitionTimingFunction: 'cubic-bezier(0.34, 1.36, 0.64, 1)',
+                transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 opacity: pillReady ? 1 : 0,
                 backgroundColor: activeAccent,
                 boxShadow: isSliding
-                  ? `0 6px 20px 0 ${accentGlow}, 0 0 14px 2px ${activeAccent}44`
-                  : `0 4px 14px 0 ${accentGlow}`,
+                  ? `0 4px 16px 0 ${accentGlow}`
+                  : `0 2px 10px 0 ${accentGlow}`,
               }"
             />
 
@@ -269,7 +260,7 @@ onUnmounted(() => {
               :ref="(el) => setTabRef(tab.id, el)"
               role="tab"
               :aria-selected="optimisticActiveView === tab.id"
-              class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] hover:-translate-y-0.5 active:scale-95 cursor-pointer select-none bg-transparent"
+              class="relative z-10 flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-colors duration-200 select-none bg-transparent cursor-pointer"
               :class="[
                 optimisticActiveView === tab.id
                   ? 'shadow-none'
@@ -283,8 +274,8 @@ onUnmounted(() => {
             >
               <component
                 :is="tab.icon"
-                class="h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)]"
-                :class="{ 'scale-110': optimisticActiveView === tab.id }"
+                class="h-3.5 w-3.5 transition-transform duration-200 ease-out"
+                :class="{ 'scale-105': optimisticActiveView === tab.id }"
               />
               <span>{{ tab.label }}</span>
             </button>
@@ -345,7 +336,7 @@ onUnmounted(() => {
         @click="toggleExpanded"
       >
         <Settings
-          class="h-4 w-4 transition-transform duration-400 ease-[cubic-bezier(0.34,1.4,0.64,1)]"
+          class="h-4 w-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           :class="[
             isExpanded
               ? 'rotate-90'
@@ -361,28 +352,34 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Fluid Slide-out & Collapse Spring Animation */
-.header-expand-enter-active,
+/* Fluid Slide-out & Collapse Animation (Zero squish, crisp reveal) */
+.header-expand-enter-active {
+  transition:
+    max-width 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
 .header-expand-leave-active {
   transition:
-    transform 340ms cubic-bezier(0.34, 1.36, 0.64, 1),
-    opacity 280ms ease,
-    max-width 340ms cubic-bezier(0.34, 1.36, 0.64, 1);
+    max-width 240ms cubic-bezier(0.2, 0, 0, 1),
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.2, 0, 0, 1);
   overflow: hidden;
-  white-space: nowrap;
 }
 
 .header-expand-enter-from,
 .header-expand-leave-to {
   opacity: 0;
-  transform: translateX(24px) scale(0.92);
+  transform: translateX(18px);
   max-width: 0px;
 }
 
 .header-expand-enter-to,
 .header-expand-leave-from {
   opacity: 1;
-  transform: translateX(0) scale(1);
-  max-width: 650px;
+  transform: translateX(0);
+  max-width: 580px;
 }
 </style>

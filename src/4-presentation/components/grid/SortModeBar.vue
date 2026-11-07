@@ -61,12 +61,21 @@ function updatePillPosition() {
   const activeEl = modeRefs.value[props.modelValue]
   const contEl = containerRef.value
   if (!activeEl || !contEl) return
-  const activeRect = activeEl.getBoundingClientRect()
-  const contRect = contEl.getBoundingClientRect()
-  pillLeft.value = Math.round(activeRect.left - contRect.left)
-  pillTop.value = Math.round(activeRect.top - contRect.top)
-  pillWidth.value = Math.round(activeRect.width)
-  pillHeight.value = Math.round(activeRect.height)
+
+  const left = activeEl.offsetLeft
+  const top = activeEl.offsetTop
+  const width = activeEl.offsetWidth
+  const height = activeEl.offsetHeight
+
+  if (width === 0) {
+    requestAnimationFrame(updatePillPosition)
+    return
+  }
+
+  pillLeft.value = left
+  pillTop.value = top
+  pillWidth.value = width
+  pillHeight.value = height
   pillReady.value = true
 }
 
@@ -116,13 +125,16 @@ const containerMaxWidth = computed(() => {
       role="group"
       aria-label="Tile sort modes"
     >
-      <!-- Animated Sliding Mask Indicator -->
+      <!-- Animated Sliding Mask Indicator (Smooth deceleration, zero jitter) -->
       <div
-        class="pointer-events-none absolute top-0 left-0 rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] will-change-[transform,width,height,opacity]"
+        class="pointer-events-none absolute top-0 left-0 rounded-full will-change-[transform,width,height,opacity]"
         :style="{
           transform: `translate3d(${pillLeft}px, ${pillTop}px, 0)`,
           width: `${pillWidth}px`,
           height: `${pillHeight}px`,
+          transition: pillReady
+            ? 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease'
+            : 'opacity 180ms ease',
           opacity: pillReady ? 1 : 0,
           backgroundColor: activeAccent,
           boxShadow: `0 2px 10px 0 ${accentGlow}`,
@@ -134,7 +146,7 @@ const containerMaxWidth = computed(() => {
         :key="item.id"
         :ref="(el) => setModeRef(item.id, el)"
         type="button"
-        class="relative z-10 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 active:scale-95 select-none cursor-pointer bg-transparent"
+        class="relative z-10 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200 select-none cursor-pointer bg-transparent"
         :class="[
           props.modelValue === item.id
             ? 'shadow-none'
