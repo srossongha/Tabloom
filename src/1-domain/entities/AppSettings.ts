@@ -53,11 +53,20 @@ export const ClockThemeSchema = z.enum([
 ]).default('digital-lcd')
 export type ClockTheme = z.infer<typeof ClockThemeSchema>
 
+export const TileStyleSchema = z.enum([
+  'glassmorphic',
+  'minecraft-2d',
+  'retro-pixel',
+  'minimal-flat',
+]).default('glassmorphic')
+export type TileStyle = z.infer<typeof TileStyleSchema>
+
 export const AppSettingsSchema = z.object({
   appName: z.string().default('Tabloom'),
   themePreset: ThemePresetSchema.default('cosmic-purple'),
   themeMode: ThemeModeSchema,
   clockTheme: ClockThemeSchema,
+  tileStyle: TileStyleSchema.default('glassmorphic'),
   bgStart: z.string().default('#2b1055'),
   bgEnd: z.string().default('#090314'),
   tileBg: z.string().default('rgba(43, 16, 85, 0.45)'),
@@ -72,10 +81,12 @@ export const AppSettingsSchema = z.object({
   backgroundAudioVolume: z.number().min(0).max(100).default(50),
   backgroundAudioAutoplay: z.boolean().default(false),
   backgroundAudioLoop: z.boolean().default(true),
-  gridCols: z.number().min(3).max(10).default(6),
+  gridCols: z.number().min(2).max(10).default(6),
   tileRadius: z.number().min(0).max(32).default(16),
-  tileGap: z.number().min(8).max(36).default(20),
-  cardHeight: z.number().min(80).max(180).default(120),
+  tileGap: z.number().min(4).max(48).default(20),
+  gridPadding: z.number().min(0).max(64).default(24),
+  tilePadding: z.number().min(4).max(32).default(16),
+  cardHeight: z.number().min(70).max(220).default(120),
   cardOpacity: z.number().min(10).max(100).default(65),
   glassBlur: z.boolean().default(true),
   showLogo: z.boolean().default(true),

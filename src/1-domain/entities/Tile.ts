@@ -10,11 +10,15 @@ export type TileSource = z.infer<typeof TileSourceSchema>
 export const IconModeSchema = z.enum(['auto', 'custom-url', 'upload', 'monogram'])
 export type IconMode = z.infer<typeof IconModeSchema>
 
+export const TileDisplayModeSchema = z.enum(['icon', 'full-cover']).default('icon')
+export type TileDisplayMode = z.infer<typeof TileDisplayModeSchema>
+
 export const TileSchema = z.object({
   id: z.string().min(1),
   title: z.string(),
   url: z.string(),
   iconMode: IconModeSchema.default('auto'),
+  displayMode: TileDisplayModeSchema.default('icon').optional(),
   customIcon: z.string().optional(),
   tintColor: z.string().optional(),
   pinned: z.boolean().default(false),
@@ -33,6 +37,7 @@ export interface TileOverride {
   title?: string
   url?: string
   iconMode?: IconMode
+  displayMode?: TileDisplayMode
   customIcon?: string
   tintColor?: string
   pinned?: boolean

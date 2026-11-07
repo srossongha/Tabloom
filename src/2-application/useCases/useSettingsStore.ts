@@ -45,8 +45,11 @@ function applyCssVariables(cfg: AppSettings) {
   root.style.setProperty('--grid-cols', String(cfg.gridCols))
   root.style.setProperty('--tile-radius', `${cfg.tileRadius}px`)
   root.style.setProperty('--tile-gap', `${cfg.tileGap}px`)
+  root.style.setProperty('--grid-padding', `${cfg.gridPadding ?? 24}px`)
+  root.style.setProperty('--tile-padding', `${cfg.tilePadding ?? 16}px`)
   root.style.setProperty('--card-height', `${cfg.cardHeight}px`)
   root.style.setProperty('--card-opacity', String(cfg.cardOpacity / 100))
+  root.setAttribute('data-tile-style', cfg.tileStyle || 'glassmorphic')
 }
 
 // Synchronous application on load to eliminate flash

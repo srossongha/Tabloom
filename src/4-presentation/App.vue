@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import type { Tile, IconMode } from "../1-domain/entities/Tile";
+import type { Tile, IconMode, TileDisplayMode } from "../1-domain/entities/Tile";
 import { defaultBrowserAdapter } from "../3-infrastructure/browser/browserHistoryAndApiAdapter";
 import { defaultStorageAdapter } from "../3-infrastructure/storage/storageAdapter";
 import { useSettingsStore } from "../2-application/useCases/useSettingsStore";
@@ -128,6 +128,7 @@ function onSaveTile(payload: {
   title: string;
   url: string;
   iconMode: IconMode;
+  displayMode: TileDisplayMode;
   customIcon?: string;
   tintColor?: string;
   pinned: boolean;

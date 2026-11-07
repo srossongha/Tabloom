@@ -55,15 +55,53 @@ function onDrop(event: DragEvent) {
   >
     <!-- Card Container with hardware-accelerated zero-jank hover -->
     <div
-      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.05] p-4 shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/35 active:scale-[0.98]"
+      class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center border border-white/[0.08] bg-white/[0.05] shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/35 active:scale-[0.98] overflow-hidden"
       :style="{
         height: 'var(--card-height, 120px)',
+        borderRadius: 'var(--tile-radius, 16px)',
+        padding: props.tile.displayMode === 'full-cover' ? '0px' : 'var(--tile-padding, 16px)',
         backgroundColor: props.tile.tintColor ? props.tile.tintColor : undefined,
       }"
       @click="emit('click', props.tile)"
     >
+      <!-- FULL TILE IMAGE COVER -->
+      <template v-if="props.tile.displayMode === 'full-cover' && (props.tile.customIcon || faviconUrl)">
+        <img
+          :src="props.tile.customIcon || faviconUrl"
+          :alt="props.tile.title"
+          class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+          decoding="async"
+        />
+        <!-- Discreet bottom gradient overlay for readability -->
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+      </template>
+
+      <!-- STANDARD ICON BADGE -->
+      <template v-else>
+        <!-- Centered 48x48 Favicon Icon Badge -->
+        <div class="tile-icon-box flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner">
+          <img
+            v-if="!imgError && props.tile.iconMode !== 'monogram'"
+            :src="faviconUrl"
+            :alt="props.tile.title"
+            class="h-7 w-7 rounded-md object-contain"
+            loading="lazy"
+            decoding="async"
+            @error="imgError = true"
+          />
+          <div
+            v-else
+            class="flex h-full w-full items-center justify-center text-sm font-bold text-white shadow-sm"
+            :style="{ backgroundColor: monogram.color }"
+          >
+            {{ monogram.letter }}
+          </div>
+        </div>
+      </template>
+
       <!-- Discreet Top-Right Quick Actions -->
-      <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100" @click.stop @pointerdown.stop>
+      <div class="absolute top-2 right-2 z-10 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100" @click.stop @pointerdown.stop>
         <button
           v-if="props.activeView === 'openTabs' && props.tile.tabId"
           type="button"
@@ -97,34 +135,22 @@ function onDrop(event: DragEvent) {
       </div>
 
       <!-- Pinned indicator -->
-      <div v-if="props.tile.pinned" class="absolute top-2 left-2 text-emerald-400">
+      <div v-if="props.tile.pinned" class="absolute top-2 left-2 z-10 text-emerald-400">
         <Pin class="h-3 w-3 rotate-45" />
       </div>
 
-      <!-- Centered 48x48 Favicon Icon Badge -->
-      <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner">
-        <img
-          v-if="!imgError && props.tile.iconMode !== 'monogram'"
-          :src="faviconUrl"
-          :alt="props.tile.title"
-          class="h-7 w-7 rounded-md object-contain"
-          loading="lazy"
-          decoding="async"
-          @error="imgError = true"
-        />
-        <div
-          v-else
-          class="flex h-full w-full items-center justify-center text-sm font-bold text-white shadow-sm"
-          :style="{ backgroundColor: monogram.color }"
-        >
-          {{ monogram.letter }}
-        </div>
+      <!-- If full cover mode and labels enabled: show overlay label -->
+      <div
+        v-if="props.tile.displayMode === 'full-cover' && props.showLabels"
+        class="absolute bottom-1.5 left-2 right-2 z-10 truncate text-center text-[11px] font-semibold text-white drop-shadow-md"
+      >
+        {{ props.tile.title }}
       </div>
     </div>
 
-    <!-- Fixed Height Stable Label Container to Prevent Layout Shifts -->
-    <div v-if="props.showLabels" class="flex h-5 w-full items-center justify-center px-1">
-      <span class="w-full truncate text-center text-xs font-medium text-white/75 transition-colors group-hover:text-white" :title="props.tile.title">
+    <!-- Fixed Height Stable Label Container to Prevent Layout Shifts (for standard icon mode) -->
+    <div v-if="props.showLabels && props.tile.displayMode !== 'full-cover'" class="flex h-5 w-full items-center justify-center px-1">
+      <span class="tile-label w-full truncate text-center text-xs font-medium text-white/75 transition-colors group-hover:text-white" :title="props.tile.title">
         {{ props.tile.title }}
       </span>
     </div>

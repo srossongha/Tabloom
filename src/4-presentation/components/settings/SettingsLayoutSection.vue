@@ -3,17 +3,50 @@
   Includes particles management, Zod-validated JSON configuration import/export, and defaults reset.
 -->
 <script setup lang="ts">
-import { Download, Upload, RotateCcw, Clock, Monitor, Landmark, Sparkles } from 'lucide-vue-next'
+import { Download, Upload, RotateCcw, Clock, Monitor, Landmark, Sparkles, Box, Gamepad2, LayoutGrid } from 'lucide-vue-next'
 import type {
   AppSettings,
   ParticleMode,
   ClockTheme,
+  TileStyle,
 } from '../../../1-domain/entities/AppSettings'
 
 interface Props {
   settings: AppSettings
 }
 const props = defineProps<Props>()
+
+const TILE_STYLES: Array<{
+  id: TileStyle
+  label: string
+  desc: string
+  icon: any
+}> = [
+  {
+    id: 'glassmorphic',
+    label: 'Glassmorphic',
+    desc: 'Translucent frosted glass with soft glow',
+    icon: Sparkles,
+  },
+  {
+    id: 'minecraft-2d',
+    label: '2D Minecraft',
+    desc: 'Pixelated blocks & inventory slot bevels',
+    icon: Box,
+  },
+  {
+    id: 'retro-pixel',
+    label: 'Retro Pixel',
+    desc: '8-bit arcade borders & hard shadows',
+    icon: Gamepad2,
+  },
+  {
+    id: 'minimal-flat',
+    label: 'Minimal Flat',
+    desc: 'Clean borderless subtle cards',
+    icon: LayoutGrid,
+  },
+]
 
 const CLOCK_THEMES: Array<{
   id: ClockTheme
@@ -65,19 +98,54 @@ function onImportFile(e: Event) {
 
 <template>
   <div class="space-y-4 text-xs text-white/80">
-    <!-- Grid & Card Metric Sliders -->
-    <div class="space-y-3">
+    <!-- Tile Style Design Picker (2D Minecraft, Retro Pixel, Glassmorphic, Minimal) -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-white/90">Tile Design Style</span>
+        <span class="text-[10px] text-white/40">2D Minecraft, Retro, Glass</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          v-for="ts in TILE_STYLES"
+          :key="ts.id"
+          type="button"
+          class="flex flex-col items-start gap-1 p-2.5 rounded-lg border text-left transition-all duration-200 cursor-pointer"
+          :class="[
+            props.settings.tileStyle === ts.id
+              ? 'border-emerald-500 bg-emerald-500/15 text-white shadow-sm ring-1 ring-emerald-500/50'
+              : 'border-white/10 bg-white/[0.04] text-white/70 hover:border-white/20 hover:bg-white/[0.08] hover:text-white',
+          ]"
+          @click="emit('update', { tileStyle: ts.id })"
+        >
+          <div class="flex items-center gap-1.5 w-full">
+            <component :is="ts.icon" class="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+            <span class="font-medium text-[11px] truncate">{{ ts.label }}</span>
+          </div>
+          <span class="text-[9px] text-white/40 leading-tight">{{ ts.desc }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Grid Dimensions & Spacing Sliders -->
+    <div class="border-t border-white/10 pt-3 space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-white/90">Grid Layout & Spacing</span>
+        <span class="text-[10px] text-white/40">Margins, gaps, paddings</span>
+      </div>
+
+      <!-- Grid Columns -->
       <div>
         <div class="flex justify-between">
           <span>Grid Columns</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.gridCols }}</span>
+          <span class="text-emerald-400 font-mono">{{ props.settings.gridCols }} cols</span>
         </div>
         <input
           type="range"
-          min="3"
+          min="2"
           max="10"
           :value="props.settings.gridCols"
-          class="mt-1 w-full accent-emerald-500"
+          class="mt-1 w-full accent-emerald-500 cursor-pointer"
           @input="
             emit('update', {
               gridCols: Number(($event.target as HTMLInputElement).value),
@@ -85,6 +153,8 @@ function onImportFile(e: Event) {
           "
         />
       </div>
+
+      <!-- Card Height -->
       <div>
         <div class="flex justify-between">
           <span>Card Height</span>
@@ -92,10 +162,10 @@ function onImportFile(e: Event) {
         </div>
         <input
           type="range"
-          min="80"
-          max="180"
+          min="70"
+          max="220"
           :value="props.settings.cardHeight"
-          class="mt-1 w-full accent-emerald-500"
+          class="mt-1 w-full accent-emerald-500 cursor-pointer"
           @input="
             emit('update', {
               cardHeight: Number(($event.target as HTMLInputElement).value),
@@ -103,17 +173,82 @@ function onImportFile(e: Event) {
           "
         />
       </div>
+
+      <!-- Tile Spacing / Gap (Margin between tiles) -->
+      <div>
+        <div class="flex justify-between">
+          <span>Tile Spacing (Margin / Gap)</span>
+          <span class="text-emerald-400 font-mono">{{ props.settings.tileGap }}px</span>
+        </div>
+        <input
+          type="range"
+          min="4"
+          max="48"
+          :value="props.settings.tileGap"
+          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          @input="
+            emit('update', {
+              tileGap: Number(($event.target as HTMLInputElement).value),
+            })
+          "
+        />
+      </div>
+
+      <!-- Outer Grid Margin / Padding -->
+      <div>
+        <div class="flex justify-between">
+          <span>Grid Outer Padding</span>
+          <span class="text-emerald-400 font-mono">{{ props.settings.gridPadding ?? 24 }}px</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="64"
+          :value="props.settings.gridPadding ?? 24"
+          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          @input="
+            emit('update', {
+              gridPadding: Number(($event.target as HTMLInputElement).value),
+            })
+          "
+        />
+      </div>
+
+      <!-- Card Inner Padding -->
+      <div>
+        <div class="flex justify-between">
+          <span>Tile Inner Padding</span>
+          <span class="text-emerald-400 font-mono">{{ props.settings.tilePadding ?? 16 }}px</span>
+        </div>
+        <input
+          type="range"
+          min="4"
+          max="32"
+          :value="props.settings.tilePadding ?? 16"
+          class="mt-1 w-full accent-emerald-500 cursor-pointer"
+          @input="
+            emit('update', {
+              tilePadding: Number(($event.target as HTMLInputElement).value),
+            })
+          "
+        />
+      </div>
+
+      <!-- Corner Radius -->
       <div>
         <div class="flex justify-between">
           <span>Corner Radius</span>
-          <span class="text-emerald-400 font-mono">{{ props.settings.tileRadius }}px</span>
+          <span class="text-emerald-400 font-mono">
+            {{ props.settings.tileStyle === 'minecraft-2d' || props.settings.tileStyle === 'retro-pixel' ? '0px (Blocky)' : `${props.settings.tileRadius}px` }}
+          </span>
         </div>
         <input
           type="range"
           min="0"
           max="32"
+          :disabled="props.settings.tileStyle === 'minecraft-2d' || props.settings.tileStyle === 'retro-pixel'"
           :value="props.settings.tileRadius"
-          class="mt-1 w-full accent-emerald-500"
+          class="mt-1 w-full accent-emerald-500 cursor-pointer disabled:opacity-40"
           @input="
             emit('update', {
               tileRadius: Number(($event.target as HTMLInputElement).value),

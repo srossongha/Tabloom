@@ -56,6 +56,10 @@ function handleDrop(fromIdx: number, toIdx: number) {
   <main
     class="relative z-10 mx-auto w-full min-h-[440px] px-6 pb-20 transition-all duration-300"
     :class="containerMaxWidth"
+    :style="{
+      paddingLeft: 'var(--grid-padding, 24px)',
+      paddingRight: 'var(--grid-padding, 24px)',
+    }"
   >
     <!-- Non-shifting subtle top loading bar -->
     <div
