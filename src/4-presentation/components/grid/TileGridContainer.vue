@@ -3,7 +3,7 @@
   Dynamically sets column counts, gap spacing, and manages drag-and-drop event bubbling.
 -->
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import type { Tile } from '../../../1-domain/entities/Tile'
 import type { NavigationTab } from '../../../1-domain/entities/BrowserItem'
 import TileItemCard from './TileItemCard.vue'
@@ -34,6 +34,9 @@ const emit = defineEmits<{
   (e: 'openAddModal'): void
 }>()
 
+const draggedIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
+
 const containerMaxWidth = computed(() => {
   if (props.gridCols <= 3) return 'max-w-3xl'
   if (props.gridCols === 4) return 'max-w-4xl'
@@ -47,8 +50,23 @@ const gridStyle = computed(() => ({
   gap: 'var(--tile-gap, 20px)',
 }))
 
+function handleDragStart(idx: number) {
+  draggedIndex.value = idx
+}
+
+function handleDragOver(_e: DragEvent, idx: number) {
+  dragOverIndex.value = idx
+}
+
 function handleDrop(fromIdx: number, toIdx: number) {
+  draggedIndex.value = null
+  dragOverIndex.value = null
   emit('reorder', fromIdx, toIdx)
+}
+
+function handleDragEnd() {
+  draggedIndex.value = null
+  dragOverIndex.value = null
 }
 </script>
 
@@ -89,11 +107,15 @@ function handleDrop(fromIdx: number, toIdx: number) {
             :index="idx"
             :active-view="props.activeView"
             :show-labels="props.showLabels"
+            :is-drop-target="dragOverIndex === idx && draggedIndex !== idx"
             @click="emit('clickTile', $event)"
             @edit="emit('editTile', $event)"
             @delete="emit('deleteTile', $event)"
             @close-tab="emit('closeTab', $event)"
+            @drag-start="handleDragStart"
+            @drag-over="handleDragOver"
             @drop="handleDrop"
+            @dragend="handleDragEnd"
           />
 
           <AddNewTileCard

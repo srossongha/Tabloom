@@ -22,10 +22,21 @@ const INITIAL_IMPORTED_KEY = 'tabloom_bookmarks_imported'
 let storagePort: IStoragePort = defaultStorageAdapter
 let browserPort: IBrowserPort | null = null
 
+const DEFAULT_STARTER_TILES: Tile[] = [
+  { id: 'starter_1', title: 'YouTube', url: 'https://youtube.com', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 15, lastUsedAt: Date.now(), order: 0, source: 'custom' },
+  { id: 'starter_2', title: 'GitHub', url: 'https://github.com', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 28, lastUsedAt: Date.now(), order: 1, source: 'custom' },
+  { id: 'starter_3', title: 'Notion', url: 'https://notion.so', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 9, lastUsedAt: Date.now(), order: 2, source: 'custom' },
+  { id: 'starter_4', title: 'Reddit', url: 'https://reddit.com', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 5, lastUsedAt: Date.now(), order: 3, source: 'custom' },
+  { id: 'starter_5', title: 'Discord', url: 'https://discord.com', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 12, lastUsedAt: Date.now(), order: 4, source: 'custom' },
+  { id: 'starter_6', title: 'Minecraft', url: 'https://minecraft.net', iconMode: 'auto', displayMode: 'icon', pinned: false, useCount: 3, lastUsedAt: Date.now(), order: 5, source: 'custom' },
+]
+
 function loadInitialCustomTiles(): Tile[] {
   const current = storagePort.getSync ? storagePort.getSync<Tile[]>(CUSTOM_KEY, []) : []
   if (current && current.length > 0) return current
-  return storagePort.getSync ? storagePort.getSync<Tile[]>(LEGACY_CUSTOM_KEY, []) : []
+  const legacy = storagePort.getSync ? storagePort.getSync<Tile[]>(LEGACY_CUSTOM_KEY, []) : []
+  if (legacy && legacy.length > 0) return legacy
+  return [...DEFAULT_STARTER_TILES]
 }
 
 function loadInitialOverrides(): Record<string, TileOverride> {
@@ -65,6 +76,9 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
       const legacy = await storagePort.get<Tile[]>(LEGACY_CUSTOM_KEY, [])
       if (legacy && legacy.length > 0) {
         custom = legacy
+        await storagePort.set(CUSTOM_KEY, custom)
+      } else {
+        custom = [...DEFAULT_STARTER_TILES]
         await storagePort.set(CUSTOM_KEY, custom)
       }
     }

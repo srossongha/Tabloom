@@ -268,6 +268,8 @@ function onExportConfig() {
         v-model="nav.sortMode.value"
         :accent-color="settingsStore.settings.value.accentColor"
         :grid-cols="settingsStore.settings.value.gridCols"
+        :settings="settingsStore.settings.value"
+        @update-settings="settingsStore.updateSettings"
       />
       <TileGridContainer
         v-if="settingsStore.settings.value.showTileGrid"

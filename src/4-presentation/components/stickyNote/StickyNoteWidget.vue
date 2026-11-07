@@ -105,7 +105,7 @@ function createDefaultNote(color: NoteColor = 'amber', isPeeled = false): Sticky
     color,
     isPeeled,
     rotation: isPeeled ? Number((Math.random() * 2.4 - 1.2).toFixed(1)) : 0,
-    zIndex: 35,
+    zIndex: 25,
     updatedAt: Date.now(),
   }
 }
@@ -116,7 +116,9 @@ const padRef = ref<HTMLElement | null>(null)
 const padTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const saveStatus = ref<'saved' | 'saving' | 'idle'>('idle')
 const isConfirmingDeleteId = ref<string | null>(null)
-const maxZIndex = ref(40)
+const BASE_NOTE_Z = 25
+const MAX_NOTE_Z = 45
+const maxZIndex = ref(30)
 let hasLoaded = false
 let debounceTimeout: number | undefined
 let resetStatusTimeout: number | undefined
@@ -224,7 +226,7 @@ async function loadData() {
       x: typeof n.x === 'number' ? n.x : loadedPos && idx === 0 ? loadedPos.x : undefined,
       y: typeof n.y === 'number' ? n.y : loadedPos && idx === 0 ? loadedPos.y : undefined,
       rotation: typeof n.rotation === 'number' ? n.rotation : 0,
-      zIndex: typeof n.zIndex === 'number' ? n.zIndex : 35 + idx,
+      zIndex: typeof n.zIndex === 'number' ? Math.min(MAX_NOTE_Z, Math.max(BASE_NOTE_Z, n.zIndex)) : BASE_NOTE_Z + (idx % 10),
       updatedAt: typeof n.updatedAt === 'number' ? n.updatedAt : Date.now(),
     }))
   }
@@ -336,8 +338,21 @@ function changeNoteColor(note: StickyNoteItem, color: NoteColor) {
   })
 }
 
+function getNextNoteZIndex(): number {
+  const currentMax = notes.value.reduce((max, n) => Math.max(max, n.zIndex ?? BASE_NOTE_Z), BASE_NOTE_Z)
+  if (currentMax >= MAX_NOTE_Z) {
+    // Re-normalize all notes to keep them strictly below modals (z-90/z-100)
+    const sorted = [...notes.value].sort((a, b) => (a.zIndex ?? BASE_NOTE_Z) - (b.zIndex ?? BASE_NOTE_Z))
+    sorted.forEach((n, idx) => {
+      n.zIndex = BASE_NOTE_Z + (idx % 15)
+    })
+    return BASE_NOTE_Z + (sorted.length % 15) + 1
+  }
+  return currentMax + 1
+}
+
 function bringToFront(note: StickyNoteItem) {
-  note.zIndex = ++maxZIndex.value
+  note.zIndex = getNextNoteZIndex()
 }
 
 // Peel note from main pad onto desktop
@@ -364,7 +379,7 @@ function peelNoteFromPad() {
   current.x = clamped.x
   current.y = clamped.y
   current.rotation = Number((Math.random() * 2.4 - 1.2).toFixed(1))
-  current.zIndex = ++maxZIndex.value
+  current.zIndex = getNextNoteZIndex()
   current.updatedAt = Date.now()
 
   // Place a fresh blank sheet on the main pad stack

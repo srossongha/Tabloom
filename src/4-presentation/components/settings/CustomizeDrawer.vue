@@ -86,15 +86,23 @@ function updateLinePosition(animated = true) {
 
   lineLeft.value = left
   lineWidth.value = width
-  isLineReady.value = true
+
+  if (!animated) {
+    isLineReady.value = false
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isLineReady.value = true
+      })
+    })
+  } else {
+    isLineReady.value = true
+  }
 }
 
 function selectTab(id: DrawerTab) {
   if (currentTab.value === id) return
   currentTab.value = id
-  nextTick(() => {
-    updateLinePosition(true)
-  })
+  updateLinePosition(true)
 }
 
 const userNameInput = ref('')
@@ -179,7 +187,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fixed inset-0 z-50 overflow-hidden pointer-events-none select-none"
+    class="fixed inset-0 z-[90] overflow-hidden pointer-events-none select-none"
     :class="{ 'pointer-events-auto': props.isOpen }"
   >
     <!-- Smooth Backdrop Fade -->
@@ -242,18 +250,18 @@ onUnmounted(() => {
 
         <!-- Navigation Tabs with fluid moving underline indicator -->
         <div ref="tabContainerRef" class="relative flex border-b border-white/10 px-5 pt-2.5 select-none">
-          <!-- The Single Animated Moving Underline Indicator (Crisp Apple-style deceleration) -->
+          <!-- The Single Animated Moving Underline Indicator (Crisp Apple fluid curve & natural glide) -->
           <div
-            class="pointer-events-none absolute bottom-0 left-0 h-0.5 rounded-full will-change-[transform,width,opacity]"
+            class="pointer-events-none absolute bottom-0 left-0 h-[2.5px] rounded-full will-change-[transform,width,opacity]"
             :style="{
               transform: `translate3d(${lineLeft}px, 0, 0)`,
               width: `${lineWidth}px`,
               transition: isLineReady
-                ? 'transform 400ms cubic-bezier(0.4, 0, 0.2, 1), width 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease'
+                ? 'transform 460ms cubic-bezier(0.16, 1, 0.3, 1), width 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease'
                 : 'opacity 200ms ease',
               opacity: isLineReady ? 1 : 0,
               backgroundColor: activeAccent,
-              boxShadow: `0 0 10px 1px ${accentGlow}`,
+              boxShadow: `0 0 12px 2px ${accentGlow}`,
             }"
           />
 
@@ -262,6 +270,7 @@ onUnmounted(() => {
             :key="t.id"
             :ref="(el) => setDrawerTabRef(t.id, el)"
             type="button"
+            :data-drawer-tab="t.id"
             class="relative flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors duration-200 cursor-pointer select-none"
             :class="[
               currentTab === t.id

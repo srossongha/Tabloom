@@ -107,8 +107,9 @@ watch(
 );
 
 const isSliding = ref(false);
-const slideDuration = ref(400);
+const slideDuration = ref(460);
 let slideTimer: number | undefined;
+let resizeObserver: ResizeObserver | null = null;
 
 function setTabRef(id: NavigationTab, el: any) {
   if (el) {
@@ -139,13 +140,13 @@ function moveToTab(view: NavigationTab, animated = true) {
   }
 
   if (animated && pillReady.value) {
-    slideDuration.value = 400;
+    slideDuration.value = 460;
     isSliding.value = true;
 
     if (slideTimer) clearTimeout(slideTimer);
     slideTimer = window.setTimeout(() => {
       isSliding.value = false;
-    }, 400);
+    }, 460);
   } else {
     slideDuration.value = 0;
     isSliding.value = false;
@@ -193,6 +194,14 @@ onMounted(() => {
 
   window.addEventListener("resize", updatePillPosition);
   window.addEventListener("keydown", onKeyDown);
+
+  if (typeof ResizeObserver !== "undefined" && navRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      updatePillPosition();
+    });
+    resizeObserver.observe(navRef.value);
+  }
+
   if (isExpanded.value) {
     nextTick(() => {
       updatePillPosition();
@@ -202,6 +211,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (slideTimer) clearTimeout(slideTimer);
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
   window.removeEventListener("resize", updatePillPosition);
   window.removeEventListener("keydown", onKeyDown);
 });
@@ -249,7 +262,7 @@ onUnmounted(() => {
                 transitionProperty:
                   'transform, width, height, opacity, box-shadow',
                 transitionDuration: `${slideDuration}ms`,
-                transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 opacity: pillReady ? 1 : 0,
                 backgroundColor: activeAccent,
                 boxShadow: isSliding
@@ -264,7 +277,7 @@ onUnmounted(() => {
               :ref="(el) => setTabRef(tab.id, el)"
               role="tab"
               :aria-selected="optimisticActiveView === tab.id"
-              class="relative z-10 flex h-7.5 items-center justify-center gap-1.5 rounded-full pl-3.5 pr-4 text-xs font-medium leading-none transition-colors duration-200 select-none bg-transparent cursor-pointer"
+              class="relative z-10 flex h-7.5 items-center justify-center gap-1.5 rounded-full px-3.5 text-xs font-medium leading-none transition-colors duration-200 select-none bg-transparent cursor-pointer"
               :class="[
                 optimisticActiveView === tab.id
                   ? 'shadow-none'
@@ -281,10 +294,9 @@ onUnmounted(() => {
                 class="h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-out"
                 :class="{ 'scale-105': optimisticActiveView === tab.id }"
               />
-              <span
-                class="inline-flex items-center leading-none -translate-y-[0.5px]"
-                >{{ tab.label }}</span
-              >
+              <span class="inline-flex items-center leading-none">{{
+                tab.label
+              }}</span>
             </button>
           </nav>
 
@@ -359,34 +371,32 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Fluid Slide-out & Collapse Animation (Zero squish, graceful reveal) */
+/* Fluid Slide-out & Collapse Animation (Zero squish, zero clipping) */
 .header-expand-enter-active {
   transition:
-    max-width 400ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+    transform 440ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 360ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: right center;
+  will-change: transform, opacity;
 }
 
 .header-expand-leave-active {
   transition:
-    max-width 320ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 240ms ease,
-    transform 320ms cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 240ms ease;
+  transform-origin: right center;
+  will-change: transform, opacity;
 }
 
 .header-expand-enter-from,
 .header-expand-leave-to {
   opacity: 0;
-  transform: translateX(18px);
-  max-width: 0px;
+  transform: translateX(18px) scale(0.96);
 }
 
 .header-expand-enter-to,
 .header-expand-leave-from {
   opacity: 1;
-  transform: translateX(0);
-  max-width: 550px;
+  transform: translateX(0) scale(1);
 }
 </style>

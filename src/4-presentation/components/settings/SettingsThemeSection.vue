@@ -18,6 +18,7 @@ import {
   Clock,
   Monitor,
   Landmark,
+  Palette,
 } from 'lucide-vue-next'
 import type {
   AppSettings,
@@ -74,6 +75,50 @@ const ACCENT_SWATCHES: Array<{ label: string; color: string }> = [
   { label: 'Sunset Amber', color: '#f59e0b' },
   { label: 'Crisp Indigo', color: '#6366f1' },
   { label: 'Pure White', color: '#ffffff' },
+]
+
+const WALLPAPER_PRESETS: Array<{
+  id: string
+  name: string
+  url: string
+  type: 'light' | 'dark'
+}> = [
+  {
+    id: 'sakura-blossom',
+    name: 'Sakura Minimal',
+    type: 'light',
+    url: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'pastel-clouds',
+    name: 'Pastel Horizon',
+    type: 'light',
+    url: 'https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'calm-botanical',
+    name: 'Calm Studio',
+    type: 'light',
+    url: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'deep-forest',
+    name: 'Pine Forest',
+    type: 'dark',
+    url: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'cosmic-nebula',
+    name: 'Cosmic Sky',
+    type: 'dark',
+    url: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'cyber-city',
+    name: 'Midnight Lights',
+    type: 'dark',
+    url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80',
+  },
 ]
 
 const CLOCK_THEMES: Array<{
@@ -170,12 +215,43 @@ async function onWallpaperUpload(e: Event) {
 }
 
 async function removeWallpaper() {
-  await mediaStorageService.removeMedia('wallpaper')
+  try {
+    await mediaStorageService.removeMedia('wallpaper')
+  } catch {}
   localWallpaperInfo.value = null
-  emit('update', { customWallpaper: '' })
+  emit('update', { customWallpaper: '', showCustomWallpaper: false })
   window.dispatchEvent(
     new CustomEvent('tabloom:mediaUpdated', { detail: { id: 'wallpaper' } })
   )
+  uploadMessage.value = 'Wallpaper cleared! Background color active.'
+  setTimeout(() => {
+    uploadMessage.value = ''
+  }, 2500)
+}
+
+function onSelectThemeMode(mode: 'dark' | 'light' | 'auto') {
+  if (mode === 'light') {
+    emit('update', {
+      themeMode: 'light',
+      bgStart: '#ffffff',
+      bgEnd: '#f1f5f9',
+      tileBg: 'rgba(255, 255, 255, 0.85)',
+      textColor: '#0f172a',
+      themePreset: 'cotton-white',
+      showCustomWallpaper: false,
+    })
+  } else if (mode === 'dark') {
+    emit('update', {
+      themeMode: 'dark',
+      bgStart: '#2b1055',
+      bgEnd: '#090314',
+      tileBg: 'rgba(43, 16, 85, 0.45)',
+      textColor: '#ffffff',
+      themePreset: 'cosmic-purple',
+    })
+  } else {
+    emit('update', { themeMode: 'auto' })
+  }
 }
 
 async function onAudioUpload(e: Event) {
@@ -250,7 +326,7 @@ onMounted(() => {
               ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-950/30 font-semibold'
               : 'text-white/60 hover:bg-white/10 hover:text-white',
           ]"
-          @click="emit('update', { themeMode: m.id })"
+          @click="onSelectThemeMode(m.id)"
         >
           <component :is="m.icon" class="h-3.5 w-3.5" />
           <span>{{ m.label }}</span>
@@ -396,6 +472,7 @@ onMounted(() => {
             @input="
               emit('update', {
                 bgStart: ($event.target as HTMLInputElement).value,
+                showCustomWallpaper: false,
               })
             "
           />
@@ -411,6 +488,7 @@ onMounted(() => {
             @input="
               emit('update', {
                 bgEnd: ($event.target as HTMLInputElement).value,
+                showCustomWallpaper: false,
               })
             "
           />
@@ -430,6 +508,23 @@ onMounted(() => {
             "
           />
         </label>
+      </div>
+
+      <!-- Live Wallpaper Overlay Notification -->
+      <div
+        v-if="props.settings.customWallpaper && props.settings.showCustomWallpaper"
+        class="flex items-center justify-between rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-amber-200 text-[11px]"
+      >
+        <div class="flex items-center gap-1.5 truncate">
+          <span>🖼️ Wallpaper is active and covering your colors.</span>
+        </div>
+        <button
+          type="button"
+          class="shrink-0 rounded bg-amber-500/25 px-2 py-0.5 text-[11px] font-semibold text-amber-100 hover:bg-amber-500/40 cursor-pointer"
+          @click="emit('update', { showCustomWallpaper: false })"
+        >
+          Show Colors
+        </button>
       </div>
     </div>
 
@@ -465,8 +560,50 @@ onMounted(() => {
     <!-- Custom Wallpaper (Image, GIF, MP4) -->
     <div class="space-y-3 border-t border-white/10 pt-3">
       <div class="flex items-center justify-between">
-        <span class="font-medium text-white/70">Custom Wallpaper</span>
-        <span class="text-[10px] text-white/40">GIF, Image, MP4</span>
+        <div>
+          <span class="font-medium text-white/90">Background Mode & Wallpaper</span>
+          <p class="text-[10px] text-white/50">Choose clean colors or media wallpaper</p>
+        </div>
+        <button
+          v-if="props.settings.customWallpaper"
+          type="button"
+          class="flex items-center gap-1 rounded-md bg-rose-500/20 px-2 py-1 text-[11px] font-medium text-rose-300 hover:bg-rose-500/30 transition-colors cursor-pointer"
+          title="Clear wallpaper and restore background gradient"
+          @click="removeWallpaper"
+        >
+          <Trash2 class="h-3 w-3" />
+          <span>Clear Wallpaper</span>
+        </button>
+      </div>
+
+      <!-- Mode Selector: Gradient Colors vs Custom Wallpaper -->
+      <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
+        <button
+          type="button"
+          class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
+          :class="[
+            !props.settings.showCustomWallpaper || !props.settings.customWallpaper
+              ? 'bg-emerald-500 text-white shadow-sm font-semibold'
+              : 'text-white/60 hover:bg-white/10 hover:text-white',
+          ]"
+          @click="emit('update', { showCustomWallpaper: false })"
+        >
+          <Palette class="h-3.5 w-3.5" />
+          <span>Gradient Colors</span>
+        </button>
+        <button
+          type="button"
+          class="flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all duration-200 cursor-pointer"
+          :class="[
+            props.settings.showCustomWallpaper && props.settings.customWallpaper
+              ? 'bg-emerald-500 text-white shadow-sm font-semibold'
+              : 'text-white/60 hover:bg-white/10 hover:text-white',
+          ]"
+          @click="emit('update', { showCustomWallpaper: true })"
+        >
+          <HardDrive class="h-3.5 w-3.5" />
+          <span>Media Wallpaper</span>
+        </button>
       </div>
 
       <!-- Active Local Wallpaper Badge -->
@@ -487,7 +624,7 @@ onMounted(() => {
         </div>
         <button
           type="button"
-          class="rounded p-1 text-white/40 hover:bg-rose-500/20 hover:text-rose-300"
+          class="rounded p-1 text-white/40 hover:bg-rose-500/20 hover:text-rose-300 cursor-pointer"
           title="Remove local wallpaper"
           @click="removeWallpaper"
         >
@@ -509,6 +646,7 @@ onMounted(() => {
           @input="
             emit('update', {
               customWallpaper: ($event.target as HTMLInputElement).value,
+              showCustomWallpaper: true,
             })
           "
         />
@@ -526,14 +664,49 @@ onMounted(() => {
           />
         </label>
         <button
-          v-if="props.settings.customWallpaper && props.settings.customWallpaper !== 'local:wallpaper'"
+          v-if="props.settings.customWallpaper"
           type="button"
-          class="rounded-lg border border-white/10 bg-rose-500/20 p-2 text-rose-300 hover:bg-rose-500/40"
-          title="Clear wallpaper URL"
+          class="rounded-lg border border-white/10 bg-rose-500/20 p-2 text-rose-300 hover:bg-rose-500/40 cursor-pointer"
+          title="Clear wallpaper"
           @click="removeWallpaper"
         >
           <Trash2 class="h-3.5 w-3.5" />
         </button>
+      </div>
+
+      <!-- Wallpaper Presets (Light & Dark) -->
+      <div class="space-y-1.5 pt-1">
+        <span class="block text-[11px] font-medium text-white/60">Curated Wallpapers</span>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button
+            v-for="wp in WALLPAPER_PRESETS"
+            :key="wp.id"
+            type="button"
+            class="group relative flex h-14 flex-col justify-end overflow-hidden rounded-lg border p-1.5 text-left transition-all hover:scale-[1.02] cursor-pointer"
+            :class="[
+              props.settings.customWallpaper === wp.url && props.settings.showCustomWallpaper
+                ? 'border-emerald-400 ring-2 ring-emerald-500/40'
+                : 'border-white/10 hover:border-white/30',
+            ]"
+            :style="{
+              backgroundImage: `url(${wp.url})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }"
+            @click="emit('update', { customWallpaper: wp.url, showCustomWallpaper: true })"
+          >
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <span class="relative z-10 text-[9px] font-semibold text-white drop-shadow truncate w-full">
+              {{ wp.name }}
+            </span>
+            <span
+              v-if="props.settings.customWallpaper === wp.url && props.settings.showCustomWallpaper"
+              class="absolute top-1 right-1 z-10 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[9px] text-white"
+            >
+              ✓
+            </span>
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-3 pt-1">

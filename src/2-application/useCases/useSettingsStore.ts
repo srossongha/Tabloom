@@ -107,6 +107,7 @@ export function useSettingsStore(storage?: IStoragePort) {
       tileBg: p.tileBg,
       accentColor: p.accent,
       textColor: p.text,
+      showCustomWallpaper: false,
     })
   }
 
