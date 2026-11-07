@@ -5,7 +5,7 @@
 -->
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { X, Upload, Palette, Image as ImageIcon, Sparkles, Pin } from 'lucide-vue-next'
+import { X, Upload, Palette, Image as ImageIcon, Sparkles, Pin, RotateCcw } from 'lucide-vue-next'
 import type { Tile, IconMode, TileDisplayMode } from '../../../1-domain/entities/Tile'
 import { resolveFaviconUrl, generateMonogram } from '../../../3-infrastructure/favicon/faviconService'
 import SegmentedPillControl, {
@@ -20,6 +20,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'reset', tileId?: string): void
   (e: 'save', payload: {
     title: string
     url: string
@@ -114,6 +115,29 @@ function onSave() {
     pinned: pinned.value,
   })
   emit('close')
+}
+
+const resetFeedback = ref(false)
+let resetFeedbackTimer: ReturnType<typeof setTimeout> | null = null
+
+function onResetToDefault() {
+  tintColor.value = ''
+  displayMode.value = 'icon'
+  colSpan.value = 1
+  rowSpan.value = 1
+  iconMode.value = 'auto'
+  customIcon.value = ''
+  pinned.value = false
+
+  if (props.tile) {
+    emit('reset', props.tile.id)
+  }
+
+  resetFeedback.value = true
+  if (resetFeedbackTimer) clearTimeout(resetFeedbackTimer)
+  resetFeedbackTimer = setTimeout(() => {
+    resetFeedback.value = false
+  }, 2500)
 }
 
 // Live Preview helpers
@@ -341,38 +365,61 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
             <!-- Card Tint & Pin -->
             <div class="flex items-center justify-between pt-1 border-t border-white/10">
-              <label class="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
-                <Palette class="h-3.5 w-3.5" :style="{ color: 'var(--accent)' }" /> Card Tint:
-                <input
-                  v-model="tintColor"
-                  type="color"
-                  class="h-6 w-8 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
-                />
-              </label>
+              <div class="flex items-center gap-2">
+                <label class="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+                  <Palette class="h-3.5 w-3.5" :style="{ color: 'var(--accent)' }" /> Card Tint:
+                  <input
+                    v-model="tintColor"
+                    type="color"
+                    class="h-6 w-8 cursor-pointer border-0 bg-transparent transition-transform hover:scale-110"
+                  />
+                </label>
+                <button
+                  v-if="tintColor"
+                  type="button"
+                  title="Clear card tint and restore default transparent glass"
+                  class="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md border border-white/15 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all duration-150 active:scale-95 cursor-pointer"
+                  @click="tintColor = ''"
+                >
+                  <RotateCcw class="h-2.5 w-2.5" />
+                  <span>Default tint</span>
+                </button>
+              </div>
               <label class="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
                 <input v-model="pinned" type="checkbox" class="rounded cursor-pointer" :style="{ accentColor: 'var(--accent)' }" /> Pin to top
               </label>
             </div>
 
             <!-- Actions -->
-            <div class="flex justify-end gap-2 pt-3">
+            <div class="flex items-center justify-between pt-3 border-t border-white/10">
               <button
                 type="button"
-                class="rounded-lg px-4 py-2 text-xs font-medium text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
-                @click="emit('close')"
+                class="flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-medium text-white/70 transition-all duration-200 hover:border-white/30 hover:bg-white/15 hover:text-white active:scale-95 cursor-pointer"
+                title="Reset all tile customizations back to default"
+                @click="onResetToDefault"
               >
-                Cancel
+                <RotateCcw class="h-3.5 w-3.5" />
+                <span>{{ resetFeedback ? '✓ Defaults restored' : 'Back to Default' }}</span>
               </button>
-              <button
-                type="submit"
-                class="rounded-lg px-5 py-2 text-xs font-medium shadow-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
-                :style="{
-                  backgroundColor: 'var(--accent)',
-                  color: 'var(--accent-contrast)',
-                }"
-              >
-                Save Tile
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-lg px-4 py-2 text-xs font-medium text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white active:scale-95 cursor-pointer"
+                  @click="emit('close')"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="rounded-lg px-5 py-2 text-xs font-medium shadow-md transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+                  :style="{
+                    backgroundColor: 'var(--accent)',
+                    color: 'var(--accent-contrast)',
+                  }"
+                >
+                  Save Tile
+                </button>
+              </div>
             </div>
           </form>
         </div>

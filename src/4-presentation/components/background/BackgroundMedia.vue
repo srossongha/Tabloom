@@ -231,6 +231,7 @@ onUnmounted(() => {
         filter: props.wallpaperBlur > 0 ? `blur(${props.wallpaperBlur}px)` : undefined,
         opacity: 1 - props.wallpaperDim / 100,
         transform: 'translate3d(0, 0, 0)',
+        willChange: props.wallpaperBlur > 0 ? 'transform, filter' : 'auto',
         contain: 'strict',
       }"
     />
@@ -244,6 +245,7 @@ onUnmounted(() => {
         filter: props.wallpaperBlur > 0 ? `blur(${props.wallpaperBlur}px)` : undefined,
         opacity: 1 - props.wallpaperDim / 100,
         transform: 'translate3d(0, 0, 0)',
+        willChange: props.wallpaperBlur > 0 ? 'transform, filter' : 'auto',
         contain: 'strict',
       }"
     />

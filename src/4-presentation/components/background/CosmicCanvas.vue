@@ -85,20 +85,18 @@ function render() {
   if (!isRunning || !canvasRef.value) return
 
   if (!cachedCtx) {
-    cachedCtx = canvasRef.value.getContext('2d', { alpha: true, desynchronized: true })
+    cachedCtx = canvasRef.value.getContext('2d', { alpha: true })
   }
   const ctx = cachedCtx
   if (!ctx) return
   const w = canvasRef.value.width
   const h = canvasRef.value.height
 
+  // Full canvas clear guarantees 0% antialiased particle residue / white dirt specks
+  ctx.clearRect(0, 0, w, h)
+
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i]
-
-    // Dirty-rectangle clear: clear ONLY the previous position of the particle (+2px pad)
-    // Avoids clearing 100% of the screen every frame, eliminating 99.9% of GPU clear passes!
-    const clearPad = p.size + 3
-    ctx.clearRect(p.prevX - clearPad, p.prevY - clearPad, clearPad * 2, clearPad * 2)
 
     p.prevX = p.x
     p.prevY = p.y
@@ -147,10 +145,19 @@ function resetIdleTimer() {
   if (!isRunning) {
     start()
   }
-  // Sleep after 8s of zero user activity to guarantee 0% idle CPU and GPU draw
+  // Sleep after 3.5s of zero user activity to guarantee 0% idle CPU and GPU draw
   idleTimeout = window.setTimeout(() => {
     stop()
-  }, 8000)
+  }, 3500)
+}
+
+let scrollPauseTimeout: number | undefined
+function onScrollPause() {
+  stop()
+  if (scrollPauseTimeout) clearTimeout(scrollPauseTimeout)
+  scrollPauseTimeout = window.setTimeout(() => {
+    resetIdleTimer()
+  }, 400)
 }
 
 let lastMoveTime = 0
@@ -183,7 +190,7 @@ function handleResize() {
 
 onMounted(() => {
   if (canvasRef.value) {
-    cachedCtx = canvasRef.value.getContext('2d', { alpha: true, desynchronized: true })
+    cachedCtx = canvasRef.value.getContext('2d', { alpha: true })
     const w = Math.ceil(window.innerWidth * RESOLUTION_SCALE)
     const h = Math.ceil(window.innerHeight * RESOLUTION_SCALE)
     canvasRef.value.width = w
@@ -193,6 +200,7 @@ onMounted(() => {
   start()
   resetIdleTimer()
   window.addEventListener('resize', handleResize, { passive: true })
+  window.addEventListener('scroll', onScrollPause, { passive: true })
   window.addEventListener('blur', stop, { passive: true })
   window.addEventListener('focus', resetIdleTimer, { passive: true })
   window.addEventListener('pointermove', onThrottledPointerMove, { passive: true })
@@ -205,6 +213,8 @@ onUnmounted(() => {
   cachedCtx = null
   if (resizeTimeout) clearTimeout(resizeTimeout)
   if (idleTimeout) clearTimeout(idleTimeout)
+  if (scrollPauseTimeout) clearTimeout(scrollPauseTimeout)
+  window.removeEventListener('scroll', onScrollPause)
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('blur', stop)
   window.removeEventListener('focus', resetIdleTimer)

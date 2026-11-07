@@ -220,23 +220,32 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
   }
 
   async function updateTile(id: string, patch: Partial<Tile>) {
+    const cleanPatch = { ...patch }
+    if (!cleanPatch.tintColor) cleanPatch.tintColor = undefined
+    if (!cleanPatch.customIcon) cleanPatch.customIcon = undefined
+
     const existingIdx = customTiles.value.findIndex((t) => t.id === id)
     if (existingIdx >= 0) {
-      customTiles.value = customTiles.value.map((t) => (t.id === id ? { ...t, ...patch } : t))
+      customTiles.value = customTiles.value.map((t) => (t.id === id ? { ...t, ...cleanPatch } : t))
     } else {
       const found = tiles.value.find((t) => t.id === id)
       if (found) {
-        customTiles.value = [{ ...found, ...patch, source: 'custom' }, ...customTiles.value]
+        customTiles.value = [{ ...found, ...cleanPatch, source: 'custom' }, ...customTiles.value]
       }
     }
 
     const target = tiles.value.find((t) => t.id === id) || customTiles.value.find((t) => t.id === id)
     const nextOverrides: Record<string, TileOverride> = {
       ...overrides.value,
-      [id]: { ...(overrides.value[id] || {}), ...patch },
+      [id]: { ...(overrides.value[id] || {}), ...cleanPatch },
     }
+    if (!cleanPatch.tintColor && nextOverrides[id]) delete nextOverrides[id].tintColor
+    if (!cleanPatch.customIcon && nextOverrides[id]) delete nextOverrides[id].customIcon
+
     if (target?.url) {
-      nextOverrides[target.url] = { ...(nextOverrides[target.url] || {}), ...patch }
+      nextOverrides[target.url] = { ...(nextOverrides[target.url] || {}), ...cleanPatch }
+      if (!cleanPatch.tintColor && nextOverrides[target.url]) delete nextOverrides[target.url].tintColor
+      if (!cleanPatch.customIcon && nextOverrides[target.url]) delete nextOverrides[target.url].customIcon
     }
     overrides.value = nextOverrides
 
@@ -244,7 +253,35 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
       storagePort.set(CUSTOM_KEY, customTiles.value),
       storagePort.set(OVERRIDES_KEY, overrides.value),
     ])
-    tiles.value = tiles.value.map((t) => (t.id === id ? { ...t, ...patch } : t))
+    tiles.value = tiles.value.map((t) => (t.id === id ? { ...t, ...cleanPatch } : t))
+  }
+
+  async function resetTileToDefault(id: string) {
+    const target = tiles.value.find((t) => t.id === id) || customTiles.value.find((t) => t.id === id)
+    const nextOverrides: Record<string, TileOverride> = { ...overrides.value }
+    delete nextOverrides[id]
+    if (target?.url) {
+      delete nextOverrides[target.url]
+    }
+    overrides.value = nextOverrides
+
+    const resetFields: Partial<Tile> = {
+      colSpan: 1,
+      rowSpan: 1,
+      displayMode: 'icon',
+      iconMode: 'auto',
+      customIcon: undefined,
+      tintColor: undefined,
+      pinned: false,
+    }
+
+    customTiles.value = customTiles.value.map((t) => (t.id === id ? { ...t, ...resetFields } : t))
+    tiles.value = tiles.value.map((t) => (t.id === id ? { ...t, ...resetFields } : t))
+
+    await Promise.all([
+      storagePort.set(CUSTOM_KEY, customTiles.value),
+      storagePort.set(OVERRIDES_KEY, overrides.value),
+    ])
   }
 
   async function deleteTile(tile: Tile, onHideUrl?: (url: string) => void) {
@@ -332,6 +369,7 @@ export function useTilesStore(browser?: IBrowserPort, storage?: IStoragePort) {
     clearCache: clearTileCache,
     addCustomTile,
     updateTile,
+    resetTileToDefault,
     deleteTile,
     importFromBrowserBookmarks,
     recordClick,

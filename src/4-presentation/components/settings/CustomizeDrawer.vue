@@ -311,6 +311,7 @@ onUnmounted(() => {
               :settings="props.settings"
               @update="emit('updateSettings', $event)"
               @apply-preset="emit('applyPreset', $event)"
+              @reset="emit('resetDefaults')"
             />
             <SettingsLayoutSection
               v-else-if="currentTab === 'layout'"

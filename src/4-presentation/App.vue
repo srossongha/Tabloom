@@ -169,6 +169,12 @@ function onSaveTile(payload: {
   editingTile.value = null;
 }
 
+async function onResetTile(id?: string) {
+  if (id) {
+    await tilesStore.resetTileToDefault(id);
+  }
+}
+
 function onExportConfig() {
   const blob = new Blob([settingsStore.exportConfigJson()], {
     type: "application/json",
@@ -327,6 +333,7 @@ function onExportConfig() {
         editingTile = null;
       "
       @save="onSaveTile"
+      @reset="onResetTile"
     />
     <CustomizeDrawer
       :is-open="isSettingsOpen"

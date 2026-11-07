@@ -19,6 +19,7 @@ import {
   Monitor,
   Landmark,
   Palette,
+  RotateCcw,
 } from "lucide-vue-next";
 import type {
   AppSettings,
@@ -45,6 +46,7 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: "update", partial: Partial<AppSettings>): void;
   (e: "applyPreset", preset: ThemePreset): void;
+  (e: "reset"): void;
 }>();
 
 const THEME_MODES: Array<SegmentedOption<ThemeMode>> = [
@@ -104,12 +106,6 @@ const WALLPAPER_PRESETS: Array<{
   type: "light" | "dark";
 }> = [
   {
-    id: "pine-forest",
-    name: "Pine Forest",
-    type: "dark",
-    url: "/image/pine-forest.webp",
-  },
-  {
     id: "alpine-lake",
     name: "Alpine Lake",
     type: "dark",
@@ -132,30 +128,6 @@ const WALLPAPER_PRESETS: Array<{
     name: "Mountain Summit",
     type: "dark",
     url: "/image/mountain-summit.webp",
-  },
-  {
-    id: "cosmic-aurora",
-    name: "Cosmic Aurora",
-    type: "dark",
-    url: "/image/cosmic-aurora.webp",
-  },
-  {
-    id: "emerald-tree",
-    name: "Emerald Tree",
-    type: "dark",
-    url: "/image/emerald-tree.webp",
-  },
-  {
-    id: "botanical-minimal",
-    name: "Calm Botanical",
-    type: "light",
-    url: "/image/botanical-minimal.webp",
-  },
-  {
-    id: "deep-canopy",
-    name: "Deep Canopy",
-    type: "dark",
-    url: "/image/forest.webp",
   },
 ];
 
@@ -1012,6 +984,19 @@ onMounted(() => {
           />
         </div>
       </div>
+    </div>
+
+    <!-- Reset Theme to Default -->
+    <div class="border-t border-white/10 pt-4">
+      <button
+        type="button"
+        class="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 py-2.5 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:text-white active:scale-98 cursor-pointer"
+        title="Reset all colors, presets, and theme appearance to default"
+        @click="emit('reset')"
+      >
+        <RotateCcw class="h-3.5 w-3.5" />
+        <span>Reset Theme to Default</span>
+      </button>
     </div>
   </div>
 </template>

@@ -243,9 +243,6 @@ function onDrop(event: DragEvent) {
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
-      @mousedown="onPointerDown"
-      @mousemove="onPointerMove"
-      @mouseup="onPointerUp"
       @click="onCardClick"
     >
       <!-- FULL TILE IMAGE COVER -->
