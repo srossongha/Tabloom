@@ -53,6 +53,12 @@ export const ClockThemeSchema = z.enum([
 ]).default('digital-lcd').catch('digital-lcd')
 export type ClockTheme = z.infer<typeof ClockThemeSchema>
 
+export const SideWidgetIdSchema = z.enum(['clock', 'calendar', 'notes'])
+export type SideWidgetId = z.infer<typeof SideWidgetIdSchema>
+
+export const SidePanelPositionSchema = z.enum(['left', 'right']).default('left').catch('left')
+export type SidePanelPosition = z.infer<typeof SidePanelPositionSchema>
+
 export const TileStyleSchema = z.enum([
   'glassmorphic',
   'minecraft-2d',
@@ -100,8 +106,11 @@ export const AppSettingsSchema = z.object({
   showLabels: z.boolean().default(true).catch(true),
   showAddCard: z.boolean().default(true).catch(true),
   showSideClock: z.boolean().default(true).catch(true),
+  showCalendar: z.boolean().default(true).catch(true),
   showYearProgress: z.boolean().default(true).catch(true),
   showStickyNote: z.boolean().default(true).catch(true),
+  sidePanelPosition: SidePanelPositionSchema,
+  sideWidgetsOrder: z.array(SideWidgetIdSchema).default(['clock', 'calendar', 'notes']).catch(['clock', 'calendar', 'notes']),
   showCustomWallpaper: z.boolean().default(true).catch(true),
   showAudioPlayer: z.boolean().default(true).catch(true),
   showScrollProgress: z.boolean().default(true).catch(true),
@@ -157,6 +166,19 @@ export function sanitizeAppSettings(raw: unknown): AppSettings {
       result[k] = v
     }
   }
+
+  // Ensure all side widget IDs are present in sideWidgetsOrder
+  const allSideIds: SideWidgetId[] = ['clock', 'calendar', 'notes']
+  const currentOrder = Array.isArray(result.sideWidgetsOrder)
+    ? (result.sideWidgetsOrder as SideWidgetId[])
+    : allSideIds
+  const validOrder = currentOrder.filter((id) => allSideIds.includes(id))
+  for (const id of allSideIds) {
+    if (!validOrder.includes(id)) {
+      validOrder.push(id)
+    }
+  }
+  result.sideWidgetsOrder = validOrder
 
   return result as AppSettings
 }

@@ -3,12 +3,31 @@
   Includes particles management, Zod-validated JSON configuration import/export, and defaults reset.
 -->
 <script setup lang="ts">
-import { Download, Upload, RotateCcw, Clock, Monitor, Landmark, Sparkles, Box, Gamepad2, LayoutGrid } from 'lucide-vue-next'
+import {
+  Download,
+  Upload,
+  RotateCcw,
+  Clock,
+  Calendar,
+  StickyNote,
+  Monitor,
+  Landmark,
+  Sparkles,
+  Box,
+  Gamepad2,
+  LayoutGrid,
+  ArrowUp,
+  ArrowDown,
+  PanelLeft,
+  PanelRight,
+} from 'lucide-vue-next'
 import type {
   AppSettings,
   ParticleMode,
   ClockTheme,
   TileStyle,
+  SideWidgetId,
+  SidePanelPosition,
 } from '../../../1-domain/entities/AppSettings'
 import { isColorBright } from '../../../2-application/services/colorUtils'
 
@@ -89,6 +108,43 @@ const emit = defineEmits<{
   (e: 'import', text: string): void
   (e: 'reset'): void
 }>()
+
+const SIDE_WIDGET_CONFIG: Record<
+  SideWidgetId,
+  { label: string; desc: string; icon: any }
+> = {
+  clock: {
+    label: 'Side Clock',
+    desc: 'Time, date & year progress display',
+    icon: Clock,
+  },
+  calendar: {
+    label: 'Calendar',
+    desc: 'Interactive monthly calendar',
+    icon: Calendar,
+  },
+  notes: {
+    label: 'Sticky Note',
+    desc: 'Peelable desktop notes & pad',
+    icon: StickyNote,
+  },
+}
+
+function moveWidget(id: SideWidgetId, direction: 'up' | 'down') {
+  const current = [...(props.settings.sideWidgetsOrder || ['clock', 'calendar', 'notes'])]
+  const idx = current.indexOf(id)
+  if (idx === -1) return
+  const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+  if (targetIdx < 0 || targetIdx >= current.length) return
+  const temp = current[idx]
+  current[idx] = current[targetIdx]
+  current[targetIdx] = temp
+  emit('update', { sideWidgetsOrder: current })
+}
+
+function setSidePosition(pos: SidePanelPosition) {
+  emit('update', { sidePanelPosition: pos })
+}
 
 function onImportFile(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
@@ -368,6 +424,23 @@ function onImportFile(e: Event) {
           >
             <input
               type="checkbox"
+              :checked="props.settings.showCalendar"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
+              @change="
+                emit('update', {
+                  showCalendar: ($event.target as HTMLInputElement).checked,
+                })
+              "
+            />
+            <span>Calendar</span>
+          </label>
+
+          <label
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+          >
+            <input
+              type="checkbox"
               :checked="props.settings.showStickyNote"
               class="rounded cursor-pointer transition-transform hover:scale-110"
               :style="{ accentColor: props.settings.accentColor }"
@@ -486,6 +559,99 @@ function onImportFile(e: Event) {
               </div>
               <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Side Dock Placement & Order Management ("on their place only") -->
+        <div
+          v-if="props.settings.showSideClock || props.settings.showCalendar || props.settings.showStickyNote"
+          class="mt-3 space-y-2.5 border-t border-white/10 pt-3"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
+              Side Dock Placement & Order
+            </span>
+            <span class="text-[10px] text-white/40">In-dock arrangement</span>
+          </div>
+
+          <!-- Dock Position Selector (Left vs Right) -->
+          <div class="flex gap-1.5 p-1 rounded-lg border border-white/10 bg-white/[0.03]">
+            <button
+              type="button"
+              class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
+              :class="props.settings.sidePanelPosition === 'left' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
+              :style="props.settings.sidePanelPosition === 'left' ? {
+                backgroundColor: `${props.settings.accentColor}25`,
+                color: props.settings.accentColor,
+              } : undefined"
+              @click="setSidePosition('left')"
+            >
+              <PanelLeft class="h-3.5 w-3.5" />
+              <span>Left Dock</span>
+            </button>
+            <button
+              type="button"
+              class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
+              :class="props.settings.sidePanelPosition === 'right' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
+              :style="props.settings.sidePanelPosition === 'right' ? {
+                backgroundColor: `${props.settings.accentColor}25`,
+                color: props.settings.accentColor,
+              } : undefined"
+              @click="setSidePosition('right')"
+            >
+              <PanelRight class="h-3.5 w-3.5" />
+              <span>Right Dock</span>
+            </button>
+          </div>
+
+          <!-- Reorderable List of Widgets in Dock -->
+          <div class="space-y-1.5 pt-1">
+            <div
+              v-for="(wId, idx) in props.settings.sideWidgetsOrder || ['clock', 'calendar', 'notes']"
+              :key="wId"
+              class="flex items-center justify-between p-2 rounded-lg border border-white/5 bg-white/[0.03] transition-all hover:border-white/15"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white/10 text-[10px] font-mono text-white/70">
+                  #{{ idx + 1 }}
+                </span>
+                <component
+                  :is="SIDE_WIDGET_CONFIG[wId].icon"
+                  class="h-3.5 w-3.5 shrink-0 opacity-80"
+                  :style="{ color: props.settings.accentColor }"
+                />
+                <div class="flex flex-col min-w-0">
+                  <span class="text-xs font-medium text-white truncate">
+                    {{ SIDE_WIDGET_CONFIG[wId].label }}
+                  </span>
+                  <span class="text-[9.5px] text-white/40 truncate">
+                    {{ SIDE_WIDGET_CONFIG[wId].desc }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Reorder Action Buttons -->
+              <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  title="Move up"
+                  :disabled="idx === 0"
+                  class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-white disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer"
+                  @click="moveWidget(wId, 'up')"
+                >
+                  <ArrowUp class="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  title="Move down"
+                  :disabled="idx === (props.settings.sideWidgetsOrder?.length || 3) - 1"
+                  class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-white disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer"
+                  @click="moveWidget(wId, 'down')"
+                >
+                  <ArrowDown class="h-3 w-3" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

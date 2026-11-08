@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AddNewTileCard: typeof import('./4-presentation/components/grid/AddNewTileCard.vue')['default']
     BackgroundMedia: typeof import('./4-presentation/components/background/BackgroundMedia.vue')['default']
+    CalendarWidget: typeof import('./4-presentation/components/calendar/CalendarWidget.vue')['default']
     ClockTowerDisplay: typeof import('./4-presentation/components/clock/ClockTowerDisplay.vue')['default']
     CosmicCanvas: typeof import('./4-presentation/components/background/CosmicCanvas.vue')['default']
     CustomizeDrawer: typeof import('./4-presentation/components/settings/CustomizeDrawer.vue')['default']

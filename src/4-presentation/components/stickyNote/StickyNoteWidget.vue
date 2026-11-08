@@ -16,7 +16,24 @@ import {
   Copy,
   Layers,
   Sparkles,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-vue-next'
+
+interface Props {
+  canMoveUp?: boolean
+  canMoveDown?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  canMoveUp: true,
+  canMoveDown: true,
+})
+
+const emit = defineEmits<{
+  (e: 'moveUp'): void
+  (e: 'moveDown'): void
+}>()
 
 export type NoteColor = 'amber' | 'emerald' | 'rose' | 'purple' | 'sky' | 'glass'
 
@@ -696,6 +713,28 @@ onUnmounted(() => {
             class="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"
             title="Saving..."
           />
+
+          <!-- In-dock reorder buttons (hover to reveal) -->
+          <div class="flex items-center gap-0.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+            <button
+              v-if="canMoveUp"
+              type="button"
+              title="Move note pad up in dock"
+              class="flex h-4 w-4 items-center justify-center rounded-none bg-black/25 text-white hover:bg-black/45 active:scale-90"
+              @click.stop="emit('moveUp')"
+            >
+              <ArrowUp class="h-2.5 w-2.5" />
+            </button>
+            <button
+              v-if="canMoveDown"
+              type="button"
+              title="Move note pad down in dock"
+              class="flex h-4 w-4 items-center justify-center rounded-none bg-black/25 text-white hover:bg-black/45 active:scale-90"
+              @click.stop="emit('moveDown')"
+            >
+              <ArrowDown class="h-2.5 w-2.5" />
+            </button>
+          </div>
 
           <!-- Gather all notes back to pad -->
           <button

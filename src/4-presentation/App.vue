@@ -16,6 +16,7 @@ import CosmicCanvas from "./components/background/CosmicCanvas.vue";
 import BackgroundMedia from "./components/background/BackgroundMedia.vue";
 import TopNavHeader from "./components/header/TopNavHeader.vue";
 import SideClockWidget from "./components/clock/SideClockWidget.vue";
+import CalendarWidget from "./components/calendar/CalendarWidget.vue";
 import StickyNoteWidget from "./components/stickyNote/StickyNoteWidget.vue";
 import DynamicGreeting from "./components/greeting/DynamicGreeting.vue";
 import WebSearchBar from "./components/search/WebSearchBar.vue";
@@ -32,6 +33,21 @@ const isSettingsOpen = ref(false);
 const isModalOpen = ref(false);
 const editingTile = ref<Tile | null>(null);
 const scrollProgress = ref(0);
+
+const activeSideWidgets = computed(() => {
+  const order =
+    settingsStore.settings.value.sideWidgetsOrder || [
+      'clock',
+      'calendar',
+      'notes',
+    ];
+  return order.filter((id) => {
+    if (id === 'clock') return settingsStore.settings.value.showSideClock;
+    if (id === 'calendar') return settingsStore.settings.value.showCalendar;
+    if (id === 'notes') return settingsStore.settings.value.showStickyNote;
+    return false;
+  });
+});
 
 const isLightMode = computed(() => {
   const mode = settingsStore.settings.value.themeMode;
@@ -241,31 +257,60 @@ function onExportConfig() {
         @open-settings="isSettingsOpen = !isSettingsOpen"
       />
 
-      <!-- Left side panel: Clock & Sticky Note (stays on the place you drew) -->
+      <!-- Side Dock: Clock, Calendar & Sticky Note (stays strictly on their place) -->
       <aside
         v-if="
           settingsStore.settings.value.showSideClock ||
+          settingsStore.settings.value.showCalendar ||
           settingsStore.settings.value.showStickyNote
         "
-        class="pointer-events-auto fixed top-24 left-5 z-20 hidden w-52 flex-col gap-3 select-none min-[860px]:flex xl:left-8 xl:w-56 2xl:left-10 2xl:w-60"
+        class="pointer-events-auto fixed top-24 z-20 hidden w-52 flex-col gap-3 select-none min-[860px]:flex xl:w-56 2xl:w-60"
+        :class="[
+          settingsStore.settings.value.sidePanelPosition === 'right'
+            ? 'right-5 xl:right-8 2xl:right-10'
+            : 'left-5 xl:left-8 2xl:left-10',
+        ]"
         aria-label="Side Widgets"
       >
-        <SideClockWidget
-          v-if="settingsStore.settings.value.showSideClock"
-          :clock-theme="settingsStore.settings.value.clockTheme"
-          :use-24h="settingsStore.settings.value.clock24h"
-          :show-year-progress="settingsStore.settings.value.showYearProgress"
-          :is-light="isLightMode"
-          @toggle-format="
-            settingsStore.updateSettings({
-              clock24h: !settingsStore.settings.value.clock24h,
-            })
-          "
-          @update-theme="
-            (theme) => settingsStore.updateSettings({ clockTheme: theme })
-          "
-        />
-        <StickyNoteWidget v-if="settingsStore.settings.value.showStickyNote" />
+        <template v-for="(widgetId, idx) in activeSideWidgets" :key="widgetId">
+          <SideClockWidget
+            v-if="widgetId === 'clock'"
+            :clock-theme="settingsStore.settings.value.clockTheme"
+            :use-24h="settingsStore.settings.value.clock24h"
+            :show-year-progress="settingsStore.settings.value.showYearProgress"
+            :is-light="isLightMode"
+            :can-move-up="idx > 0"
+            :can-move-down="idx < activeSideWidgets.length - 1"
+            @toggle-format="
+              settingsStore.updateSettings({
+                clock24h: !settingsStore.settings.value.clock24h,
+              })
+            "
+            @update-theme="
+              (theme) => settingsStore.updateSettings({ clockTheme: theme })
+            "
+            @move-up="settingsStore.moveSideWidget('clock', 'up')"
+            @move-down="settingsStore.moveSideWidget('clock', 'down')"
+          />
+
+          <CalendarWidget
+            v-else-if="widgetId === 'calendar'"
+            :accent-color="settingsStore.settings.value.accentColor"
+            :is-light="isLightMode"
+            :can-move-up="idx > 0"
+            :can-move-down="idx < activeSideWidgets.length - 1"
+            @move-up="settingsStore.moveSideWidget('calendar', 'up')"
+            @move-down="settingsStore.moveSideWidget('calendar', 'down')"
+          />
+
+          <StickyNoteWidget
+            v-else-if="widgetId === 'notes'"
+            :can-move-up="idx > 0"
+            :can-move-down="idx < activeSideWidgets.length - 1"
+            @move-up="settingsStore.moveSideWidget('notes', 'up')"
+            @move-down="settingsStore.moveSideWidget('notes', 'down')"
+          />
+        </template>
       </aside>
 
       <DynamicGreeting v-if="settingsStore.settings.value.showGreeting" />

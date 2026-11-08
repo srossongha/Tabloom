@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { Sparkles } from "lucide-vue-next";
+import { Sparkles, ArrowUp, ArrowDown } from "lucide-vue-next";
 import type { ClockTheme } from "../../../1-domain/entities/AppSettings";
 import SevenSegmentDisplay from "./SevenSegmentDisplay.vue";
 import ClockTowerDisplay from "./ClockTowerDisplay.vue";
@@ -10,6 +10,8 @@ interface Props {
   use24h?: boolean;
   showYearProgress?: boolean;
   isLight?: boolean;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,11 +19,15 @@ const props = withDefaults(defineProps<Props>(), {
   use24h: true,
   showYearProgress: true,
   isLight: false,
+  canMoveUp: true,
+  canMoveDown: true,
 });
 
 const emit = defineEmits<{
   (e: "toggleFormat"): void;
   (e: "updateTheme", theme: ClockTheme): void;
+  (e: "moveUp"): void;
+  (e: "moveDown"): void;
 }>();
 
 const now = ref(new Date());
@@ -170,12 +176,36 @@ function cycleTheme(e: MouseEvent) {
         <span class="max-w-[130px] truncate text-[9px] tracking-wide">{{ currentThemeLabel }}</span>
       </button>
 
-      <span
-        v-if="props.use24h && props.clockTheme === 'minimal'"
-        class="rounded border border-current/10 bg-current/[0.03] px-1.5 py-0.5 text-[10px] font-medium tracking-wider text-current/50 uppercase"
-      >
-        24H
-      </span>
+      <div class="flex items-center gap-1">
+        <!-- Reorder in dock buttons (hover to reveal) -->
+        <div class="flex items-center gap-0.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <button
+            v-if="canMoveUp"
+            type="button"
+            title="Move clock up in dock"
+            class="flex h-5 w-5 items-center justify-center rounded bg-black/40 text-white/70 hover:bg-black/60 hover:text-white transition-all active:scale-90"
+            @click.stop="emit('moveUp')"
+          >
+            <ArrowUp class="h-3 w-3" />
+          </button>
+          <button
+            v-if="canMoveDown"
+            type="button"
+            title="Move clock down in dock"
+            class="flex h-5 w-5 items-center justify-center rounded bg-black/40 text-white/70 hover:bg-black/60 hover:text-white transition-all active:scale-90"
+            @click.stop="emit('moveDown')"
+          >
+            <ArrowDown class="h-3 w-3" />
+          </button>
+        </div>
+
+        <span
+          v-if="props.use24h && props.clockTheme === 'minimal'"
+          class="rounded border border-current/10 bg-current/[0.03] px-1.5 py-0.5 text-[10px] font-medium tracking-wider text-current/50 uppercase"
+        >
+          24H
+        </span>
+      </div>
     </div>
 
     <!-- THEME 1: Digital LCD (with ghost inactive lines, matching user's photo) -->

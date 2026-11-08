@@ -8,6 +8,7 @@ import {
   sanitizeAppSettings,
   type AppSettings,
   type ThemePreset,
+  type SideWidgetId,
 } from '../../1-domain/entities/AppSettings'
 import { PRESET_COLORS } from '../../1-domain/entities/ThemePresets'
 import type { IStoragePort } from '../../1-domain/ports/IStoragePort'
@@ -211,10 +212,23 @@ export function useSettingsStore(storage?: IStoragePort) {
     updateSettings({ hiddenUrls: [] })
   }
 
+  function moveSideWidget(widgetId: SideWidgetId, direction: 'up' | 'down') {
+    const list = [...(settings.value.sideWidgetsOrder || ['clock', 'calendar', 'notes'])]
+    const idx = list.indexOf(widgetId)
+    if (idx === -1) return
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (targetIdx < 0 || targetIdx >= list.length) return
+    const temp = list[idx]
+    list[idx] = list[targetIdx]
+    list[targetIdx] = temp
+    updateSettings({ sideWidgetsOrder: list })
+  }
+
   return {
     settings,
     init,
     updateSettings,
+    moveSideWidget,
     applyThemePreset,
     exportConfigJson,
     importConfigJson,
