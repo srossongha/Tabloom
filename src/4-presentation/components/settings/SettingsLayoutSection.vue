@@ -13,9 +13,6 @@ import {
   Monitor,
   Landmark,
   Sparkles,
-  Box,
-  Gamepad2,
-  LayoutGrid,
   ArrowUp,
   ArrowDown,
   ArrowLeft,
@@ -30,7 +27,6 @@ import type {
   AppSettings,
   ParticleMode,
   ClockTheme,
-  TileStyle,
   SideWidgetId,
   SidePanelPosition,
 } from '../../../1-domain/entities/AppSettings'
@@ -42,38 +38,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const COLUMN_PRESETS = [2, 3, 4, 5, 6, 8, 10]
-
-const TILE_STYLES: Array<{
-  id: TileStyle
-  label: string
-  desc: string
-  icon: any
-}> = [
-  {
-    id: 'glassmorphic',
-    label: 'Glassmorphic',
-    desc: 'Translucent frosted glass with soft glow',
-    icon: Sparkles,
-  },
-  {
-    id: 'minecraft-2d',
-    label: '2D Minecraft',
-    desc: 'Pixelated blocks & inventory slot bevels',
-    icon: Box,
-  },
-  {
-    id: 'retro-pixel',
-    label: 'Retro Pixel',
-    desc: '8-bit arcade borders & hard shadows',
-    icon: Gamepad2,
-  },
-  {
-    id: 'minimal-flat',
-    label: 'Minimal Flat',
-    desc: 'Clean borderless subtle cards',
-    icon: LayoutGrid,
-  },
-]
 
 const CLOCK_THEMES: Array<{
   id: ClockTheme
@@ -224,46 +188,8 @@ function onImportFile(e: Event) {
 
 <template>
   <div class="space-y-4 text-xs text-white/80">
-    <!-- Tile Style Design Picker (2D Minecraft, Retro Pixel, Glassmorphic, Minimal) -->
-    <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <span class="font-medium text-white/90">Tile Design Style</span>
-        <span class="text-[10px] text-white/40">2D Minecraft, Retro, Glass</span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2">
-        <button
-          v-for="ts in TILE_STYLES"
-          :key="ts.id"
-          type="button"
-          class="flex flex-col items-start gap-1 p-2.5 rounded-lg border text-left transition-all duration-200 cursor-pointer"
-          :class="[
-            props.settings.tileStyle === ts.id
-              ? 'text-white shadow-sm'
-              : 'border-white/10 bg-white/[0.04] text-white/70 hover:border-white/20 hover:bg-white/[0.08] hover:text-white',
-          ]"
-          :style="props.settings.tileStyle === ts.id ? {
-            borderColor: props.settings.accentColor,
-            backgroundColor: `${props.settings.accentColor}20`,
-            boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
-          } : undefined"
-          @click="emit('update', { tileStyle: ts.id })"
-        >
-          <div class="flex items-center gap-1.5 w-full">
-            <component
-              :is="ts.icon"
-              class="h-3.5 w-3.5 shrink-0"
-              :style="{ color: props.settings.tileStyle === ts.id ? props.settings.accentColor : undefined }"
-            />
-            <span class="font-medium text-[11px] truncate">{{ ts.label }}</span>
-          </div>
-          <span class="text-[9px] text-white/40 leading-tight">{{ ts.desc }}</span>
-        </button>
-      </div>
-    </div>
-
     <!-- Grid Dimensions & Spacing Sliders -->
-    <div class="border-t border-white/10 pt-3 space-y-3">
+    <div class="space-y-3">
       <div class="flex items-center justify-between">
         <span class="font-medium text-white/90">Grid Layout & Spacing</span>
         <span class="text-[10px] text-white/40">Margins, gaps, paddings</span>
@@ -422,347 +348,22 @@ function onImportFile(e: Event) {
       </div>
     </div>
 
-    <!-- Feature & Visibility Toggles (Every feature has a toggle to turn it off) -->
+    <!-- Side Dock Placement & Order Management ("on both sides & on their place only") -->
     <div class="border-t border-white/10 pt-3 space-y-3 select-none">
       <div class="flex items-center justify-between">
-        <span class="font-medium text-white/70">Feature Toggles</span>
-        <span class="text-[10px] text-white/40">Turn any element on / off</span>
+        <span class="font-medium text-white/90">Side Docks & Widgets</span>
+        <button
+          type="button"
+          class="flex items-center gap-1 text-[10px] text-white/50 hover:text-white transition-colors cursor-pointer"
+          title="Reset docks and re-enable all side widgets"
+          @click="restoreAllWidgets"
+        >
+          <RotateCcw class="h-3 w-3" />
+          <span>Reset Docks</span>
+        </button>
       </div>
 
-      <!-- Widgets & Screen Elements -->
-      <div class="space-y-1.5">
-        <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
-          Widgets & Display
-        </span>
-        <div class="grid grid-cols-2 gap-2">
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showGreeting"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showGreeting: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Greeting</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showSearch"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showSearch: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Search Bar</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showSideClock"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showSideClock: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Side Clock</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showCalendar"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showCalendar: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Calendar</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showStickyNote"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showStickyNote: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Sticky Note</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-            title="Minimalist view: displays only the digits, hiding date and year progress"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.clockTimeOnly"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  clockTimeOnly: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Time Only</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-            :class="[props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : '']"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.clockShowDate"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  clockShowDate: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Clock Date</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-            :class="[props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : '']"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showYearProgress"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showYearProgress: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Year Progress</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.clock24h"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  clock24h: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>24H Format</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showAudioPlayer"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showAudioPlayer: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Audio Player</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showCustomWallpaper"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showCustomWallpaper: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Custom Media</span>
-          </label>
-        </div>
-
-        <!-- Clock Widget & Theme Style Selector -->
-        <div class="mt-3 space-y-2 border-t border-white/10 pt-3">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
-              Clock Widget & Theme
-            </span>
-            <span
-              class="rounded px-1.5 py-0.5 text-[9px] font-medium"
-              :class="props.settings.showSideClock ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'"
-            >
-              {{ props.settings.showSideClock ? 'Active on Dock' : 'Currently Hidden' }}
-            </span>
-          </div>
-
-          <!-- If hidden: Banner with one-click restore button -->
-          <div
-            v-if="!props.settings.showSideClock"
-            class="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200"
-          >
-            <div class="flex items-center gap-2">
-              <EyeOff class="h-4 w-4 text-amber-300 shrink-0" />
-              <div>
-                <p class="font-medium text-white/90">Clock card is currently hidden</p>
-                <p class="text-[10px] text-white/50">Turn it back on to display the side clock on your new tab.</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
-              :style="{
-                backgroundColor: props.settings.accentColor,
-                color: '#0f172a'
-              }"
-              @click="emit('update', { showSideClock: true })"
-            >
-              <Eye class="h-3.5 w-3.5" />
-              <span>Bring Back Clock</span>
-            </button>
-          </div>
-
-          <!-- Quick Clock Toggles -->
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <label
-              class="flex items-center gap-2 cursor-pointer rounded-lg border p-2 transition-all duration-200"
-              :class="[
-                props.settings.showSideClock
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-white'
-                  : 'border-white/5 bg-white/[0.03] text-white/60 hover:border-white/15'
-              ]"
-            >
-              <input
-                type="checkbox"
-                :checked="props.settings.showSideClock"
-                class="rounded cursor-pointer"
-                :style="{ accentColor: props.settings.accentColor }"
-                @change="
-                  emit('update', {
-                    showSideClock: ($event.target as HTMLInputElement).checked,
-                  })
-                "
-              />
-              <span class="text-xs font-medium">Show Clock Card</span>
-            </label>
-
-            <label
-              class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15"
-              :class="[!props.settings.showSideClock ? 'opacity-40 pointer-events-none' : '']"
-            >
-              <input
-                type="checkbox"
-                :checked="props.settings.clockTimeOnly"
-                class="rounded cursor-pointer"
-                :style="{ accentColor: props.settings.accentColor }"
-                @change="
-                  emit('update', {
-                    clockTimeOnly: ($event.target as HTMLInputElement).checked,
-                  })
-                "
-              />
-              <span class="text-xs font-medium">Time Only</span>
-            </label>
-          </div>
-
-          <div v-if="props.settings.showSideClock" class="space-y-1.5 pt-1">
-            <span class="text-[10px] text-white/50 block">Display Style (4 styles)</span>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                v-for="ct in CLOCK_THEMES"
-                :key="ct.id"
-                type="button"
-                class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200 cursor-pointer"
-                :class="[
-                  props.settings.clockTheme === ct.id
-                    ? 'text-white shadow-sm'
-                    : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
-                ]"
-                :style="props.settings.clockTheme === ct.id ? {
-                  borderColor: props.settings.accentColor,
-                  backgroundColor: `${props.settings.accentColor}18`,
-                  boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
-                } : undefined"
-                @click="emit('update', { clockTheme: ct.id })"
-              >
-                <div class="flex items-center gap-1.5 w-full">
-                  <component
-                    :is="ct.icon"
-                    class="h-3.5 w-3.5 shrink-0"
-                    :style="{ color: props.settings.clockTheme === ct.id ? props.settings.accentColor : undefined }"
-                  />
-                  <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
-                </div>
-                <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Side Dock Placement & Order Management ("on both sides & on their place only") -->
-        <div
-          class="mt-3 space-y-3 border-t border-white/10 pt-3"
-        >
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
-              Side Dock Placement & Order
-            </span>
-            <button
-              type="button"
-              class="flex items-center gap-1 text-[10px] text-white/50 hover:text-white transition-colors cursor-pointer"
-              title="Reset docks and re-enable all side widgets"
-              @click="restoreAllWidgets"
-            >
-              <RotateCcw class="h-3 w-3" />
-              <span>Reset Docks</span>
-            </button>
-          </div>
-
-          <!-- Dock Mode Selector: Both Sides (Recommended), Left Only, Right Only, Off / Hidden -->
+      <!-- Dock Mode Selector: Both Sides (Recommended), Left Only, Right Only, Off / Hidden -->
           <div class="grid grid-cols-4 gap-1 p-1 rounded-lg border border-white/10 bg-white/[0.03]">
             <button
               type="button"
@@ -1070,150 +671,300 @@ function onImportFile(e: Event) {
             </div>
           </div>
         </div>
+
+    <!-- Clock Widget Options -->
+    <div class="border-t border-white/10 pt-3 space-y-3 select-none">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-medium text-white/90">Clock Widget Options</span>
+          <p class="text-[10px] text-white/40">Styles, time format, and date display</p>
+        </div>
+        <span
+          class="rounded px-1.5 py-0.5 text-[9px] font-medium"
+          :class="props.settings.showSideClock ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'"
+        >
+          {{ props.settings.showSideClock ? 'Active on Dock' : 'Currently Hidden' }}
+        </span>
       </div>
 
-      <!-- Shortcuts & Navigation -->
-      <div class="space-y-1.5 pt-1">
-        <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
-          Shortcuts & Navigation
-        </span>
-        <div class="grid grid-cols-2 gap-2">
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showTileGrid"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showTileGrid: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Tile Grid</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showNavTabs"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showNavTabs: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Header Tabs</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showLogo"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showLogo: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Brand Logo</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showSortBar"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showSortBar: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Sort Pill</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showLabels"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showLabels: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Tile Labels</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showAddCard"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showAddCard: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Add (+) Slot</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.showScrollProgress"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  showScrollProgress: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Scroll Line</span>
-          </label>
-
-          <label
-            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
-          >
-            <input
-              type="checkbox"
-              :checked="props.settings.openInNewTab"
-              class="rounded cursor-pointer transition-transform hover:scale-110"
-              :style="{ accentColor: props.settings.accentColor }"
-              @change="
-                emit('update', {
-                  openInNewTab: ($event.target as HTMLInputElement).checked,
-                })
-              "
-            />
-            <span>Open in Tab</span>
-          </label>
+      <!-- If hidden: Banner with one-click restore button -->
+      <div
+        v-if="!props.settings.showSideClock"
+        class="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200"
+      >
+        <div class="flex items-center gap-2">
+          <EyeOff class="h-4 w-4 text-amber-300 shrink-0" />
+          <div>
+            <p class="font-medium text-white/90">Clock card is currently hidden</p>
+            <p class="text-[10px] text-white/50">Turn it back on to display the side clock on your new tab.</p>
+          </div>
         </div>
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+          :style="{
+            backgroundColor: props.settings.accentColor,
+            color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+          }"
+          @click="emit('update', { showSideClock: true })"
+        >
+          <Eye class="h-3.5 w-3.5" />
+          <span>Bring Back Clock</span>
+        </button>
+      </div>
+
+      <!-- Clock Display Styles (4 styles) -->
+      <div class="space-y-1.5">
+        <span class="text-[10px] text-white/50 block">Display Style</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            v-for="ct in CLOCK_THEMES"
+            :key="ct.id"
+            type="button"
+            class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200 cursor-pointer"
+            :class="[
+              props.settings.clockTheme === ct.id
+                ? 'text-white shadow-sm'
+                : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
+            ]"
+            :style="props.settings.clockTheme === ct.id ? {
+              borderColor: props.settings.accentColor,
+              backgroundColor: `${props.settings.accentColor}18`,
+              boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+            } : undefined"
+            @click="emit('update', { clockTheme: ct.id })"
+          >
+            <div class="flex items-center gap-1.5 w-full">
+              <component
+                :is="ct.icon"
+                class="h-3.5 w-3.5 shrink-0"
+                :style="{ color: props.settings.clockTheme === ct.id ? props.settings.accentColor : undefined }"
+              />
+              <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
+            </div>
+            <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Clock Feature Toggles (2x2 grid) -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <!-- 24-Hour Mode -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.clock24h"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                clock24h: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">24-Hour Format</span>
+        </label>
+
+        <!-- Time Only -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15"
+          title="Minimalist view: displays only the digits, hiding date and year progress"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.clockTimeOnly"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                clockTimeOnly: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">Time Only</span>
+        </label>
+
+        <!-- Show Date -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15"
+          :class="[props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : '']"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.clockShowDate"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                clockShowDate: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">Show Date</span>
+        </label>
+
+        <!-- Year Progress -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15"
+          :class="[props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : '']"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showYearProgress"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                showYearProgress: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">Year Progress</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Screen Elements Visibility -->
+    <div class="border-t border-white/10 pt-3 space-y-3 select-none">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-medium text-white/90">Screen Elements Visibility</span>
+          <p class="text-[10px] text-white/40">Toggle interface components on/off</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showGreeting"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showGreeting: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Greeting Text</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showSearch"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showSearch: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Search Bar</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showLogo"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showLogo: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Brand Logo</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showNavTabs"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showNavTabs: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Header Tabs</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showTileGrid"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showTileGrid: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Shortcuts Grid</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showSortBar"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showSortBar: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Sort Bar Pill</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showLabels"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showLabels: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Tile Labels</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showAddCard"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showAddCard: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Add (+) Slot</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showScrollProgress"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showScrollProgress: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Scroll Line</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.showAudioPlayer"
+            class="rounded cursor-pointer transition-transform hover:scale-110"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="emit('update', { showAudioPlayer: ($event.target as HTMLInputElement).checked })"
+          />
+          <span>Music Player Pill</span>
+        </label>
       </div>
     </div>
 
