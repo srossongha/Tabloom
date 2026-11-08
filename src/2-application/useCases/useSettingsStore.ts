@@ -212,8 +212,9 @@ export function useSettingsStore(storage?: IStoragePort) {
     updateSettings({ hiddenUrls: [] })
   }
 
-  function moveSideWidget(widgetId: SideWidgetId, direction: 'up' | 'down') {
-    const list = [...(settings.value.sideWidgetsOrder || ['clock', 'calendar', 'notes'])]
+  function moveDockWidget(side: 'left' | 'right', widgetId: SideWidgetId, direction: 'up' | 'down') {
+    const key = side === 'left' ? 'sideWidgetsLeft' : 'sideWidgetsRight'
+    const list = [...(settings.value[key] || [])]
     const idx = list.indexOf(widgetId)
     if (idx === -1) return
     const targetIdx = direction === 'up' ? idx - 1 : idx + 1
@@ -221,7 +222,58 @@ export function useSettingsStore(storage?: IStoragePort) {
     const temp = list[idx]
     list[idx] = list[targetIdx]
     list[targetIdx] = temp
-    updateSettings({ sideWidgetsOrder: list })
+    updateSettings({ [key]: list })
+  }
+
+  function moveWidgetToSide(widgetId: SideWidgetId, targetSide: 'left' | 'right', targetIndex?: number) {
+    const left = [...(settings.value.sideWidgetsLeft || [])].filter((id) => id !== widgetId)
+    const right = [...(settings.value.sideWidgetsRight || [])].filter((id) => id !== widgetId)
+
+    if (targetSide === 'left') {
+      if (typeof targetIndex === 'number' && targetIndex >= 0 && targetIndex <= left.length) {
+        left.splice(targetIndex, 0, widgetId)
+      } else {
+        left.push(widgetId)
+      }
+    } else {
+      if (typeof targetIndex === 'number' && targetIndex >= 0 && targetIndex <= right.length) {
+        right.splice(targetIndex, 0, widgetId)
+      } else {
+        right.push(widgetId)
+      }
+    }
+
+    updateSettings({
+      sideWidgetsLeft: left,
+      sideWidgetsRight: right,
+    })
+  }
+
+  function reorderDockWidgets(side: 'left' | 'right', fromIndex: number, toIndex: number) {
+    const key = side === 'left' ? 'sideWidgetsLeft' : 'sideWidgetsRight'
+    const list = [...(settings.value[key] || [])]
+    if (fromIndex < 0 || fromIndex >= list.length || toIndex < 0 || toIndex >= list.length) return
+    const [moved] = list.splice(fromIndex, 1)
+    list.splice(toIndex, 0, moved)
+    updateSettings({ [key]: list })
+  }
+
+  function moveSideWidget(widgetId: SideWidgetId, direction: 'up' | 'down') {
+    if (settings.value.sideWidgetsLeft?.includes(widgetId)) {
+      moveDockWidget('left', widgetId, direction)
+    } else if (settings.value.sideWidgetsRight?.includes(widgetId)) {
+      moveDockWidget('right', widgetId, direction)
+    } else {
+      const list = [...(settings.value.sideWidgetsOrder || ['clock', 'calendar', 'notes'])]
+      const idx = list.indexOf(widgetId)
+      if (idx === -1) return
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+      if (targetIdx < 0 || targetIdx >= list.length) return
+      const temp = list[idx]
+      list[idx] = list[targetIdx]
+      list[targetIdx] = temp
+      updateSettings({ sideWidgetsOrder: list })
+    }
   }
 
   return {
@@ -229,6 +281,9 @@ export function useSettingsStore(storage?: IStoragePort) {
     init,
     updateSettings,
     moveSideWidget,
+    moveDockWidget,
+    moveWidgetToSide,
+    reorderDockWidgets,
     applyThemePreset,
     exportConfigJson,
     importConfigJson,

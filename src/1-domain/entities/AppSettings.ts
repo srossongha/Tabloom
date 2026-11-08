@@ -56,7 +56,10 @@ export type ClockTheme = z.infer<typeof ClockThemeSchema>
 export const SideWidgetIdSchema = z.enum(['clock', 'calendar', 'notes'])
 export type SideWidgetId = z.infer<typeof SideWidgetIdSchema>
 
-export const SidePanelPositionSchema = z.enum(['left', 'right']).default('left').catch('left')
+export const SideWidgetsLeftSchema = z.array(SideWidgetIdSchema).default(['clock', 'calendar']).catch(['clock', 'calendar'])
+export const SideWidgetsRightSchema = z.array(SideWidgetIdSchema).default(['notes']).catch(['notes'])
+
+export const SidePanelPositionSchema = z.enum(['left', 'right', 'both']).default('both').catch('both')
 export type SidePanelPosition = z.infer<typeof SidePanelPositionSchema>
 
 export const TileStyleSchema = z.enum([
@@ -109,6 +112,8 @@ export const AppSettingsSchema = z.object({
   showCalendar: z.boolean().default(true).catch(true),
   showYearProgress: z.boolean().default(true).catch(true),
   showStickyNote: z.boolean().default(true).catch(true),
+  sideWidgetsLeft: SideWidgetsLeftSchema,
+  sideWidgetsRight: SideWidgetsRightSchema,
   sidePanelPosition: SidePanelPositionSchema,
   sideWidgetsOrder: z.array(SideWidgetIdSchema).default(['clock', 'calendar', 'notes']).catch(['clock', 'calendar', 'notes']),
   showCustomWallpaper: z.boolean().default(true).catch(true),
@@ -179,6 +184,54 @@ export function sanitizeAppSettings(raw: unknown): AppSettings {
     }
   }
   result.sideWidgetsOrder = validOrder
+
+  // Ensure every widget belongs to either left or right dock without duplicates
+  let leftWidgets: SideWidgetId[] = Array.isArray(result.sideWidgetsLeft)
+    ? (result.sideWidgetsLeft as SideWidgetId[]).filter((id) => allSideIds.includes(id))
+    : []
+  let rightWidgets: SideWidgetId[] = Array.isArray(result.sideWidgetsRight)
+    ? (result.sideWidgetsRight as SideWidgetId[]).filter((id) => allSideIds.includes(id))
+    : []
+
+  // If both left and right are empty (e.g. legacy config)
+  if (leftWidgets.length === 0 && rightWidgets.length === 0) {
+    if (result.sidePanelPosition === 'right') {
+      rightWidgets = [...validOrder]
+    } else if (result.sidePanelPosition === 'left') {
+      leftWidgets = [...validOrder]
+    } else {
+      leftWidgets = ['clock', 'calendar']
+      rightWidgets = ['notes']
+    }
+  }
+
+  // Deduplicate between left and right (left takes priority if duplicated)
+  const seenWidgets = new Set<SideWidgetId>()
+  leftWidgets = leftWidgets.filter((id) => {
+    if (seenWidgets.has(id)) return false
+    seenWidgets.add(id)
+    return true
+  })
+  rightWidgets = rightWidgets.filter((id) => {
+    if (seenWidgets.has(id)) return false
+    seenWidgets.add(id)
+    return true
+  })
+
+  // Ensure any missing widget is placed in left or right
+  for (const id of allSideIds) {
+    if (!seenWidgets.has(id)) {
+      if (id === 'notes') {
+        rightWidgets.push(id)
+      } else {
+        leftWidgets.push(id)
+      }
+      seenWidgets.add(id)
+    }
+  }
+
+  result.sideWidgetsLeft = leftWidgets
+  result.sideWidgetsRight = rightWidgets
 
   return result as AppSettings
 }

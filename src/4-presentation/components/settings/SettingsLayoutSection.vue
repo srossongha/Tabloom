@@ -18,8 +18,11 @@ import {
   LayoutGrid,
   ArrowUp,
   ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   PanelLeft,
   PanelRight,
+  Columns,
 } from 'lucide-vue-next'
 import type {
   AppSettings,
@@ -130,16 +133,31 @@ const SIDE_WIDGET_CONFIG: Record<
   },
 }
 
-function moveWidget(id: SideWidgetId, direction: 'up' | 'down') {
-  const current = [...(props.settings.sideWidgetsOrder || ['clock', 'calendar', 'notes'])]
-  const idx = current.indexOf(id)
+function moveDockWidget(side: 'left' | 'right', id: SideWidgetId, direction: 'up' | 'down') {
+  const key = side === 'left' ? 'sideWidgetsLeft' : 'sideWidgetsRight'
+  const list = [...(props.settings[key] || [])]
+  const idx = list.indexOf(id)
   if (idx === -1) return
   const targetIdx = direction === 'up' ? idx - 1 : idx + 1
-  if (targetIdx < 0 || targetIdx >= current.length) return
-  const temp = current[idx]
-  current[idx] = current[targetIdx]
-  current[targetIdx] = temp
-  emit('update', { sideWidgetsOrder: current })
+  if (targetIdx < 0 || targetIdx >= list.length) return
+  const temp = list[idx]
+  list[idx] = list[targetIdx]
+  list[targetIdx] = temp
+  emit('update', { [key]: list })
+}
+
+function transferWidget(id: SideWidgetId, toSide: 'left' | 'right') {
+  const left = [...(props.settings.sideWidgetsLeft || [])].filter((w) => w !== id)
+  const right = [...(props.settings.sideWidgetsRight || [])].filter((w) => w !== id)
+  if (toSide === 'left') {
+    left.push(id)
+  } else {
+    right.push(id)
+  }
+  emit('update', {
+    sideWidgetsLeft: left,
+    sideWidgetsRight: right,
+  })
 }
 
 function setSidePosition(pos: SidePanelPosition) {
@@ -562,23 +580,36 @@ function onImportFile(e: Event) {
           </div>
         </div>
 
-        <!-- Side Dock Placement & Order Management ("on their place only") -->
+        <!-- Side Dock Placement & Order Management ("on both sides & on their place only") -->
         <div
           v-if="props.settings.showSideClock || props.settings.showCalendar || props.settings.showStickyNote"
-          class="mt-3 space-y-2.5 border-t border-white/10 pt-3"
+          class="mt-3 space-y-3 border-t border-white/10 pt-3"
         >
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
               Side Dock Placement & Order
             </span>
-            <span class="text-[10px] text-white/40">In-dock arrangement</span>
+            <span class="text-[10px] text-white/40">Hold to drag or click arrows</span>
           </div>
 
-          <!-- Dock Position Selector (Left vs Right) -->
-          <div class="flex gap-1.5 p-1 rounded-lg border border-white/10 bg-white/[0.03]">
+          <!-- Dock Mode Selector: Both Sides (Recommended), Left Only, Right Only -->
+          <div class="grid grid-cols-3 gap-1 p-1 rounded-lg border border-white/10 bg-white/[0.03]">
             <button
               type="button"
-              class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
+              class="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-md transition-all cursor-pointer"
+              :class="props.settings.sidePanelPosition === 'both' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
+              :style="props.settings.sidePanelPosition === 'both' ? {
+                backgroundColor: `${props.settings.accentColor}25`,
+                color: props.settings.accentColor,
+              } : undefined"
+              @click="setSidePosition('both')"
+            >
+              <Columns class="h-3 w-3" />
+              <span>Both Sides</span>
+            </button>
+            <button
+              type="button"
+              class="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-md transition-all cursor-pointer"
               :class="props.settings.sidePanelPosition === 'left' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
               :style="props.settings.sidePanelPosition === 'left' ? {
                 backgroundColor: `${props.settings.accentColor}25`,
@@ -586,12 +617,12 @@ function onImportFile(e: Event) {
               } : undefined"
               @click="setSidePosition('left')"
             >
-              <PanelLeft class="h-3.5 w-3.5" />
-              <span>Left Dock</span>
+              <PanelLeft class="h-3 w-3" />
+              <span>Left Only</span>
             </button>
             <button
               type="button"
-              class="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer"
+              class="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-md transition-all cursor-pointer"
               :class="props.settings.sidePanelPosition === 'right' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
               :style="props.settings.sidePanelPosition === 'right' ? {
                 backgroundColor: `${props.settings.accentColor}25`,
@@ -599,16 +630,34 @@ function onImportFile(e: Event) {
               } : undefined"
               @click="setSidePosition('right')"
             >
-              <PanelRight class="h-3.5 w-3.5" />
-              <span>Right Dock</span>
+              <PanelRight class="h-3 w-3" />
+              <span>Right Only</span>
             </button>
           </div>
 
-          <!-- Reorderable List of Widgets in Dock -->
-          <div class="space-y-1.5 pt-1">
+          <!-- LEFT DOCK WIDGETS -->
+          <div
+            v-if="props.settings.sidePanelPosition !== 'right'"
+            class="space-y-1.5 rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
+          >
+            <div class="flex items-center justify-between text-[10px] text-white/60 font-medium">
+              <span class="flex items-center gap-1">
+                <PanelLeft class="h-3 w-3" :style="{ color: props.settings.accentColor }" />
+                Left Dock ({{ (props.settings.sideWidgetsLeft || []).length }})
+              </span>
+              <span class="text-[9px] text-white/40">In-dock arrangement</span>
+            </div>
+
             <div
-              v-for="(wId, idx) in props.settings.sideWidgetsOrder || ['clock', 'calendar', 'notes']"
-              :key="wId"
+              v-if="(props.settings.sideWidgetsLeft || []).length === 0"
+              class="py-3 text-center text-[10px] text-white/30 italic"
+            >
+              No widgets on left dock
+            </div>
+
+            <div
+              v-for="(wId, idx) in props.settings.sideWidgetsLeft || []"
+              :key="`left_${wId}`"
               class="flex items-center justify-between p-2 rounded-lg border border-white/5 bg-white/[0.03] transition-all hover:border-white/15"
             >
               <div class="flex items-center gap-2 min-w-0">
@@ -630,23 +679,107 @@ function onImportFile(e: Event) {
                 </div>
               </div>
 
-              <!-- Reorder Action Buttons -->
+              <!-- Reorder & Transfer Action Buttons -->
               <div class="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   title="Move up"
                   :disabled="idx === 0"
                   class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-white disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer"
-                  @click="moveWidget(wId, 'up')"
+                  @click="moveDockWidget('left', wId, 'up')"
                 >
                   <ArrowUp class="h-3 w-3" />
                 </button>
                 <button
                   type="button"
                   title="Move down"
-                  :disabled="idx === (props.settings.sideWidgetsOrder?.length || 3) - 1"
+                  :disabled="idx === (props.settings.sideWidgetsLeft?.length || 1) - 1"
                   class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-white disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer"
-                  @click="moveWidget(wId, 'down')"
+                  @click="moveDockWidget('left', wId, 'down')"
+                >
+                  <ArrowDown class="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  title="Move to Right Dock"
+                  class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-[var(--accent)] active:scale-90 cursor-pointer"
+                  @click="transferWidget(wId, 'right')"
+                >
+                  <ArrowRight class="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT DOCK WIDGETS -->
+          <div
+            v-if="props.settings.sidePanelPosition !== 'left'"
+            class="space-y-1.5 rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
+          >
+            <div class="flex items-center justify-between text-[10px] text-white/60 font-medium">
+              <span class="flex items-center gap-1">
+                <PanelRight class="h-3 w-3" :style="{ color: props.settings.accentColor }" />
+                Right Dock ({{ (props.settings.sideWidgetsRight || []).length }})
+              </span>
+              <span class="text-[9px] text-white/40">In-dock arrangement</span>
+            </div>
+
+            <div
+              v-if="(props.settings.sideWidgetsRight || []).length === 0"
+              class="py-3 text-center text-[10px] text-white/30 italic"
+            >
+              No widgets on right dock
+            </div>
+
+            <div
+              v-for="(wId, idx) in props.settings.sideWidgetsRight || []"
+              :key="`right_${wId}`"
+              class="flex items-center justify-between p-2 rounded-lg border border-white/5 bg-white/[0.03] transition-all hover:border-white/15"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white/10 text-[10px] font-mono text-white/70">
+                  #{{ idx + 1 }}
+                </span>
+                <component
+                  :is="SIDE_WIDGET_CONFIG[wId].icon"
+                  class="h-3.5 w-3.5 shrink-0 opacity-80"
+                  :style="{ color: props.settings.accentColor }"
+                />
+                <div class="flex flex-col min-w-0">
+                  <span class="text-xs font-medium text-white truncate">
+                    {{ SIDE_WIDGET_CONFIG[wId].label }}
+                  </span>
+                  <span class="text-[9.5px] text-white/40 truncate">
+                    {{ SIDE_WIDGET_CONFIG[wId].desc }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Reorder & Transfer Action Buttons -->
+              <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  title="Move to Left Dock"
+                  class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-[var(--accent)] active:scale-90 cursor-pointer"
+                  @click="transferWidget(wId, 'left')"
+                >
+                  <ArrowLeft class="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  title="Move up"
+                  :disabled="idx === 0"
+                  class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-white disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer"
+                  @click="moveDockWidget('right', wId, 'up')"
+                >
+                  <ArrowUp class="h-3 w-3" />
+                </button>
+                <button
+                  type="button"
+                  title="Move down"
+                  :disabled="idx === (props.settings.sideWidgetsRight?.length || 1) - 1"
+                  class="flex h-6 w-6 items-center justify-center rounded border border-white/10 bg-white/5 text-white/70 transition-all hover:bg-white/15 hover:text-white disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer"
+                  @click="moveDockWidget('right', wId, 'down')"
                 >
                   <ArrowDown class="h-3 w-3" />
                 </button>
