@@ -162,10 +162,34 @@ export async function optimizeTileImage(
   maxDimension: number = 512,
   quality: number = 0.82
 ): Promise<string> {
-  // If it's a remote http/https URL or small SVG, leave it untouched
+  // If it's a remote http/https URL, small SVG, animated GIF, or video, preserve untouched
   if (typeof input === 'string') {
     if (/^https?:\/\//i.test(input)) return input
     if (input.startsWith('data:image/svg+xml')) return input
+    if (input.startsWith('data:image/gif')) return input
+    if (input.startsWith('data:video/')) return input
+    if (input.startsWith('media:') || input.startsWith('indexeddb:')) return input
+    if (/\.(gif|mp4|webm|mov)(\?.*)?$/i.test(input)) return input
+  }
+
+  const isGif =
+    (input instanceof File && (input.type === 'image/gif' || input.name.toLowerCase().endsWith('.gif'))) ||
+    (input instanceof Blob && input.type === 'image/gif')
+
+  const isVideo =
+    (input instanceof File && (input.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(input.name))) ||
+    (input instanceof Blob && input.type.startsWith('video/'))
+
+  // CRITICAL: Animated GIFs and videos MUST NEVER be flattened with HTML5 Canvas drawImage!
+  // Canvas drawImage only draws frame 0, permanently destroying all animation frames.
+  if (isGif || isVideo) {
+    if (typeof input === 'string') return input
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => resolve('')
+      reader.readAsDataURL(input)
+    })
   }
 
   return new Promise((resolve) => {

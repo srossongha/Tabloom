@@ -9,6 +9,7 @@ import { X, Upload, Palette, Image as ImageIcon, Sparkles, Pin, RotateCcw } from
 import type { Tile, IconMode, TileDisplayMode } from '../../../1-domain/entities/Tile'
 import { resolveFaviconUrl, generateMonogram } from '../../../3-infrastructure/favicon/faviconService'
 import { optimizeTileImage } from '../../../2-application/services/imageOptimizerService'
+import { mediaStorageService } from '../../../3-infrastructure/storage/mediaStorageService'
 import SegmentedPillControl, {
   type SegmentedOption,
 } from '../common/SegmentedPillControl.vue'
@@ -54,8 +55,33 @@ const displayMode = ref<TileDisplayMode>('icon')
 const colSpan = ref(1)
 const rowSpan = ref(1)
 const customIcon = ref('')
+const resolvedCustomIcon = ref('')
 const tintColor = ref('')
 const pinned = ref(false)
+
+async function updateResolvedIcon() {
+  const icon = customIcon.value
+  if (!icon) {
+    resolvedCustomIcon.value = ''
+    return
+  }
+  if (icon.startsWith('media:') || icon.startsWith('indexeddb:')) {
+    const id = icon.replace(/^(media:|indexeddb:)/, '')
+    const mediaUrl = await mediaStorageService.getMediaUrl(id)
+    resolvedCustomIcon.value = mediaUrl || ''
+    return
+  }
+  resolvedCustomIcon.value = icon
+}
+
+watch(customIcon, updateResolvedIcon, { immediate: true })
+
+const isVideo = computed(() => {
+  const src = (resolvedCustomIcon.value || customIcon.value || '').toLowerCase()
+  if (!src) return false
+  if (src.startsWith('data:video/')) return true
+  return /\.(mp4|webm|mov)(\?.*)?$/i.test(src)
+})
 
 const currentTileSize = computed({
   get: () => `${colSpan.value}x${rowSpan.value}`,
@@ -93,17 +119,52 @@ watch(() => props.tile, (curr) => {
 async function handleFileUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
+
+  const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')
+  const isVideoFile = file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name)
+
+  // Animated GIFs and videos: preserve ALL frames without canvas flattening
+  if (isGif || isVideoFile) {
+    // If larger than 250KB, store in IndexedDB to avoid exhausting localStorage quota
+    if (file.size > 250 * 1024) {
+      try {
+        const mediaId = `tile_media_${props.tile?.id || Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+        const objectUrl = await mediaStorageService.saveMedia(mediaId, file, file.name)
+        customIcon.value = `media:${mediaId}`
+        resolvedCustomIcon.value = objectUrl
+        iconMode.value = 'upload'
+        return
+      } catch (err) {
+        console.warn('[TileEditor] IndexedDB media save error, falling back to data URL', err)
+      }
+    }
+
+    // Small GIF or fallback: read data URL directly
+    const reader = new FileReader()
+    reader.onload = () => {
+      customIcon.value = reader.result as string
+      resolvedCustomIcon.value = reader.result as string
+      iconMode.value = 'upload'
+    }
+    reader.readAsDataURL(file)
+    return
+  }
+
+  // Regular static image (PNG, JPG, etc.): optimize to compact WebP
   try {
     const optimized = await optimizeTileImage(file, 512, 0.82)
     if (optimized) {
       customIcon.value = optimized
+      resolvedCustomIcon.value = optimized
       iconMode.value = 'upload'
       return
     }
   } catch {}
+
   const reader = new FileReader()
   reader.onload = () => {
     customIcon.value = reader.result as string
+    resolvedCustomIcon.value = reader.result as string
     iconMode.value = 'upload'
   }
   reader.readAsDataURL(file)
@@ -114,7 +175,15 @@ async function onSave() {
   if (!/^https?:\/\//i.test(finalUrl)) finalUrl = `https://${finalUrl}`
 
   let finalIcon = customIcon.value.trim() || undefined
-  if (finalIcon && finalIcon.startsWith('data:') && finalIcon.length > 50000) {
+  // Only optimize static non-GIF, non-video data URLs
+  if (
+    finalIcon &&
+    finalIcon.startsWith('data:image/') &&
+    !finalIcon.startsWith('data:image/gif') &&
+    !finalIcon.startsWith('data:video/') &&
+    !finalIcon.startsWith('media:') &&
+    finalIcon.length > 50000
+  ) {
     try {
       finalIcon = await optimizeTileImage(finalIcon, 512, 0.82)
     } catch {}
@@ -216,9 +285,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 }"
               >
                 <!-- Full Cover Preview -->
-                <template v-if="displayMode === 'full-cover' && (customIcon || previewFavicon)">
+                <template v-if="displayMode === 'full-cover' && (resolvedCustomIcon || customIcon || previewFavicon)">
+                  <video
+                    v-if="isVideo"
+                    :src="resolvedCustomIcon || customIcon"
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                    class="absolute inset-0 h-full w-full object-cover"
+                  />
                   <img
-                    :src="customIcon || previewFavicon"
+                    v-else
+                    :src="resolvedCustomIcon || customIcon || previewFavicon"
                     :alt="title || 'Preview'"
                     class="absolute inset-0 h-full w-full object-cover"
                   />
@@ -231,9 +310,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 <!-- Icon Badge Preview -->
                 <template v-else>
                   <div class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.04] dark:bg-white/[0.1] shadow-inner">
+                    <video
+                      v-if="isVideo"
+                      :src="resolvedCustomIcon || customIcon"
+                      autoplay
+                      loop
+                      muted
+                      playsinline
+                      class="h-full w-full object-cover"
+                    />
                     <img
-                      v-if="iconMode !== 'monogram'"
-                      :src="customIcon || previewFavicon"
+                      v-else-if="iconMode !== 'monogram'"
+                      :src="resolvedCustomIcon || customIcon || previewFavicon"
                       :alt="title || 'Preview'"
                       class="h-7 w-7 object-contain"
                     />
@@ -354,8 +442,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   class="settings-select flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 pr-9 text-xs text-white outline-none cursor-pointer"
                 >
                   <option value="auto">Auto Favicon (Domain)</option>
-                  <option value="custom-url">Image URL</option>
-                  <option value="upload">Upload File (PNG, JPG, GIF)</option>
+                  <option value="custom-url">Image or GIF / Video URL</option>
+                  <option value="upload">Upload File (GIF, Video MP4, PNG, JPG)</option>
                   <option v-if="displayMode !== 'full-cover'" value="monogram">Monogram / Letter</option>
                 </select>
               </div>
@@ -364,7 +452,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 <input
                   v-model="customIcon"
                   type="url"
-                  :placeholder="displayMode === 'full-cover' ? 'Paste full tile image URL...' : 'Paste icon URL...'"
+                  :placeholder="displayMode === 'full-cover' ? 'Paste full tile image, GIF, or video URL...' : 'Paste icon or GIF URL...'"
                   class="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none transition-all duration-200"
                 />
               </div>
@@ -373,10 +461,12 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 <label
                   class="flex cursor-pointer items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-xs text-white transition-all duration-200 hover:bg-white/20 hover:scale-105 active:scale-95"
                 >
-                  <Upload class="h-3.5 w-3.5" /> Upload Image File
-                  <input type="file" accept="image/*" class="hidden" @change="handleFileUpload" />
+                  <Upload class="h-3.5 w-3.5" /> Upload File (GIF / Video / Image)
+                  <input type="file" accept="image/*,video/mp4,video/webm" class="hidden" @change="handleFileUpload" />
                 </label>
-                <span v-if="customIcon" class="text-xs" :style="{ color: 'var(--accent)' }">✓ Image loaded</span>
+                <span v-if="customIcon" class="text-xs" :style="{ color: 'var(--accent)' }">
+                  ✓ {{ isVideo ? 'Video loaded' : (customIcon.includes('gif') ? 'Animated GIF loaded' : 'Media loaded') }}
+                </span>
               </div>
             </div>
 

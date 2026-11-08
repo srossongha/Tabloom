@@ -21,6 +21,7 @@ import {
   resolveFaviconUrl,
   generateMonogram,
 } from '../../../3-infrastructure/favicon/faviconService'
+import { mediaStorageService } from '../../../3-infrastructure/storage/mediaStorageService'
 
 interface Props {
   tile: Tile
@@ -81,6 +82,36 @@ const faviconUrl = computed(() =>
 const monogram = computed(() =>
   generateMonogram(props.tile.title, props.tile.url)
 )
+
+const resolvedMediaUrl = ref<string>('')
+
+async function updateResolvedMedia() {
+  const icon = props.tile.customIcon
+  if (!icon) {
+    resolvedMediaUrl.value = ''
+    return
+  }
+  if (icon.startsWith('media:') || icon.startsWith('indexeddb:')) {
+    const id = icon.replace(/^(media:|indexeddb:)/, '')
+    const url = await mediaStorageService.getMediaUrl(id)
+    resolvedMediaUrl.value = url || ''
+    return
+  }
+  resolvedMediaUrl.value = icon
+}
+
+watch(() => props.tile.customIcon, updateResolvedMedia, { immediate: true })
+
+const displayMediaUrl = computed(() => {
+  return resolvedMediaUrl.value || props.tile.customIcon || faviconUrl.value
+})
+
+const isVideo = computed(() => {
+  const src = (displayMediaUrl.value || '').toLowerCase()
+  if (!src) return false
+  if (src.startsWith('data:video/')) return true
+  return /\.(mp4|webm|mov)(\?.*)?$/i.test(src)
+})
 
 const domain = computed(() => {
   try {
@@ -245,14 +276,23 @@ function onDrop(event: DragEvent) {
       @pointercancel="onPointerUp"
       @click="onCardClick"
     >
-      <!-- FULL TILE IMAGE COVER -->
-      <template v-if="props.tile.displayMode === 'full-cover' && (props.tile.customIcon || faviconUrl)">
+      <!-- FULL TILE IMAGE / GIF / VIDEO COVER -->
+      <template v-if="props.tile.displayMode === 'full-cover' && displayMediaUrl">
+        <video
+          v-if="isVideo"
+          :src="displayMediaUrl"
+          autoplay
+          loop
+          muted
+          playsinline
+          class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
         <img
-          :src="props.tile.customIcon || faviconUrl"
+          v-else
+          :src="displayMediaUrl"
           :alt="props.tile.title"
           class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
-          decoding="async"
         />
         <!-- Discreet bottom gradient overlay for readability -->
         <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/25" />
@@ -266,13 +306,21 @@ function onDrop(event: DragEvent) {
           class="flex items-center gap-3.5 w-full px-4 justify-start z-10"
         >
           <div class="tile-icon-box flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner">
+            <video
+              v-if="isVideo"
+              :src="displayMediaUrl"
+              autoplay
+              loop
+              muted
+              playsinline
+              class="h-full w-full object-cover"
+            />
             <img
-              v-if="!imgError && props.tile.iconMode !== 'monogram'"
-              :src="faviconUrl"
+              v-else-if="!imgError && props.tile.iconMode !== 'monogram'"
+              :src="displayMediaUrl"
               :alt="props.tile.title"
               class="h-7 w-7 rounded-md object-contain"
               loading="lazy"
-              decoding="async"
               @error="imgError = true"
             />
             <div
@@ -294,13 +342,21 @@ function onDrop(event: DragEvent) {
           v-else
           class="tile-icon-box flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/[0.08] shadow-inner"
         >
+          <video
+            v-if="isVideo"
+            :src="displayMediaUrl"
+            autoplay
+            loop
+            muted
+            playsinline
+            class="h-full w-full object-cover"
+          />
           <img
-            v-if="!imgError && props.tile.iconMode !== 'monogram'"
-            :src="faviconUrl"
+            v-else-if="!imgError && props.tile.iconMode !== 'monogram'"
+            :src="displayMediaUrl"
             :alt="props.tile.title"
             class="h-7 w-7 rounded-md object-contain"
             loading="lazy"
-            decoding="async"
             @error="imgError = true"
           />
           <div
@@ -405,9 +461,19 @@ function onDrop(event: DragEvent) {
 
         <!-- Big Visual Preview -->
         <div class="mt-3 relative h-32 w-full overflow-hidden rounded-xl border border-white/15 bg-black/40 flex items-center justify-center shadow-inner">
-          <template v-if="props.tile.displayMode === 'full-cover' && (props.tile.customIcon || faviconUrl)">
+          <template v-if="props.tile.displayMode === 'full-cover' && displayMediaUrl">
+            <video
+              v-if="isVideo"
+              :src="displayMediaUrl"
+              autoplay
+              loop
+              muted
+              playsinline
+              class="h-full w-full object-cover"
+            />
             <img
-              :src="props.tile.customIcon || faviconUrl"
+              v-else
+              :src="displayMediaUrl"
               :alt="props.tile.title"
               class="h-full w-full object-cover"
             />
@@ -418,10 +484,19 @@ function onDrop(event: DragEvent) {
           </template>
           <template v-else>
             <div class="flex flex-col items-center gap-2">
-              <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.08] shadow-md">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.08] shadow-md overflow-hidden">
+                <video
+                  v-if="isVideo"
+                  :src="displayMediaUrl"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  class="h-full w-full object-cover"
+                />
                 <img
-                  v-if="!imgError && props.tile.iconMode !== 'monogram'"
-                  :src="faviconUrl"
+                  v-else-if="!imgError && props.tile.iconMode !== 'monogram'"
+                  :src="displayMediaUrl"
                   :alt="props.tile.title"
                   class="h-7 w-7 rounded-md object-contain"
                 />

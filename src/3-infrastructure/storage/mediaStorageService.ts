@@ -7,7 +7,7 @@
  */
 
 export interface StoredMediaRecord {
-  id: string // 'wallpaper' | 'audio'
+  id: string
   blob: Blob
   name: string
   mimeType: string
@@ -51,12 +51,12 @@ export class MediaStorageService {
   }
 
   async saveMedia(
-    id: 'wallpaper' | 'audio',
+    id: string,
     file: File | Blob,
     name: string
   ): Promise<string> {
     const db = await this.getDB()
-    const mimeType = file.type || (id === 'audio' ? 'audio/mpeg' : 'image/webp')
+    const mimeType = file.type || (id === 'audio' ? 'audio/mpeg' : (name.toLowerCase().endsWith('.gif') ? 'image/gif' : 'image/webp'))
 
     const record: StoredMediaRecord = {
       id,
@@ -89,7 +89,7 @@ export class MediaStorageService {
   }
 
   async getMedia(
-    id: 'wallpaper' | 'audio'
+    id: string
   ): Promise<{ url: string; record: StoredMediaRecord } | null> {
     try {
       const db = await this.getDB()
@@ -118,12 +118,12 @@ export class MediaStorageService {
     }
   }
 
-  async getMediaUrl(id: 'wallpaper' | 'audio'): Promise<string | null> {
+  async getMediaUrl(id: string): Promise<string | null> {
     const res = await this.getMedia(id)
     return res ? res.url : null
   }
 
-  async getMediaInfo(id: 'wallpaper' | 'audio'): Promise<MediaMetadata | null> {
+  async getMediaInfo(id: string): Promise<MediaMetadata | null> {
     try {
       const db = await this.getDB()
       return await new Promise((resolve, reject) => {
@@ -144,7 +144,7 @@ export class MediaStorageService {
     }
   }
 
-  async removeMedia(id: 'wallpaper' | 'audio'): Promise<void> {
+  async removeMedia(id: string): Promise<void> {
     const oldUrl = this.objectUrls.get(id)
     if (oldUrl) {
       try {
