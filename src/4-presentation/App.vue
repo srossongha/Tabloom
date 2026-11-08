@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import type { Tile, IconMode, TileDisplayMode } from "../1-domain/entities/Tile";
+import type { SideWidgetId } from "../1-domain/entities/AppSettings";
 import { defaultBrowserAdapter } from "../3-infrastructure/browser/browserHistoryAndApiAdapter";
 import { defaultStorageAdapter } from "../3-infrastructure/storage/storageAdapter";
 import { useSettingsStore } from "../2-application/useCases/useSettingsStore";
@@ -174,6 +175,12 @@ async function onResetTile(id?: string) {
   }
 }
 
+function onHideSideWidget(widgetId: SideWidgetId) {
+  if (widgetId === "clock") settingsStore.updateSettings({ showSideClock: false });
+  else if (widgetId === "calendar") settingsStore.updateSettings({ showCalendar: false });
+  else if (widgetId === "notes") settingsStore.updateSettings({ showStickyNote: false });
+}
+
 function onExportConfig() {
   const blob = new Blob([settingsStore.exportConfigJson()], {
     type: "application/json",
@@ -256,6 +263,8 @@ function onExportConfig() {
         :clock-theme="settingsStore.settings.value.clockTheme"
         :use-24h="settingsStore.settings.value.clock24h"
         :show-year-progress="settingsStore.settings.value.showYearProgress"
+        :time-only="settingsStore.settings.value.clockTimeOnly"
+        :show-date="settingsStore.settings.value.clockShowDate"
         :is-light="isLightMode"
         :accent-color="settingsStore.settings.value.accentColor"
         @move-widget="(id, dir) => settingsStore.moveDockWidget('left', id, dir)"
@@ -267,6 +276,7 @@ function onExportConfig() {
           })
         "
         @update-theme="(t) => settingsStore.updateSettings({ clockTheme: t })"
+        @hide-widget="onHideSideWidget"
       />
 
       <SideDockContainer
@@ -284,6 +294,8 @@ function onExportConfig() {
         :clock-theme="settingsStore.settings.value.clockTheme"
         :use-24h="settingsStore.settings.value.clock24h"
         :show-year-progress="settingsStore.settings.value.showYearProgress"
+        :time-only="settingsStore.settings.value.clockTimeOnly"
+        :show-date="settingsStore.settings.value.clockShowDate"
         :is-light="isLightMode"
         :accent-color="settingsStore.settings.value.accentColor"
         @move-widget="(id, dir) => settingsStore.moveDockWidget('right', id, dir)"
@@ -295,6 +307,7 @@ function onExportConfig() {
           })
         "
         @update-theme="(t) => settingsStore.updateSettings({ clockTheme: t })"
+        @hide-widget="onHideSideWidget"
       />
 
       <DynamicGreeting v-if="settingsStore.settings.value.showGreeting" />

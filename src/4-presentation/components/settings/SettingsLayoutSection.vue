@@ -473,6 +473,43 @@ function onImportFile(e: Event) {
 
           <label
             class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+            title="Minimalist view: displays only the digits, hiding date and year progress"
+          >
+            <input
+              type="checkbox"
+              :checked="props.settings.clockTimeOnly"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
+              @change="
+                emit('update', {
+                  clockTimeOnly: ($event.target as HTMLInputElement).checked,
+                })
+              "
+            />
+            <span>Time Only</span>
+          </label>
+
+          <label
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+            :class="[props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : '']"
+          >
+            <input
+              type="checkbox"
+              :checked="props.settings.clockShowDate"
+              class="rounded cursor-pointer transition-transform hover:scale-110"
+              :style="{ accentColor: props.settings.accentColor }"
+              @change="
+                emit('update', {
+                  clockShowDate: ($event.target as HTMLInputElement).checked,
+                })
+              "
+            />
+            <span>Clock Date</span>
+          </label>
+
+          <label
+            class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.02] hover:border-white/15 hover:bg-white/[0.08] active:scale-[0.98]"
+            :class="[props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : '']"
           >
             <input
               type="checkbox"

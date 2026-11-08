@@ -33,6 +33,8 @@ interface Props {
   clockTheme?: ClockTheme
   use24h?: boolean
   showYearProgress?: boolean
+  showDate?: boolean
+  timeOnly?: boolean
   isLight?: boolean
   accentColor?: string
 }
@@ -41,6 +43,8 @@ const props = withDefaults(defineProps<Props>(), {
   clockTheme: 'digital-lcd',
   use24h: true,
   showYearProgress: true,
+  showDate: true,
+  timeOnly: false,
   isLight: false,
   accentColor: '#10b981',
 })
@@ -51,6 +55,7 @@ const emit = defineEmits<{
   (e: 'reorder', fromIndex: number, toIndex: number): void
   (e: 'toggleFormat'): void
   (e: 'updateTheme', theme: ClockTheme): void
+  (e: 'hideWidget', widgetId: SideWidgetId): void
 }>()
 
 // Active widgets that should be rendered (based on user visibility switches)
@@ -379,6 +384,8 @@ function toggleSide(widgetId: SideWidgetId) {
           :clock-theme="props.clockTheme"
           :use-24h="props.use24h"
           :show-year-progress="props.showYearProgress"
+          :show-date="props.showDate"
+          :time-only="props.timeOnly"
           :is-light="props.isLight"
           :can-move-up="idx > 0"
           :can-move-down="idx < activeWidgets.length - 1"
@@ -386,6 +393,7 @@ function toggleSide(widgetId: SideWidgetId) {
           @update-theme="emit('updateTheme', $event)"
           @move-up="emit('moveWidget', 'clock', 'up')"
           @move-down="emit('moveWidget', 'clock', 'down')"
+          @hide="emit('hideWidget', 'clock')"
         />
 
         <!-- Calendar Widget Component -->

@@ -590,47 +590,139 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Clock Theme / Style Selector -->
-    <div class="space-y-2 border-t border-white/10 pt-3">
+    <!-- Clock Theme & Options -->
+    <div class="space-y-3 border-t border-white/10 pt-3 select-none">
       <div class="flex items-center justify-between">
-        <span class="font-medium text-white/70">Clock Theme</span>
-        <span class="text-[10px] text-white/40">4 distinct styles</span>
+        <span class="font-medium text-white/70">Clock & Time</span>
+        <span class="text-[10px] text-white/40">Side dock widget</span>
       </div>
 
+      <!-- Quick Toggles -->
       <div class="grid grid-cols-2 gap-2">
-        <button
-          v-for="ct in CLOCK_THEMES"
-          :key="ct.id"
-          type="button"
-          class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200"
-          :class="[
-            props.settings.clockTheme === ct.id
-              ? 'text-white shadow-sm'
-              : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
-          ]"
-          :style="
-            props.settings.clockTheme === ct.id
-              ? {
-                  borderColor: props.settings.accentColor,
-                  backgroundColor: `${props.settings.accentColor}18`,
-                  boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
-                }
-              : undefined
-          "
-          @click="emit('update', { clockTheme: ct.id })"
+        <!-- Show Side Clock (Hide/Show It All) -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.08]"
         >
-          <div class="flex items-center gap-1.5 w-full">
-            <component
-              :is="ct.icon"
-              class="h-3.5 w-3.5 shrink-0"
-              :style="{ color: props.settings.accentColor }"
-            />
-            <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
-          </div>
-          <span class="text-[9px] text-white/40 leading-tight">{{
-            ct.desc
-          }}</span>
-        </button>
+          <input
+            type="checkbox"
+            :checked="props.settings.showSideClock"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                showSideClock: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">Show Clock Card</span>
+        </label>
+
+        <!-- Time Numbers Only -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.08]"
+          :class="[
+            !props.settings.showSideClock ? 'opacity-40 pointer-events-none' : ''
+          ]"
+          title="Minimalist view: displays only the digits, hiding date and year progress"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.clockTimeOnly"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                clockTimeOnly: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">Time Only</span>
+        </label>
+
+        <!-- 24-Hour Format -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.08]"
+          :class="[
+            !props.settings.showSideClock ? 'opacity-40 pointer-events-none' : ''
+          ]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.clock24h"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                clock24h: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">24-Hour Mode</span>
+        </label>
+
+        <!-- Show Date -->
+        <label
+          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.08]"
+          :class="[
+            !props.settings.showSideClock || props.settings.clockTimeOnly ? 'opacity-40 pointer-events-none' : ''
+          ]"
+        >
+          <input
+            type="checkbox"
+            :checked="props.settings.clockShowDate"
+            class="rounded cursor-pointer"
+            :style="{ accentColor: props.settings.accentColor }"
+            @change="
+              emit('update', {
+                clockShowDate: ($event.target as HTMLInputElement).checked,
+              })
+            "
+          />
+          <span class="text-xs font-medium text-white/90">Show Date</span>
+        </label>
+      </div>
+
+      <!-- Clock Theme Grid Buttons -->
+      <div
+        v-if="props.settings.showSideClock"
+        class="space-y-1.5 pt-1"
+      >
+        <span class="block text-[11px] font-medium text-white/60">Display Style</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            v-for="ct in CLOCK_THEMES"
+            :key="ct.id"
+            type="button"
+            class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200 cursor-pointer"
+            :class="[
+              props.settings.clockTheme === ct.id
+                ? 'text-white shadow-sm'
+                : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
+            ]"
+            :style="
+              props.settings.clockTheme === ct.id
+                ? {
+                    borderColor: props.settings.accentColor,
+                    backgroundColor: `${props.settings.accentColor}18`,
+                    boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+                  }
+                : undefined
+            "
+            @click="emit('update', { clockTheme: ct.id })"
+          >
+            <div class="flex items-center gap-1.5 w-full">
+              <component
+                :is="ct.icon"
+                class="h-3.5 w-3.5 shrink-0"
+                :style="{ color: props.settings.accentColor }"
+              />
+              <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
+            </div>
+            <span class="text-[9px] text-white/40 leading-tight">{{
+              ct.desc
+            }}</span>
+          </button>
+        </div>
       </div>
     </div>
 

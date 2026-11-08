@@ -789,7 +789,7 @@ onUnmounted(() => {
           maxlength="5000"
           placeholder="Write on pad or peel to stick anywhere..."
           rows="5"
-          class="w-full resize-none bg-transparent text-xs leading-relaxed outline-none transition-colors scrollbar-none font-normal"
+          class="sticky-note-textarea w-full resize-none bg-transparent text-[16px] sm:text-[17px] leading-snug outline-none transition-colors scrollbar-none font-dancing-script font-medium tracking-wide"
           :class="COLOR_THEMES[padNote.color].textarea"
           @input="onNoteInput(padNote)"
         />
@@ -917,7 +917,7 @@ onUnmounted(() => {
           maxlength="5000"
           placeholder="Stuck note reminder..."
           rows="5"
-          class="w-full resize-none bg-transparent text-xs leading-relaxed outline-none transition-colors scrollbar-none font-normal"
+          class="sticky-note-textarea w-full resize-none bg-transparent text-[16px] sm:text-[17px] leading-snug outline-none transition-colors scrollbar-none font-dancing-script font-medium tracking-wide"
           :class="COLOR_THEMES[note.color].textarea"
           @input="onNoteInput(note)"
         />
@@ -941,6 +941,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Authentic handwritten Dancing Script for sticky notes */
+.sticky-note-textarea {
+  font-family: 'Dancing Script', cursive, -apple-system, sans-serif !important;
+  letter-spacing: 0.02em;
+}
+
+.sticky-note-textarea::placeholder {
+  font-family: 'Dancing Script', cursive, -apple-system, sans-serif !important;
+  font-size: 15px;
+  opacity: 0.55;
+}
+
 /* Ensure all sticky note elements have strictly sharp corners */
 .sticky-note-card,
 .sticky-note-pad,

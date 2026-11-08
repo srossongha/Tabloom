@@ -112,6 +112,8 @@ export const AppSettingsSchema = z.object({
   showCalendar: z.boolean().default(true).catch(true),
   showYearProgress: z.boolean().default(true).catch(true),
   showStickyNote: z.boolean().default(true).catch(true),
+  clockTimeOnly: z.boolean().default(false).catch(false),
+  clockShowDate: z.boolean().default(true).catch(true),
   sideWidgetsLeft: SideWidgetsLeftSchema,
   sideWidgetsRight: SideWidgetsRightSchema,
   sidePanelPosition: SidePanelPositionSchema,

@@ -9,6 +9,7 @@ interface Props {
   use24h?: boolean;
   ampm?: string;
   isLight?: boolean;
+  timeOnly?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   use24h: true,
   ampm: "AM",
   isLight: false,
+  timeOnly: false,
 });
 
 // Standard 7-segment segment mapping for 0-9 (a, b, c, d, e, f, g)
@@ -234,36 +236,13 @@ const sDigits = computed(() => {
       </svg>
     </div>
 
-    <!-- Mode Badge (24H or AM/PM) -->
+    <!-- 12H AM/PM indicator (subtle right-aligned, only in 12h mode when not time-only) -->
     <div
-      class="mt-1 flex items-center justify-between px-1 text-[10px] font-mono tracking-wider text-current/50 select-none uppercase"
+      v-if="!props.use24h && !props.timeOnly"
+      class="mt-1 flex items-center justify-end px-1 select-none"
     >
-      <span
-        class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-semibold tracking-wider transition-colors"
-        :class="
-          props.showInactiveSegments
-            ? 'bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 text-current/70'
-            : 'text-current/50'
-        "
-      >
-        <span
-          class="h-1.5 w-1.5 rounded-full"
-          :style="{ backgroundColor: 'var(--accent, #10b981)' }"
-        />
-        {{ props.showInactiveSegments ? 'LCD SEGMENT' : 'LED CLEAN' }}
-      </span>
-
-      <span
-        v-if="!props.use24h"
-        class="font-semibold text-[var(--accent)] tracking-widest"
-      >
+      <span class="font-semibold text-[var(--accent)] tracking-widest text-[9px] uppercase font-mono">
         {{ props.ampm }}
-      </span>
-      <span
-        v-else
-        class="text-[9px] font-medium tracking-widest text-current/50"
-      >
-        24H
       </span>
     </div>
   </div>
