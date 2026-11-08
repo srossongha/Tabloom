@@ -14,6 +14,8 @@ import {
   PanelLeft,
   PanelRight,
   X,
+  Minimize2,
+  Maximize2,
 } from 'lucide-vue-next'
 import type {
   SideWidgetId,
@@ -26,6 +28,7 @@ import StickyNoteWidget from '../stickyNote/StickyNoteWidget.vue'
 interface Props {
   side: 'left' | 'right'
   widgetIds: SideWidgetId[]
+  collapsedWidgetIds?: SideWidgetId[]
   showClock: boolean
   showCalendar: boolean
   showStickyNote: boolean
@@ -39,6 +42,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  collapsedWidgetIds: () => [],
   clockTheme: 'digital-lcd',
   use24h: true,
   showYearProgress: true,
@@ -52,10 +56,15 @@ const emit = defineEmits<{
   (e: 'moveWidget', widgetId: SideWidgetId, direction: 'up' | 'down'): void
   (e: 'moveWidgetToSide', widgetId: SideWidgetId, targetSide: 'left' | 'right', targetIndex?: number): void
   (e: 'reorder', fromIndex: number, toIndex: number): void
+  (e: 'toggleCollapse', widgetId: SideWidgetId): void
   (e: 'toggleFormat'): void
   (e: 'updateTheme', theme: ClockTheme): void
   (e: 'hideWidget', widgetId: SideWidgetId): void
 }>()
+
+function isWidgetCollapsed(widgetId: SideWidgetId): boolean {
+  return props.collapsedWidgetIds?.includes(widgetId) ?? false
+}
 
 // Active widgets that should be rendered (based on user visibility switches)
 const activeWidgets = computed(() => {
@@ -299,6 +308,7 @@ function toggleSide(widgetId: SideWidgetId) {
     <template v-for="(widgetId, idx) in activeWidgets" :key="widgetId">
       <div
         class="widget-wrapper group/dock relative transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        :data-widget-id="widgetId"
         :class="[
           heldWidgetId === widgetId
             ? 'scale-105 -translate-y-2 ring-2 ring-offset-2 ring-offset-black/50 shadow-2xl z-30'
@@ -347,6 +357,16 @@ function toggleSide(widgetId: SideWidgetId) {
           </div>
 
           <div class="flex items-center gap-1">
+            <!-- Minimize / Expand Button ("make it turn into something small" / restore) -->
+            <button
+              type="button"
+              :title="isWidgetCollapsed(widgetId) ? 'Expand widget (full size)' : 'Make small (compact view)'"
+              class="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white/70 hover:bg-white/20 hover:text-white shadow-md backdrop-blur-md transition-all active:scale-90 cursor-pointer"
+              @click.stop="emit('toggleCollapse', widgetId)"
+            >
+              <component :is="isWidgetCollapsed(widgetId) ? Maximize2 : Minimize2" class="h-2.5 w-2.5" />
+            </button>
+
             <!-- Quick Move to Other Dock -->
             <button
               type="button"
@@ -378,6 +398,9 @@ function toggleSide(widgetId: SideWidgetId) {
           :show-date="props.showDate"
           :time-only="props.timeOnly"
           :is-light="props.isLight"
+          :accent-color="props.accentColor"
+          :is-small="isWidgetCollapsed(widgetId)"
+          @toggle-small="emit('toggleCollapse', widgetId)"
           @toggle-format="emit('toggleFormat')"
           @update-theme="emit('updateTheme', $event)"
         />
@@ -387,11 +410,15 @@ function toggleSide(widgetId: SideWidgetId) {
           v-else-if="widgetId === 'calendar'"
           :accent-color="props.accentColor"
           :is-light="props.isLight"
+          :is-small="isWidgetCollapsed(widgetId)"
+          @toggle-small="emit('toggleCollapse', widgetId)"
         />
 
         <!-- Sticky Note Widget Component -->
         <StickyNoteWidget
           v-else-if="widgetId === 'notes'"
+          :is-small="isWidgetCollapsed(widgetId)"
+          @toggle-small="emit('toggleCollapse', widgetId)"
         />
       </div>
     </template>

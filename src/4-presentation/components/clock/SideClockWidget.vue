@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { Clock, Minimize2, Maximize2 } from "lucide-vue-next";
 import type { ClockTheme } from "../../../1-domain/entities/AppSettings";
 import SevenSegmentDisplay from "./SevenSegmentDisplay.vue";
 import ClockTowerDisplay from "./ClockTowerDisplay.vue";
@@ -11,6 +12,8 @@ interface Props {
   showDate?: boolean;
   timeOnly?: boolean;
   isLight?: boolean;
+  isSmall?: boolean;
+  accentColor?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,10 +23,13 @@ const props = withDefaults(defineProps<Props>(), {
   showDate: true,
   timeOnly: false,
   isLight: false,
+  isSmall: false,
+  accentColor: "#10b981",
 });
 
 const emit = defineEmits<{
   (e: "toggleFormat"): void;
+  (e: "toggleSmall"): void;
   (e: "updateTheme", theme: ClockTheme): void;
 }>();
 
@@ -130,7 +136,55 @@ const isEffectiveTimeOnly = computed(
 </script>
 
 <template>
+  <!-- COMPACT MINI VIEW ("something small") -->
   <div
+    v-if="props.isSmall"
+    class="gpu-card group/mini relative flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.08] bg-white/[0.04] dark:bg-white/[0.04] light:bg-black/[0.03] px-3.5 py-2.5 shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/20 hover:bg-white/[0.08] active:scale-[0.99]"
+    title="Click to expand clock to full size"
+    @click="emit('toggleSmall')"
+  >
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div
+        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 shadow-sm"
+        :style="{ borderColor: `${props.accentColor || 'var(--accent)'}40` }"
+      >
+        <Clock
+          class="h-4 w-4"
+          :style="{ color: props.accentColor || 'var(--accent)' }"
+        />
+      </div>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-baseline gap-1">
+          <span class="font-mono text-sm font-bold tracking-wider text-white">
+            {{ hoursFormatted }}:{{ minutesFormatted }}
+          </span>
+          <span class="font-mono text-[10px] text-white/50">
+            :{{ secondsFormatted }}
+          </span>
+          <span v-if="!props.use24h" class="text-[9px] font-semibold uppercase text-white/60">
+            {{ ampm }}
+          </span>
+        </div>
+        <span class="text-[9.5px] text-white/45 truncate">
+          {{ dayOfWeek }}, {{ fullDate }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Expand hint icon button -->
+    <button
+      type="button"
+      title="Expand clock (full size)"
+      class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-white/40 transition-all hover:bg-white/10 hover:text-white"
+      @click.stop="emit('toggleSmall')"
+    >
+      <Maximize2 class="h-3.5 w-3.5" />
+    </button>
+  </div>
+
+  <!-- FULL DEFAULT VIEW -->
+  <div
+    v-else
     class="gpu-card group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.08] bg-white/[0.04] dark:bg-white/[0.04] light:bg-black/[0.03] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/20 hover:bg-white/[0.07] active:scale-[0.99]"
     :class="[
       isEffectiveTimeOnly
@@ -140,6 +194,15 @@ const isEffectiveTimeOnly = computed(
     title="Click to toggle 12h / 24h format."
     @click="emit('toggleFormat')"
   >
+    <!-- Subtle hover minimize button inside full card -->
+    <button
+      type="button"
+      title="Make small (compact view)"
+      class="absolute top-2 right-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-white/5 text-white/40 opacity-0 transition-all hover:bg-white/15 hover:text-white group-hover:opacity-100 cursor-pointer"
+      @click.stop="emit('toggleSmall')"
+    >
+      <Minimize2 class="h-2.5 w-2.5" />
+    </button>
 
     <!-- THEME 1: Digital LCD (with ghost inactive lines) -->
     <SevenSegmentDisplay

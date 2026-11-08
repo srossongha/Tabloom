@@ -12,17 +12,25 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
+  Minimize2,
+  Maximize2,
 } from 'lucide-vue-next'
 
 interface Props {
   accentColor?: string
   isLight?: boolean
+  isSmall?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   accentColor: '#10b981',
   isLight: false,
+  isSmall: false,
 })
+
+const emit = defineEmits<{
+  (e: 'toggleSmall'): void
+}>()
 
 // Current real-world date
 const now = ref(new Date())
@@ -218,7 +226,53 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- COMPACT MINI VIEW ("something small") -->
   <div
+    v-if="props.isSmall"
+    class="gpu-card group/mini relative flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.08] dark:border-white/[0.08] light:border-black/[0.08] bg-white/[0.04] dark:bg-white/[0.04] light:bg-black/[0.03] px-3.5 py-2.5 shadow-md shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/20 hover:bg-white/[0.08] active:scale-[0.99]"
+    title="Click to expand calendar to full size"
+    @click="emit('toggleSmall')"
+  >
+    <div class="flex items-center gap-2.5 min-w-0">
+      <!-- Calendar Icon / Date Tear-off Badge -->
+      <div
+        class="flex h-7 w-7 shrink-0 flex-col items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-sm"
+        :style="{ borderColor: `${props.accentColor}40` }"
+      >
+        <span
+          class="w-full text-center text-[7px] font-bold uppercase leading-none py-0.5 text-white"
+          :style="{ backgroundColor: props.accentColor }"
+        >
+          {{ now.toLocaleDateString(undefined, { month: 'short' }) }}
+        </span>
+        <span class="flex-1 flex items-center justify-center text-[11px] font-bold text-white font-mono leading-none">
+          {{ now.getDate() }}
+        </span>
+      </div>
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-semibold text-white truncate">
+          {{ now.toLocaleDateString(undefined, { weekday: 'short' }) }}, {{ now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }}
+        </span>
+        <span class="text-[9.5px] text-white/45 truncate">
+          {{ currentMonthLabel }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Expand hint icon button -->
+    <button
+      type="button"
+      title="Expand calendar (full size)"
+      class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-white/40 transition-all hover:bg-white/10 hover:text-white"
+      @click.stop="emit('toggleSmall')"
+    >
+      <Maximize2 class="h-3.5 w-3.5" />
+    </button>
+  </div>
+
+  <!-- FULL DEFAULT VIEW -->
+  <div
+    v-else
     class="gpu-card group/cal relative flex w-full flex-col rounded-2xl border border-black/10 dark:border-white/10 bg-slate-900/40 dark:bg-black/40 p-3 shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-white/20 select-none overflow-hidden"
     :class="[
       isLight ? 'bg-white/80 border-slate-200/80 text-slate-900' : 'text-white',
@@ -277,6 +331,16 @@ onUnmounted(() => {
           @click.stop="nextMonth"
         >
           <ChevronRight class="h-3 w-3" />
+        </button>
+
+        <!-- Make Small Button on hover -->
+        <button
+          type="button"
+          title="Make small (compact view)"
+          class="flex h-5 w-5 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white/50 transition-all hover:bg-white/15 hover:text-white active:scale-90 cursor-pointer"
+          @click.stop="emit('toggleSmall')"
+        >
+          <Minimize2 class="h-2.5 w-2.5" />
         </button>
       </div>
     </div>

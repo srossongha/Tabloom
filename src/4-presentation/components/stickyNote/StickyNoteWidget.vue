@@ -16,7 +16,22 @@ import {
   Copy,
   Layers,
   Sparkles,
+  StickyNote,
+  Minimize2,
+  Maximize2,
 } from 'lucide-vue-next'
+
+interface Props {
+  isSmall?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isSmall: false,
+})
+
+const emit = defineEmits<{
+  (e: 'toggleSmall'): void
+}>()
 
 export type NoteColor = 'amber' | 'emerald' | 'rose' | 'purple' | 'sky' | 'glass'
 
@@ -638,9 +653,56 @@ onUnmounted(() => {
 
 <template>
   <!-- ========================================================================= -->
-  <!-- 1. MAIN STICKER PAD (Docked in the Left Side Panel under Clock)           -->
+  <!-- 1. MAIN STICKER PAD (Docked in Side Panel)                                -->
   <!-- ========================================================================= -->
+  <!-- MINI COMPACT VIEW ("something small") -->
   <div
+    v-if="props.isSmall"
+    class="gpu-card group/mini relative flex cursor-pointer items-center justify-between border shadow-md backdrop-blur-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.99] rounded-xl px-3.5 py-2.5"
+    :class="padNote ? COLOR_THEMES[padNote.color].card : 'border-amber-400/30 bg-amber-500/[0.08]'"
+    title="Click to expand sticky note pad to full size"
+    @click="emit('toggleSmall')"
+  >
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div
+        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 shadow-sm"
+        :class="padNote ? COLOR_THEMES[padNote.color].tape : 'bg-amber-400/25 text-amber-200'"
+      >
+        <StickyNote class="h-4 w-4" />
+      </div>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-semibold text-white/95 truncate">
+            Note Pad
+          </span>
+          <span
+            v-if="peeledNotes.length > 0"
+            class="rounded-full px-1.5 py-0.2 text-[8.5px] font-bold"
+            :class="padNote ? COLOR_THEMES[padNote.color].tape : 'bg-amber-400/25 text-amber-200'"
+          >
+            {{ peeledNotes.length }} on desk
+          </span>
+        </div>
+        <span class="text-[9.5px] text-white/50 truncate italic font-dancing-script">
+          {{ padNote?.text?.trim() ? padNote.text.trim().slice(0, 24) : 'Click to write note...' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Expand hint icon button -->
+    <button
+      type="button"
+      title="Expand note pad (full size)"
+      class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-white/40 transition-all hover:bg-white/10 hover:text-white"
+      @click.stop="emit('toggleSmall')"
+    >
+      <Maximize2 class="h-3.5 w-3.5" />
+    </button>
+  </div>
+
+  <!-- FULL DEFAULT PAD VIEW -->
+  <div
+    v-else
     ref="padRef"
     class="relative w-full select-none"
     aria-label="Main Sticky Note Pad"
@@ -732,11 +794,21 @@ onUnmounted(() => {
                 ? 'Click again to clear text'
                 : 'Clear pad note'
             "
-            class="rounded-none p-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300"
+            class="rounded-none p-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:bg-rose-500/20 hover:text-rose-300 cursor-pointer"
             :class="{ 'opacity-100 text-rose-400 bg-rose-500/20': isConfirmingDeleteId === padNote.id }"
             @click.stop="deleteNote(padNote)"
           >
             <Trash2 class="h-3 w-3" />
+          </button>
+
+          <!-- Make Small Button on hover -->
+          <button
+            type="button"
+            title="Make small (compact view)"
+            class="rounded-none p-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:bg-black/15 dark:hover:bg-white/15 hover:text-white cursor-pointer"
+            @click.stop="emit('toggleSmall')"
+          >
+            <Minimize2 class="h-3 w-3" />
           </button>
         </div>
       </div>

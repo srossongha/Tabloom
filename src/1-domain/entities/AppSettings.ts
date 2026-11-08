@@ -58,6 +58,7 @@ export type SideWidgetId = z.infer<typeof SideWidgetIdSchema>
 
 export const SideWidgetsLeftSchema = z.array(SideWidgetIdSchema).default(['clock', 'calendar']).catch(['clock', 'calendar'])
 export const SideWidgetsRightSchema = z.array(SideWidgetIdSchema).default(['notes']).catch(['notes'])
+export const CollapsedSideWidgetsSchema = z.array(SideWidgetIdSchema).default([]).catch([])
 
 export const SidePanelPositionSchema = z.enum(['left', 'right', 'both', 'none']).default('both').catch('both')
 export type SidePanelPosition = z.infer<typeof SidePanelPositionSchema>
@@ -116,6 +117,7 @@ export const AppSettingsSchema = z.object({
   clockShowDate: z.boolean().default(true).catch(true),
   sideWidgetsLeft: SideWidgetsLeftSchema,
   sideWidgetsRight: SideWidgetsRightSchema,
+  collapsedSideWidgets: CollapsedSideWidgetsSchema,
   sidePanelPosition: SidePanelPositionSchema,
   sideWidgetsOrder: z.array(SideWidgetIdSchema).default(['clock', 'calendar', 'notes']).catch(['clock', 'calendar', 'notes']),
   showCustomWallpaper: z.boolean().default(true).catch(true),
@@ -234,6 +236,11 @@ export function sanitizeAppSettings(raw: unknown): AppSettings {
 
   result.sideWidgetsLeft = leftWidgets
   result.sideWidgetsRight = rightWidgets
+
+  let collapsedWidgets: SideWidgetId[] = Array.isArray(result.collapsedSideWidgets)
+    ? (result.collapsedSideWidgets as SideWidgetId[]).filter((id) => allSideIds.includes(id))
+    : []
+  result.collapsedSideWidgets = collapsedWidgets
 
   return result as AppSettings
 }

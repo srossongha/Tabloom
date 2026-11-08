@@ -276,6 +276,14 @@ export function useSettingsStore(storage?: IStoragePort) {
     }
   }
 
+  function toggleCollapseWidget(widgetId: SideWidgetId) {
+    const current = settings.value.collapsedSideWidgets || []
+    const updated = current.includes(widgetId)
+      ? current.filter((id) => id !== widgetId)
+      : [...current, widgetId]
+    updateSettings({ collapsedSideWidgets: updated })
+  }
+
   return {
     settings,
     init,
@@ -284,6 +292,7 @@ export function useSettingsStore(storage?: IStoragePort) {
     moveDockWidget,
     moveWidgetToSide,
     reorderDockWidgets,
+    toggleCollapseWidget,
     applyThemePreset,
     exportConfigJson,
     importConfigJson,

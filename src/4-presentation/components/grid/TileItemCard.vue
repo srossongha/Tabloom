@@ -158,8 +158,6 @@ function onDrop(event: DragEvent) {
     @dragover.prevent="emit('dragOver', $event, props.index)"
     @drop.prevent="onDrop"
   >
-    @drop.prevent="onDrop"
-  >
     <!-- Card Container with hardware-accelerated zero-jank hover -->
     <div
       class="gpu-card relative flex w-full cursor-pointer flex-col items-center justify-center border border-white/[0.08] bg-white/[0.05] shadow-md shadow-black/20 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.10] hover:shadow-xl hover:shadow-black/35 active:scale-[0.98] overflow-hidden"

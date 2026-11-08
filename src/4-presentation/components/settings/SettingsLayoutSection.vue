@@ -22,6 +22,8 @@ import {
   Columns,
   Eye,
   EyeOff,
+  Minimize2,
+  Maximize2,
 } from 'lucide-vue-next'
 import type {
   AppSettings,
@@ -166,6 +168,18 @@ function hasAnyActiveOnDock(side: 'left' | 'right'): boolean {
   return ids.some((id) => isWidgetActive(id))
 }
 
+function isWidgetCollapsed(id: SideWidgetId): boolean {
+  return props.settings.collapsedSideWidgets?.includes(id) ?? false
+}
+
+function toggleCollapseWidget(id: SideWidgetId) {
+  const current = props.settings.collapsedSideWidgets || []
+  const updated = current.includes(id)
+    ? current.filter((w) => w !== id)
+    : [...current, id]
+  emit('update', { collapsedSideWidgets: updated })
+}
+
 function restoreAllWidgets() {
   emit('update', {
     showSideClock: true,
@@ -173,6 +187,7 @@ function restoreAllWidgets() {
     showStickyNote: true,
     sideWidgetsLeft: ['clock', 'calendar'],
     sideWidgetsRight: ['notes'],
+    collapsedSideWidgets: [],
     sidePanelPosition: 'both',
   })
 }
@@ -513,6 +528,22 @@ function onImportFile(e: Event) {
 
               <!-- Reorder, Transfer, & Visibility Toggle Buttons -->
               <div class="flex items-center gap-1 shrink-0">
+                <!-- Small / Full size toggle -->
+                <button
+                  type="button"
+                  :title="isWidgetCollapsed(wId) ? 'Expand widget to full size' : 'Make widget small (compact view)'"
+                  class="flex h-6 px-1.5 items-center gap-1 rounded border text-[10px] font-medium transition-all active:scale-90 cursor-pointer"
+                  :class="[
+                    isWidgetCollapsed(wId)
+                      ? 'border-sky-500/40 bg-sky-500/20 text-sky-300 hover:bg-sky-500/30'
+                      : 'border-white/10 bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                  ]"
+                  @click="toggleCollapseWidget(wId)"
+                >
+                  <component :is="isWidgetCollapsed(wId) ? Maximize2 : Minimize2" class="h-2.5 w-2.5" />
+                  <span>{{ isWidgetCollapsed(wId) ? 'Small' : 'Full' }}</span>
+                </button>
+
                 <button
                   type="button"
                   :title="isWidgetActive(wId) ? 'Close widget (stops all CPU timers)' : 'Open widget on dock'"
@@ -626,6 +657,22 @@ function onImportFile(e: Event) {
 
               <!-- Reorder, Transfer, & Visibility Toggle Buttons -->
               <div class="flex items-center gap-1 shrink-0">
+                <!-- Small / Full size toggle -->
+                <button
+                  type="button"
+                  :title="isWidgetCollapsed(wId) ? 'Expand widget to full size' : 'Make widget small (compact view)'"
+                  class="flex h-6 px-1.5 items-center gap-1 rounded border text-[10px] font-medium transition-all active:scale-90 cursor-pointer"
+                  :class="[
+                    isWidgetCollapsed(wId)
+                      ? 'border-sky-500/40 bg-sky-500/20 text-sky-300 hover:bg-sky-500/30'
+                      : 'border-white/10 bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+                  ]"
+                  @click="toggleCollapseWidget(wId)"
+                >
+                  <component :is="isWidgetCollapsed(wId) ? Maximize2 : Minimize2" class="h-2.5 w-2.5" />
+                  <span>{{ isWidgetCollapsed(wId) ? 'Small' : 'Full' }}</span>
+                </button>
+
                 <button
                   type="button"
                   :title="isWidgetActive(wId) ? 'Close widget (stops all CPU timers)' : 'Open widget on dock'"

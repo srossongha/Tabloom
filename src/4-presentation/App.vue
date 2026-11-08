@@ -296,6 +296,7 @@ function onExportConfig() {
         v-if="isLeftDockVisible"
         side="left"
         :widget-ids="settingsStore.settings.value.sideWidgetsLeft || ['clock', 'calendar']"
+        :collapsed-widget-ids="settingsStore.settings.value.collapsedSideWidgets || []"
         :show-clock="settingsStore.settings.value.showSideClock"
         :show-calendar="settingsStore.settings.value.showCalendar"
         :show-sticky-note="settingsStore.settings.value.showStickyNote"
@@ -309,6 +310,7 @@ function onExportConfig() {
         @move-widget="(id, dir) => settingsStore.moveDockWidget('left', id, dir)"
         @move-widget-to-side="settingsStore.moveWidgetToSide"
         @reorder="(from, to) => settingsStore.reorderDockWidgets('left', from, to)"
+        @toggle-collapse="(id) => settingsStore.toggleCollapseWidget(id)"
         @toggle-format="
           settingsStore.updateSettings({
             clock24h: !settingsStore.settings.value.clock24h,
@@ -322,6 +324,7 @@ function onExportConfig() {
         v-if="isRightDockVisible"
         side="right"
         :widget-ids="settingsStore.settings.value.sideWidgetsRight || ['notes']"
+        :collapsed-widget-ids="settingsStore.settings.value.collapsedSideWidgets || []"
         :show-clock="settingsStore.settings.value.showSideClock"
         :show-calendar="settingsStore.settings.value.showCalendar"
         :show-sticky-note="settingsStore.settings.value.showStickyNote"
@@ -335,6 +338,7 @@ function onExportConfig() {
         @move-widget="(id, dir) => settingsStore.moveDockWidget('right', id, dir)"
         @move-widget-to-side="settingsStore.moveWidgetToSide"
         @reorder="(from, to) => settingsStore.reorderDockWidgets('right', from, to)"
+        @toggle-collapse="(id) => settingsStore.toggleCollapseWidget(id)"
         @toggle-format="
           settingsStore.updateSettings({
             clock24h: !settingsStore.settings.value.clock24h,
