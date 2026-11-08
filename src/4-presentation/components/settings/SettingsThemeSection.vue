@@ -20,6 +20,8 @@ import {
   Landmark,
   Palette,
   RotateCcw,
+  Eye,
+  EyeOff,
 } from "lucide-vue-next";
 import type {
   AppSettings,
@@ -594,14 +596,50 @@ onMounted(() => {
     <div class="space-y-3 border-t border-white/10 pt-3 select-none">
       <div class="flex items-center justify-between">
         <span class="font-medium text-white/70">Clock & Time</span>
-        <span class="text-[10px] text-white/40">Side dock widget</span>
+        <span
+          class="rounded px-1.5 py-0.5 text-[9px] font-medium"
+          :class="props.settings.showSideClock ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'"
+        >
+          {{ props.settings.showSideClock ? 'Active on Dock' : 'Currently Hidden' }}
+        </span>
+      </div>
+
+      <!-- If hidden: Banner with one-click restore button -->
+      <div
+        v-if="!props.settings.showSideClock"
+        class="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200"
+      >
+        <div class="flex items-center gap-2">
+          <EyeOff class="h-4 w-4 text-amber-300 shrink-0" />
+          <div>
+            <p class="font-medium text-white/90">Clock is currently hidden</p>
+            <p class="text-[10px] text-white/50">Click below to restore the clock widget on your new tab.</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+          :style="{
+            backgroundColor: props.settings.accentColor,
+            color: '#0f172a'
+          }"
+          @click="emit('update', { showSideClock: true })"
+        >
+          <Eye class="h-3.5 w-3.5" />
+          <span>Bring Back Clock</span>
+        </button>
       </div>
 
       <!-- Quick Toggles -->
       <div class="grid grid-cols-2 gap-2">
         <!-- Show Side Clock (Hide/Show It All) -->
         <label
-          class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15 hover:bg-white/[0.08]"
+          class="flex items-center gap-2 cursor-pointer rounded-lg border p-2 transition-all duration-200"
+          :class="[
+            props.settings.showSideClock
+              ? 'border-emerald-500/30 bg-emerald-500/10 text-white'
+              : 'border-white/10 bg-white/[0.03] text-white/60 hover:border-white/20 hover:bg-white/[0.08]'
+          ]"
         >
           <input
             type="checkbox"
@@ -614,7 +652,10 @@ onMounted(() => {
               })
             "
           />
-          <span class="text-xs font-medium text-white/90">Show Clock Card</span>
+          <div class="flex flex-col">
+            <span class="text-xs font-medium text-white/90">Show Clock Card</span>
+            <span class="text-[9px] text-white/40">{{ props.settings.showSideClock ? 'Active on dock' : 'Click to enable' }}</span>
+          </div>
         </label>
 
         <!-- Time Numbers Only -->
@@ -636,7 +677,10 @@ onMounted(() => {
               })
             "
           />
-          <span class="text-xs font-medium text-white/90">Time Only</span>
+          <div class="flex flex-col">
+            <span class="text-xs font-medium text-white/90">Time Only</span>
+            <span class="text-[9px] text-white/40">Only time digits</span>
+          </div>
         </label>
 
         <!-- 24-Hour Format -->

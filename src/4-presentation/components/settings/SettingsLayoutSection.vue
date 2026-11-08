@@ -23,6 +23,8 @@ import {
   PanelLeft,
   PanelRight,
   Columns,
+  Eye,
+  EyeOff,
 } from 'lucide-vue-next'
 import type {
   AppSettings,
@@ -162,6 +164,30 @@ function transferWidget(id: SideWidgetId, toSide: 'left' | 'right') {
 
 function setSidePosition(pos: SidePanelPosition) {
   emit('update', { sidePanelPosition: pos })
+}
+
+function isWidgetActive(id: SideWidgetId): boolean {
+  if (id === 'clock') return props.settings.showSideClock
+  if (id === 'calendar') return props.settings.showCalendar
+  if (id === 'notes') return props.settings.showStickyNote
+  return false
+}
+
+function toggleWidgetActive(id: SideWidgetId) {
+  if (id === 'clock') emit('update', { showSideClock: !props.settings.showSideClock })
+  else if (id === 'calendar') emit('update', { showCalendar: !props.settings.showCalendar })
+  else if (id === 'notes') emit('update', { showStickyNote: !props.settings.showStickyNote })
+}
+
+function restoreAllWidgets() {
+  emit('update', {
+    showSideClock: true,
+    showCalendar: true,
+    showStickyNote: true,
+    sideWidgetsLeft: ['clock', 'calendar'],
+    sideWidgetsRight: ['notes'],
+    sidePanelPosition: 'both',
+  })
 }
 
 function onImportFile(e: Event) {
@@ -577,56 +603,140 @@ function onImportFile(e: Event) {
           </label>
         </div>
 
-        <!-- Clock Theme Style Selector -->
-        <div v-if="props.settings.showSideClock" class="mt-3 space-y-2 border-t border-white/10 pt-3">
+        <!-- Clock Widget & Theme Style Selector -->
+        <div class="mt-3 space-y-2 border-t border-white/10 pt-3">
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
-              Clock Theme
+              Clock Widget & Theme
             </span>
-            <span class="text-[10px] text-white/40">4 distinct styles</span>
+            <span
+              class="rounded px-1.5 py-0.5 text-[9px] font-medium"
+              :class="props.settings.showSideClock ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'"
+            >
+              {{ props.settings.showSideClock ? 'Active on Dock' : 'Currently Hidden' }}
+            </span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
-            <button
-              v-for="ct in CLOCK_THEMES"
-              :key="ct.id"
-              type="button"
-              class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200"
-              :class="[
-                props.settings.clockTheme === ct.id
-                  ? 'text-white shadow-sm'
-                  : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
-              ]"
-              :style="props.settings.clockTheme === ct.id ? {
-                borderColor: props.settings.accentColor,
-                backgroundColor: `${props.settings.accentColor}18`,
-                boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
-              } : undefined"
-              @click="emit('update', { clockTheme: ct.id })"
-            >
-              <div class="flex items-center gap-1.5 w-full">
-                <component
-                  :is="ct.icon"
-                  class="h-3.5 w-3.5 shrink-0"
-                  :style="{ color: props.settings.clockTheme === ct.id ? props.settings.accentColor : undefined }"
-                />
-                <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
+          <!-- If hidden: Banner with one-click restore button -->
+          <div
+            v-if="!props.settings.showSideClock"
+            class="flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200"
+          >
+            <div class="flex items-center gap-2">
+              <EyeOff class="h-4 w-4 text-amber-300 shrink-0" />
+              <div>
+                <p class="font-medium text-white/90">Clock card is currently hidden</p>
+                <p class="text-[10px] text-white/50">Turn it back on to display the side clock on your new tab.</p>
               </div>
-              <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
+            </div>
+            <button
+              type="button"
+              class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+              :style="{
+                backgroundColor: props.settings.accentColor,
+                color: '#0f172a'
+              }"
+              @click="emit('update', { showSideClock: true })"
+            >
+              <Eye class="h-3.5 w-3.5" />
+              <span>Bring Back Clock</span>
             </button>
+          </div>
+
+          <!-- Quick Clock Toggles -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <label
+              class="flex items-center gap-2 cursor-pointer rounded-lg border p-2 transition-all duration-200"
+              :class="[
+                props.settings.showSideClock
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-white'
+                  : 'border-white/5 bg-white/[0.03] text-white/60 hover:border-white/15'
+              ]"
+            >
+              <input
+                type="checkbox"
+                :checked="props.settings.showSideClock"
+                class="rounded cursor-pointer"
+                :style="{ accentColor: props.settings.accentColor }"
+                @change="
+                  emit('update', {
+                    showSideClock: ($event.target as HTMLInputElement).checked,
+                  })
+                "
+              />
+              <span class="text-xs font-medium">Show Clock Card</span>
+            </label>
+
+            <label
+              class="flex items-center gap-2 cursor-pointer rounded-lg border border-white/5 bg-white/[0.03] p-2 transition-all duration-200 hover:border-white/15"
+              :class="[!props.settings.showSideClock ? 'opacity-40 pointer-events-none' : '']"
+            >
+              <input
+                type="checkbox"
+                :checked="props.settings.clockTimeOnly"
+                class="rounded cursor-pointer"
+                :style="{ accentColor: props.settings.accentColor }"
+                @change="
+                  emit('update', {
+                    clockTimeOnly: ($event.target as HTMLInputElement).checked,
+                  })
+                "
+              />
+              <span class="text-xs font-medium">Time Only</span>
+            </label>
+          </div>
+
+          <div v-if="props.settings.showSideClock" class="space-y-1.5 pt-1">
+            <span class="text-[10px] text-white/50 block">Display Style (4 styles)</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="ct in CLOCK_THEMES"
+                :key="ct.id"
+                type="button"
+                class="flex flex-col items-start gap-1 p-2 rounded-lg border text-left transition-all duration-200 cursor-pointer"
+                :class="[
+                  props.settings.clockTheme === ct.id
+                    ? 'text-white shadow-sm'
+                    : 'border-white/5 bg-white/[0.03] text-white/70 hover:border-white/15 hover:bg-white/[0.08] hover:text-white',
+                ]"
+                :style="props.settings.clockTheme === ct.id ? {
+                  borderColor: props.settings.accentColor,
+                  backgroundColor: `${props.settings.accentColor}18`,
+                  boxShadow: `0 0 10px 0 ${props.settings.accentColor}30`,
+                } : undefined"
+                @click="emit('update', { clockTheme: ct.id })"
+              >
+                <div class="flex items-center gap-1.5 w-full">
+                  <component
+                    :is="ct.icon"
+                    class="h-3.5 w-3.5 shrink-0"
+                    :style="{ color: props.settings.clockTheme === ct.id ? props.settings.accentColor : undefined }"
+                  />
+                  <span class="font-medium text-[11px] truncate">{{ ct.label }}</span>
+                </div>
+                <span class="text-[9px] text-white/40 leading-tight">{{ ct.desc }}</span>
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Side Dock Placement & Order Management ("on both sides & on their place only") -->
         <div
-          v-if="props.settings.showSideClock || props.settings.showCalendar || props.settings.showStickyNote"
           class="mt-3 space-y-3 border-t border-white/10 pt-3"
         >
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-semibold tracking-wider uppercase" :style="{ color: props.settings.accentColor }">
               Side Dock Placement & Order
             </span>
-            <span class="text-[10px] text-white/40">Hold to drag or click arrows</span>
+            <button
+              type="button"
+              class="flex items-center gap-1 text-[10px] text-white/50 hover:text-white transition-colors cursor-pointer"
+              title="Reset docks and re-enable all side widgets"
+              @click="restoreAllWidgets"
+            >
+              <RotateCcw class="h-3 w-3" />
+              <span>Reset Docks</span>
+            </button>
           </div>
 
           <!-- Dock Mode Selector: Both Sides (Recommended), Left Only, Right Only -->
@@ -695,7 +805,12 @@ function onImportFile(e: Event) {
             <div
               v-for="(wId, idx) in props.settings.sideWidgetsLeft || []"
               :key="`left_${wId}`"
-              class="flex items-center justify-between p-2 rounded-lg border border-white/5 bg-white/[0.03] transition-all hover:border-white/15"
+              class="flex items-center justify-between p-2 rounded-lg border transition-all"
+              :class="[
+                isWidgetActive(wId)
+                  ? 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                  : 'border-white/5 bg-white/[0.015] opacity-60 hover:opacity-100 hover:border-white/15'
+              ]"
             >
               <div class="flex items-center gap-2 min-w-0">
                 <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white/10 text-[10px] font-mono text-white/70">
@@ -703,21 +818,44 @@ function onImportFile(e: Event) {
                 </span>
                 <component
                   :is="SIDE_WIDGET_CONFIG[wId].icon"
-                  class="h-3.5 w-3.5 shrink-0 opacity-80"
-                  :style="{ color: props.settings.accentColor }"
+                  class="h-3.5 w-3.5 shrink-0"
+                  :style="{ color: isWidgetActive(wId) ? props.settings.accentColor : 'rgba(255,255,255,0.4)' }"
                 />
                 <div class="flex flex-col min-w-0">
-                  <span class="text-xs font-medium text-white truncate">
-                    {{ SIDE_WIDGET_CONFIG[wId].label }}
-                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-medium text-white truncate">
+                      {{ SIDE_WIDGET_CONFIG[wId].label }}
+                    </span>
+                    <span
+                      class="rounded px-1.5 py-0.2 text-[8.5px] font-medium"
+                      :class="isWidgetActive(wId) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/10 text-white/50'"
+                    >
+                      {{ isWidgetActive(wId) ? 'Active' : 'Hidden' }}
+                    </span>
+                  </div>
                   <span class="text-[9.5px] text-white/40 truncate">
                     {{ SIDE_WIDGET_CONFIG[wId].desc }}
                   </span>
                 </div>
               </div>
 
-              <!-- Reorder & Transfer Action Buttons -->
+              <!-- Reorder, Transfer, & Visibility Toggle Buttons -->
               <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  :title="isWidgetActive(wId) ? 'Hide widget' : 'Show widget on dock'"
+                  class="flex h-6 px-1.5 items-center gap-1 rounded border text-[10px] font-medium transition-all active:scale-90 cursor-pointer"
+                  :class="[
+                    isWidgetActive(wId)
+                      ? 'border-white/10 bg-white/5 text-white/60 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30'
+                      : 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                  ]"
+                  @click="toggleWidgetActive(wId)"
+                >
+                  <component :is="isWidgetActive(wId) ? Eye : EyeOff" class="h-3 w-3" />
+                  <span>{{ isWidgetActive(wId) ? 'Hide' : 'Show' }}</span>
+                </button>
+
                 <button
                   type="button"
                   title="Move up"
@@ -771,7 +909,12 @@ function onImportFile(e: Event) {
             <div
               v-for="(wId, idx) in props.settings.sideWidgetsRight || []"
               :key="`right_${wId}`"
-              class="flex items-center justify-between p-2 rounded-lg border border-white/5 bg-white/[0.03] transition-all hover:border-white/15"
+              class="flex items-center justify-between p-2 rounded-lg border transition-all"
+              :class="[
+                isWidgetActive(wId)
+                  ? 'border-white/10 bg-white/[0.03] hover:border-white/20'
+                  : 'border-white/5 bg-white/[0.015] opacity-60 hover:opacity-100 hover:border-white/15'
+              ]"
             >
               <div class="flex items-center gap-2 min-w-0">
                 <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-white/10 text-[10px] font-mono text-white/70">
@@ -779,21 +922,44 @@ function onImportFile(e: Event) {
                 </span>
                 <component
                   :is="SIDE_WIDGET_CONFIG[wId].icon"
-                  class="h-3.5 w-3.5 shrink-0 opacity-80"
-                  :style="{ color: props.settings.accentColor }"
+                  class="h-3.5 w-3.5 shrink-0"
+                  :style="{ color: isWidgetActive(wId) ? props.settings.accentColor : 'rgba(255,255,255,0.4)' }"
                 />
                 <div class="flex flex-col min-w-0">
-                  <span class="text-xs font-medium text-white truncate">
-                    {{ SIDE_WIDGET_CONFIG[wId].label }}
-                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-medium text-white truncate">
+                      {{ SIDE_WIDGET_CONFIG[wId].label }}
+                    </span>
+                    <span
+                      class="rounded px-1.5 py-0.2 text-[8.5px] font-medium"
+                      :class="isWidgetActive(wId) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/10 text-white/50'"
+                    >
+                      {{ isWidgetActive(wId) ? 'Active' : 'Hidden' }}
+                    </span>
+                  </div>
                   <span class="text-[9.5px] text-white/40 truncate">
                     {{ SIDE_WIDGET_CONFIG[wId].desc }}
                   </span>
                 </div>
               </div>
 
-              <!-- Reorder & Transfer Action Buttons -->
+              <!-- Reorder, Transfer, & Visibility Toggle Buttons -->
               <div class="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  :title="isWidgetActive(wId) ? 'Hide widget' : 'Show widget on dock'"
+                  class="flex h-6 px-1.5 items-center gap-1 rounded border text-[10px] font-medium transition-all active:scale-90 cursor-pointer"
+                  :class="[
+                    isWidgetActive(wId)
+                      ? 'border-white/10 bg-white/5 text-white/60 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30'
+                      : 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                  ]"
+                  @click="toggleWidgetActive(wId)"
+                >
+                  <component :is="isWidgetActive(wId) ? Eye : EyeOff" class="h-3 w-3" />
+                  <span>{{ isWidgetActive(wId) ? 'Hide' : 'Show' }}</span>
+                </button>
+
                 <button
                   type="button"
                   title="Move to Left Dock"

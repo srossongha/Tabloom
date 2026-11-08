@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { ArrowUp, ArrowDown, EyeOff } from "lucide-vue-next";
 import type { ClockTheme } from "../../../1-domain/entities/AppSettings";
 import SevenSegmentDisplay from "./SevenSegmentDisplay.vue";
 import ClockTowerDisplay from "./ClockTowerDisplay.vue";
@@ -12,8 +11,6 @@ interface Props {
   showDate?: boolean;
   timeOnly?: boolean;
   isLight?: boolean;
-  canMoveUp?: boolean;
-  canMoveDown?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,16 +20,11 @@ const props = withDefaults(defineProps<Props>(), {
   showDate: true,
   timeOnly: false,
   isLight: false,
-  canMoveUp: true,
-  canMoveDown: true,
 });
 
 const emit = defineEmits<{
   (e: "toggleFormat"): void;
   (e: "updateTheme", theme: ClockTheme): void;
-  (e: "moveUp"): void;
-  (e: "moveDown"): void;
-  (e: "hide"): void;
 }>();
 
 const now = ref(new Date());
@@ -148,38 +140,6 @@ const isEffectiveTimeOnly = computed(
     title="Click to toggle 12h / 24h format."
     @click="emit('toggleFormat')"
   >
-    <!-- Micro Hover Actions (completely hidden until hover, zero visual noise normally) -->
-    <div
-      class="absolute top-2 right-2 z-20 flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-      @click.stop
-    >
-      <button
-        v-if="canMoveUp"
-        type="button"
-        title="Move clock up in dock"
-        class="flex h-5 w-5 items-center justify-center rounded bg-black/50 text-white/70 hover:bg-black/75 hover:text-white transition-all active:scale-90 cursor-pointer"
-        @click.stop="emit('moveUp')"
-      >
-        <ArrowUp class="h-3 w-3" />
-      </button>
-      <button
-        v-if="canMoveDown"
-        type="button"
-        title="Move clock down in dock"
-        class="flex h-5 w-5 items-center justify-center rounded bg-black/50 text-white/70 hover:bg-black/75 hover:text-white transition-all active:scale-90 cursor-pointer"
-        @click.stop="emit('moveDown')"
-      >
-        <ArrowDown class="h-3 w-3" />
-      </button>
-      <button
-        type="button"
-        title="Hide clock widget (can re-enable in Settings)"
-        class="flex h-5 w-5 items-center justify-center rounded bg-black/50 text-white/70 hover:bg-rose-500/80 hover:text-white transition-all active:scale-90 cursor-pointer"
-        @click.stop="emit('hide')"
-      >
-        <EyeOff class="h-3 w-3" />
-      </button>
-    </div>
 
     <!-- THEME 1: Digital LCD (with ghost inactive lines) -->
     <SevenSegmentDisplay

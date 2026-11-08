@@ -11,29 +11,18 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
-  ArrowUp,
-  ArrowDown,
   RotateCcw,
 } from 'lucide-vue-next'
 
 interface Props {
   accentColor?: string
   isLight?: boolean
-  canMoveUp?: boolean
-  canMoveDown?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   accentColor: '#10b981',
   isLight: false,
-  canMoveUp: true,
-  canMoveDown: true,
 })
-
-const emit = defineEmits<{
-  (e: 'moveUp'): void
-  (e: 'moveDown'): void
-}>()
 
 // Current real-world date
 const now = ref(new Date())
@@ -236,30 +225,6 @@ onUnmounted(() => {
     ]"
     aria-label="Calendar Widget"
   >
-    <!-- In-dock reorder controls (hover to reveal, change place right on dock) -->
-    <div
-      class="absolute top-2 right-2 z-20 flex items-center gap-0.5 opacity-0 transition-opacity duration-200 group-hover/cal:opacity-100"
-    >
-      <button
-        v-if="canMoveUp"
-        type="button"
-        title="Move widget up in dock"
-        class="flex h-5 w-5 items-center justify-center rounded bg-black/40 text-white/70 hover:bg-black/60 hover:text-white transition-all active:scale-90"
-        @click.stop="emit('moveUp')"
-      >
-        <ArrowUp class="h-3 w-3" />
-      </button>
-      <button
-        v-if="canMoveDown"
-        type="button"
-        title="Move widget down in dock"
-        class="flex h-5 w-5 items-center justify-center rounded bg-black/40 text-white/70 hover:bg-black/60 hover:text-white transition-all active:scale-90"
-        @click.stop="emit('moveDown')"
-      >
-        <ArrowDown class="h-3 w-3" />
-      </button>
-    </div>
-
     <!-- Header: Month & Year Title with Navigation Arrows -->
     <div class="flex items-center justify-between pb-2 border-b border-white/10">
       <div class="flex items-center gap-1.5 min-w-0 pr-1">

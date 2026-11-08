@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { EyeOff, Undo2 } from "lucide-vue-next";
 import type { Tile, IconMode, TileDisplayMode } from "../1-domain/entities/Tile";
 import type { SideWidgetId } from "../1-domain/entities/AppSettings";
 import { defaultBrowserAdapter } from "../3-infrastructure/browser/browserHistoryAndApiAdapter";
@@ -175,10 +176,29 @@ async function onResetTile(id?: string) {
   }
 }
 
+const lastHiddenWidget = ref<SideWidgetId | null>(null);
+let undoHideTimer: ReturnType<typeof setTimeout> | null = null;
+
 function onHideSideWidget(widgetId: SideWidgetId) {
   if (widgetId === "clock") settingsStore.updateSettings({ showSideClock: false });
   else if (widgetId === "calendar") settingsStore.updateSettings({ showCalendar: false });
   else if (widgetId === "notes") settingsStore.updateSettings({ showStickyNote: false });
+
+  lastHiddenWidget.value = widgetId;
+  if (undoHideTimer) clearTimeout(undoHideTimer);
+  undoHideTimer = setTimeout(() => {
+    lastHiddenWidget.value = null;
+  }, 7000);
+}
+
+function onShowSideWidget(widgetId: SideWidgetId) {
+  if (widgetId === "clock") settingsStore.updateSettings({ showSideClock: true });
+  else if (widgetId === "calendar") settingsStore.updateSettings({ showCalendar: true });
+  else if (widgetId === "notes") settingsStore.updateSettings({ showStickyNote: true });
+
+  if (lastHiddenWidget.value === widgetId) {
+    lastHiddenWidget.value = null;
+  }
 }
 
 function onExportConfig() {
@@ -251,9 +271,7 @@ function onExportConfig() {
       <SideDockContainer
         v-if="
           settingsStore.settings.value.sidePanelPosition !== 'right' &&
-          (settingsStore.settings.value.showSideClock ||
-            settingsStore.settings.value.showCalendar ||
-            settingsStore.settings.value.showStickyNote)
+          ((settingsStore.settings.value.sideWidgetsLeft || []).length > 0)
         "
         side="left"
         :widget-ids="settingsStore.settings.value.sideWidgetsLeft || ['clock', 'calendar']"
@@ -277,14 +295,13 @@ function onExportConfig() {
         "
         @update-theme="(t) => settingsStore.updateSettings({ clockTheme: t })"
         @hide-widget="onHideSideWidget"
+        @show-widget="onShowSideWidget"
       />
 
       <SideDockContainer
         v-if="
           settingsStore.settings.value.sidePanelPosition !== 'left' &&
-          (settingsStore.settings.value.showSideClock ||
-            settingsStore.settings.value.showCalendar ||
-            settingsStore.settings.value.showStickyNote)
+          ((settingsStore.settings.value.sideWidgetsRight || []).length > 0)
         "
         side="right"
         :widget-ids="settingsStore.settings.value.sideWidgetsRight || ['notes']"
@@ -308,6 +325,7 @@ function onExportConfig() {
         "
         @update-theme="(t) => settingsStore.updateSettings({ clockTheme: t })"
         @hide-widget="onHideSideWidget"
+        @show-widget="onShowSideWidget"
       />
 
       <DynamicGreeting v-if="settingsStore.settings.value.showGreeting" />
@@ -404,5 +422,31 @@ function onExportConfig() {
         );
       "
     />
+
+    <!-- Floating Quick-Undo Toast for Hidden Widgets -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform translate-y-4 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform translate-y-4 opacity-0"
+    >
+      <div
+        v-if="lastHiddenWidget"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full border border-white/20 bg-black/85 px-4 py-2.5 shadow-2xl backdrop-blur-xl text-white text-xs select-none"
+      >
+        <EyeOff class="h-4 w-4 text-amber-400 shrink-0" />
+        <span class="font-medium">{{ lastHiddenWidget === 'clock' ? 'Side Clock' : lastHiddenWidget === 'calendar' ? 'Calendar' : 'Sticky Notes' }} hidden</span>
+        <button
+          type="button"
+          class="flex items-center gap-1 font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 ml-1 cursor-pointer"
+          @click="onShowSideWidget(lastHiddenWidget)"
+        >
+          <Undo2 class="h-3.5 w-3.5" />
+          <span>Undo</span>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>

@@ -10,11 +10,11 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import {
   GripVertical,
-  ArrowUp,
-  ArrowDown,
   ArrowLeftRight,
   PanelLeft,
   PanelRight,
+  Eye,
+  Plus,
 } from 'lucide-vue-next'
 import type {
   SideWidgetId,
@@ -56,6 +56,7 @@ const emit = defineEmits<{
   (e: 'toggleFormat'): void
   (e: 'updateTheme', theme: ClockTheme): void
   (e: 'hideWidget', widgetId: SideWidgetId): void
+  (e: 'showWidget', widgetId: SideWidgetId): void
 }>()
 
 // Active widgets that should be rendered (based on user visibility switches)
@@ -64,6 +65,16 @@ const activeWidgets = computed(() => {
     if (id === 'clock') return props.showClock
     if (id === 'calendar') return props.showCalendar
     if (id === 'notes') return props.showStickyNote
+    return false
+  })
+})
+
+// Widgets assigned to this dock that are currently hidden
+const hiddenWidgetsInThisDock = computed(() => {
+  return props.widgetIds.filter((id) => {
+    if (id === 'clock') return !props.showClock
+    if (id === 'calendar') return !props.showCalendar
+    if (id === 'notes') return !props.showStickyNote
     return false
   })
 })
@@ -285,7 +296,7 @@ function toggleSide(widgetId: SideWidgetId) {
 
 <template>
   <aside
-    class="pointer-events-auto fixed top-24 z-20 hidden w-52 flex-col gap-3 select-none min-[860px]:flex xl:w-56 2xl:w-60 transition-all duration-300"
+    class="group/aside pointer-events-auto fixed top-24 z-20 hidden w-52 flex-col gap-3 select-none min-[860px]:flex xl:w-56 2xl:w-60 transition-all duration-300"
     :class="[
       props.side === 'right'
         ? 'right-5 xl:right-8 2xl:right-10'
@@ -340,42 +351,22 @@ function toggleSide(widgetId: SideWidgetId) {
         >
           <!-- Grip / Hold Indicator Pill -->
           <div
-            class="flex items-center gap-1 rounded-full border border-white/15 bg-black/75 px-2 py-0.5 text-[9.5px] font-medium text-white/80 shadow-md backdrop-blur-md cursor-grab active:cursor-grabbing"
+            class="flex items-center gap-1 rounded-full border border-white/15 bg-black/80 px-2 py-0.5 text-[9.5px] font-medium text-white/80 shadow-md backdrop-blur-md cursor-grab active:cursor-grabbing"
             title="Hold or drag to change place"
           >
             <GripVertical class="h-3 w-3 text-white/50" />
             <span>Hold to move</span>
           </div>
 
-          <!-- Quick Move Controls -->
-          <div class="flex items-center gap-1 rounded-full border border-white/15 bg-black/75 p-0.5 shadow-md backdrop-blur-md">
-            <button
-              v-if="idx > 0"
-              type="button"
-              title="Move up"
-              class="flex h-5 w-5 items-center justify-center rounded-full text-white/70 transition-transform hover:scale-110 hover:text-white active:scale-90 cursor-pointer"
-              @click.stop="emit('moveWidget', widgetId, 'up')"
-            >
-              <ArrowUp class="h-3 w-3" />
-            </button>
-            <button
-              v-if="idx < activeWidgets.length - 1"
-              type="button"
-              title="Move down"
-              class="flex h-5 w-5 items-center justify-center rounded-full text-white/70 transition-transform hover:scale-110 hover:text-white active:scale-90 cursor-pointer"
-              @click.stop="emit('moveWidget', widgetId, 'down')"
-            >
-              <ArrowDown class="h-3 w-3" />
-            </button>
-            <button
-              type="button"
-              :title="props.side === 'left' ? 'Move to Right Dock' : 'Move to Left Dock'"
-              class="flex h-5 w-5 items-center justify-center rounded-full text-white/70 transition-transform hover:scale-110 hover:text-[var(--accent)] active:scale-90 cursor-pointer"
-              @click.stop="toggleSide(widgetId)"
-            >
-              <ArrowLeftRight class="h-3 w-3" />
-            </button>
-          </div>
+          <!-- Quick Move to Other Dock -->
+          <button
+            type="button"
+            :title="props.side === 'left' ? 'Move to Right Dock' : 'Move to Left Dock'"
+            class="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white/70 shadow-md backdrop-blur-md transition-transform hover:scale-110 hover:text-[var(--accent)] active:scale-90 cursor-pointer"
+            @click.stop="toggleSide(widgetId)"
+          >
+            <ArrowLeftRight class="h-3 w-3" />
+          </button>
         </div>
 
         <!-- Clock Widget Component -->
@@ -387,13 +378,8 @@ function toggleSide(widgetId: SideWidgetId) {
           :show-date="props.showDate"
           :time-only="props.timeOnly"
           :is-light="props.isLight"
-          :can-move-up="idx > 0"
-          :can-move-down="idx < activeWidgets.length - 1"
           @toggle-format="emit('toggleFormat')"
           @update-theme="emit('updateTheme', $event)"
-          @move-up="emit('moveWidget', 'clock', 'up')"
-          @move-down="emit('moveWidget', 'clock', 'down')"
-          @hide="emit('hideWidget', 'clock')"
         />
 
         <!-- Calendar Widget Component -->
@@ -401,22 +387,34 @@ function toggleSide(widgetId: SideWidgetId) {
           v-else-if="widgetId === 'calendar'"
           :accent-color="props.accentColor"
           :is-light="props.isLight"
-          :can-move-up="idx > 0"
-          :can-move-down="idx < activeWidgets.length - 1"
-          @move-up="emit('moveWidget', 'calendar', 'up')"
-          @move-down="emit('moveWidget', 'calendar', 'down')"
         />
 
         <!-- Sticky Note Widget Component -->
         <StickyNoteWidget
           v-else-if="widgetId === 'notes'"
-          :can-move-up="idx > 0"
-          :can-move-down="idx < activeWidgets.length - 1"
-          @move-up="emit('moveWidget', 'notes', 'up')"
-          @move-down="emit('moveWidget', 'notes', 'down')"
         />
       </div>
     </template>
+
+    <!-- Subtle Restore Pill for Hidden Widgets on Dock Hover -->
+    <div
+      v-if="hiddenWidgetsInThisDock.length > 0 && activeWidgets.length > 0"
+      class="flex flex-col gap-1.5 opacity-0 transition-opacity duration-200 group-hover/aside:opacity-100"
+    >
+      <button
+        v-for="hwId in hiddenWidgetsInThisDock"
+        :key="`aside_restore_${hwId}`"
+        type="button"
+        class="flex items-center justify-between rounded-xl border border-dashed border-white/20 bg-black/60 hover:bg-black/80 px-3 py-1.5 text-xs text-white/70 hover:text-white shadow-md backdrop-blur-md transition-all cursor-pointer"
+        @click="emit('showWidget', hwId)"
+      >
+        <span class="flex items-center gap-1.5 text-[11px]">
+          <Eye class="h-3 w-3 text-emerald-400" />
+          <span>Show {{ hwId === 'clock' ? 'Clock' : hwId === 'calendar' ? 'Calendar' : 'Sticky Notes' }}</span>
+        </span>
+        <Plus class="h-3 w-3 opacity-60" />
+      </button>
+    </div>
 
     <!-- Empty Dock or Bottom Drop Target Zone (Visible when dragging or when dock has 0 widgets) -->
     <div
@@ -445,6 +443,20 @@ function toggleSide(widgetId: SideWidgetId) {
       <span class="text-[10px] opacity-60">
         {{ isDockDropTarget ? 'Release to drop widget here' : 'Drop widgets here' }}
       </span>
+
+      <!-- One-click Restore Buttons when dock has hidden widgets -->
+      <div v-if="hiddenWidgetsInThisDock.length > 0 && !isDockDropTarget" class="mt-2 flex flex-col gap-1.5 w-full">
+        <button
+          v-for="hwId in hiddenWidgetsInThisDock"
+          :key="`dock_empty_restore_${hwId}`"
+          type="button"
+          class="flex items-center justify-center gap-1.5 w-full rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 py-2 px-3 text-xs font-medium text-white shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          @click.stop="emit('showWidget', hwId)"
+        >
+          <Eye class="h-3.5 w-3.5 text-emerald-400" />
+          <span>Restore {{ hwId === 'clock' ? 'Clock' : hwId === 'calendar' ? 'Calendar' : 'Sticky Notes' }}</span>
+        </button>
+      </div>
     </div>
   </aside>
 </template>
