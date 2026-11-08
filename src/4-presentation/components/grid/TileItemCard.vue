@@ -26,11 +26,13 @@ interface Props {
   activeView: NavigationTab
   showLabels?: boolean
   isDropTarget?: boolean
+  isDraggingActive?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showLabels: true,
   isDropTarget: false,
+  isDraggingActive: false,
 })
 
 const emit = defineEmits<{
@@ -41,6 +43,7 @@ const emit = defineEmits<{
   (e: 'dragStart', index: number): void
   (e: 'dragOver', event: DragEvent, index: number): void
   (e: 'drop', from: number, to: number): void
+  (e: 'dragEnd'): void
   (e: 'updateSize', payload: { id: string; colSpan: number; rowSpan: number }): void
 }>()
 
@@ -74,6 +77,7 @@ const resolvedMediaMime = ref<string>('')
 
 async function updateResolvedMedia() {
   const icon = props.tile.customIcon
+  imgError.value = false
   if (!icon) {
     resolvedMediaUrl.value = ''
     resolvedMediaMime.value = ''
@@ -84,6 +88,7 @@ async function updateResolvedMedia() {
     const res = await mediaStorageService.getMedia(id)
     resolvedMediaUrl.value = res?.url || ''
     resolvedMediaMime.value = res?.record?.mimeType || ''
+    imgError.value = false
     return
   }
   resolvedMediaUrl.value = icon
@@ -91,8 +96,15 @@ async function updateResolvedMedia() {
 }
 
 watch(() => props.tile.customIcon, updateResolvedMedia, { immediate: true })
+watch(resolvedMediaUrl, (val) => {
+  if (val) imgError.value = false
+})
 
 const displayMediaUrl = computed(() => {
+  // If stored in IndexedDB (media:), wait for resolved object blob URL to avoid 404 / @error
+  if (props.tile.customIcon?.startsWith('media:') || props.tile.customIcon?.startsWith('indexeddb:')) {
+    return resolvedMediaUrl.value || ''
+  }
   return resolvedMediaUrl.value || props.tile.customIcon || faviconUrl.value
 })
 
@@ -119,12 +131,20 @@ function onCardClick() {
 // --- Drag & Drop ---
 function onDragStart(event: DragEvent) {
   event.dataTransfer?.setData('text/plain', String(props.index))
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+  }
   emit('dragStart', props.index)
+}
+
+function onDragEnd() {
+  emit('dragEnd')
 }
 
 function onDrop(event: DragEvent) {
   const fromIdx = Number(event.dataTransfer?.getData('text/plain'))
   if (!isNaN(fromIdx)) emit('drop', fromIdx, props.index)
+  emit('dragEnd')
 }
 </script>
 
@@ -134,7 +154,10 @@ function onDrop(event: DragEvent) {
     :style="tileRootStyle"
     draggable="true"
     @dragstart="onDragStart"
+    @dragend="onDragEnd"
     @dragover.prevent="emit('dragOver', $event, props.index)"
+    @drop.prevent="onDrop"
+  >
     @drop.prevent="onDrop"
   >
     <!-- Card Container with hardware-accelerated zero-jank hover -->
@@ -250,11 +273,18 @@ function onDrop(event: DragEvent) {
         </div>
       </template>
 
-      <!-- Discreet Top-Right Quick Actions -->
+      <!-- Discreet Top-Right Quick Actions (hidden during active dragging to avoid ghost buttons) -->
       <div
-        class="absolute top-2 right-2 z-10 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        class="absolute top-2 right-2 z-10 flex items-center gap-1 transition-opacity duration-150"
+        :class="[
+          props.isDraggingActive
+            ? 'opacity-0 pointer-events-none'
+            : 'opacity-0 group-hover:opacity-100'
+        ]"
+        data-no-drag
         @click.stop
         @pointerdown.stop
+        @dragstart.stop.prevent
       >
         <button
           v-if="props.activeView === 'openTabs' && props.tile.tabId"

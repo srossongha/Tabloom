@@ -59,7 +59,7 @@ export type SideWidgetId = z.infer<typeof SideWidgetIdSchema>
 export const SideWidgetsLeftSchema = z.array(SideWidgetIdSchema).default(['clock', 'calendar']).catch(['clock', 'calendar'])
 export const SideWidgetsRightSchema = z.array(SideWidgetIdSchema).default(['notes']).catch(['notes'])
 
-export const SidePanelPositionSchema = z.enum(['left', 'right', 'both']).default('both').catch('both')
+export const SidePanelPositionSchema = z.enum(['left', 'right', 'both', 'none']).default('both').catch('both')
 export type SidePanelPosition = z.infer<typeof SidePanelPositionSchema>
 
 export const TileStyleSchema = z.enum([

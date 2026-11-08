@@ -3,7 +3,7 @@
   Dynamically sets column counts, gap spacing, and manages drag-and-drop event bubbling.
 -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { Tile } from '../../../1-domain/entities/Tile'
 import type { NavigationTab } from '../../../1-domain/entities/BrowserItem'
 import TileItemCard from './TileItemCard.vue'
@@ -70,6 +70,16 @@ function handleDragEnd() {
   draggedIndex.value = null
   dragOverIndex.value = null
 }
+
+onMounted(() => {
+  window.addEventListener('dragend', handleDragEnd)
+  window.addEventListener('drop', handleDragEnd)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('dragend', handleDragEnd)
+  window.removeEventListener('drop', handleDragEnd)
+})
 </script>
 
 <template>
@@ -110,6 +120,7 @@ function handleDragEnd() {
             :active-view="props.activeView"
             :show-labels="props.showLabels"
             :is-drop-target="dragOverIndex === idx && draggedIndex !== idx"
+            :is-dragging-active="draggedIndex !== null"
             @click="emit('clickTile', $event)"
             @edit="emit('editTile', $event)"
             @delete="emit('deleteTile', $event)"
@@ -118,6 +129,7 @@ function handleDragEnd() {
             @drag-over="handleDragOver"
             @drop="handleDrop"
             @dragend="handleDragEnd"
+            @drag-end="handleDragEnd"
             @update-size="emit('updateTileSize', $event)"
           />
 

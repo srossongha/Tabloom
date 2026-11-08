@@ -123,23 +123,20 @@ async function handleFileUpload(e: Event) {
   const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')
   const isVideoFile = file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name)
 
-  // Animated GIFs and videos: preserve ALL frames without canvas flattening
+  // Animated GIFs and videos: ALWAYS store in IndexedDB to avoid exhausting localStorage quota
   if (isGif || isVideoFile) {
-    // If larger than 250KB, store in IndexedDB to avoid exhausting localStorage quota
-    if (file.size > 250 * 1024) {
-      try {
-        const mediaId = `tile_media_${props.tile?.id || Date.now()}_${Math.random().toString(36).slice(2, 6)}`
-        const objectUrl = await mediaStorageService.saveMedia(mediaId, file, file.name)
-        customIcon.value = `media:${mediaId}`
-        resolvedCustomIcon.value = objectUrl
-        iconMode.value = 'upload'
-        return
-      } catch (err) {
-        console.warn('[TileEditor] IndexedDB media save error, falling back to data URL', err)
-      }
+    try {
+      const mediaId = `tile_media_${props.tile?.id || Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+      const objectUrl = await mediaStorageService.saveMedia(mediaId, file, file.name)
+      customIcon.value = `media:${mediaId}`
+      resolvedCustomIcon.value = objectUrl
+      iconMode.value = 'upload'
+      return
+    } catch (err) {
+      console.warn('[TileEditor] IndexedDB media save error, falling back to data URL', err)
     }
 
-    // Small GIF or fallback: read data URL directly
+    // Fallback if IndexedDB fails: read data URL directly
     const reader = new FileReader()
     reader.onload = () => {
       customIcon.value = reader.result as string

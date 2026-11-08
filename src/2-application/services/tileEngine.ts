@@ -75,8 +75,8 @@ export function sortTiles(tiles: Tile[], mode: SortMode): Tile[] {
       return b.lastUsedAt - a.lastUsedAt
     }
 
-    // Default order preserves drag-and-drop order
-    return a.order - b.order
+    // Default order preserves drag-and-drop order safely
+    return (a.order ?? 0) - (b.order ?? 0)
   })
 }
 

@@ -179,6 +179,29 @@ function toggleWidgetActive(id: SideWidgetId) {
   else if (id === 'notes') emit('update', { showStickyNote: !props.settings.showStickyNote })
 }
 
+function closeDockWidgets(side: 'left' | 'right') {
+  const ids = side === 'left' ? (props.settings.sideWidgetsLeft || []) : (props.settings.sideWidgetsRight || [])
+  const updates: Partial<AppSettings> = {}
+  if (ids.includes('clock')) updates.showSideClock = false
+  if (ids.includes('calendar')) updates.showCalendar = false
+  if (ids.includes('notes')) updates.showStickyNote = false
+  emit('update', updates)
+}
+
+function openDockWidgets(side: 'left' | 'right') {
+  const ids = side === 'left' ? (props.settings.sideWidgetsLeft || []) : (props.settings.sideWidgetsRight || [])
+  const updates: Partial<AppSettings> = {}
+  if (ids.includes('clock')) updates.showSideClock = true
+  if (ids.includes('calendar')) updates.showCalendar = true
+  if (ids.includes('notes')) updates.showStickyNote = true
+  emit('update', updates)
+}
+
+function hasAnyActiveOnDock(side: 'left' | 'right'): boolean {
+  const ids = side === 'left' ? (props.settings.sideWidgetsLeft || []) : (props.settings.sideWidgetsRight || [])
+  return ids.some((id) => isWidgetActive(id))
+}
+
 function restoreAllWidgets() {
   emit('update', {
     showSideClock: true,
@@ -739,11 +762,11 @@ function onImportFile(e: Event) {
             </button>
           </div>
 
-          <!-- Dock Mode Selector: Both Sides (Recommended), Left Only, Right Only -->
-          <div class="grid grid-cols-3 gap-1 p-1 rounded-lg border border-white/10 bg-white/[0.03]">
+          <!-- Dock Mode Selector: Both Sides (Recommended), Left Only, Right Only, Off / Hidden -->
+          <div class="grid grid-cols-4 gap-1 p-1 rounded-lg border border-white/10 bg-white/[0.03]">
             <button
               type="button"
-              class="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-md transition-all cursor-pointer"
+              class="flex items-center justify-center gap-1 py-1.5 px-1.5 text-[10.5px] font-medium rounded-md transition-all cursor-pointer"
               :class="props.settings.sidePanelPosition === 'both' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
               :style="props.settings.sidePanelPosition === 'both' ? {
                 backgroundColor: `${props.settings.accentColor}25`,
@@ -756,7 +779,7 @@ function onImportFile(e: Event) {
             </button>
             <button
               type="button"
-              class="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-md transition-all cursor-pointer"
+              class="flex items-center justify-center gap-1 py-1.5 px-1.5 text-[10.5px] font-medium rounded-md transition-all cursor-pointer"
               :class="props.settings.sidePanelPosition === 'left' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
               :style="props.settings.sidePanelPosition === 'left' ? {
                 backgroundColor: `${props.settings.accentColor}25`,
@@ -769,7 +792,7 @@ function onImportFile(e: Event) {
             </button>
             <button
               type="button"
-              class="flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded-md transition-all cursor-pointer"
+              class="flex items-center justify-center gap-1 py-1.5 px-1.5 text-[10.5px] font-medium rounded-md transition-all cursor-pointer"
               :class="props.settings.sidePanelPosition === 'right' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
               :style="props.settings.sidePanelPosition === 'right' ? {
                 backgroundColor: `${props.settings.accentColor}25`,
@@ -780,11 +803,50 @@ function onImportFile(e: Event) {
               <PanelRight class="h-3 w-3" />
               <span>Right Only</span>
             </button>
+            <button
+              type="button"
+              title="Hide all side docks and widgets for maximum performance (0% CPU/GPU)"
+              class="flex items-center justify-center gap-1 py-1.5 px-1.5 text-[10.5px] font-medium rounded-md transition-all cursor-pointer"
+              :class="props.settings.sidePanelPosition === 'none' ? 'text-white shadow-sm' : 'text-white/60 hover:text-white'"
+              :style="props.settings.sidePanelPosition === 'none' ? {
+                backgroundColor: `${props.settings.accentColor}25`,
+                color: props.settings.accentColor,
+              } : undefined"
+              @click="setSidePosition('none')"
+            >
+              <EyeOff class="h-3 w-3" />
+              <span>Docks Off</span>
+            </button>
+          </div>
+
+          <!-- If Docks are completely turned off: Clean performance banner -->
+          <div
+            v-if="props.settings.sidePanelPosition === 'none'"
+            class="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs"
+          >
+            <div class="flex items-center gap-2">
+              <EyeOff class="h-4 w-4 text-emerald-400 shrink-0" />
+              <div>
+                <p class="font-medium text-white/90">All side widgets are hidden</p>
+                <p class="text-[10px] text-white/50">Zero CPU & zero GPU usage. Pure wallpaper view.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+              :style="{
+                backgroundColor: props.settings.accentColor,
+                color: isColorBright(props.settings.accentColor) ? '#0f172a' : '#ffffff',
+              }"
+              @click="setSidePosition('both')"
+            >
+              Turn On Docks
+            </button>
           </div>
 
           <!-- LEFT DOCK WIDGETS -->
           <div
-            v-if="props.settings.sidePanelPosition !== 'right'"
+            v-if="props.settings.sidePanelPosition !== 'right' && props.settings.sidePanelPosition !== 'none'"
             class="space-y-1.5 rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
           >
             <div class="flex items-center justify-between text-[10px] text-white/60 font-medium">
@@ -792,7 +854,16 @@ function onImportFile(e: Event) {
                 <PanelLeft class="h-3 w-3" :style="{ color: props.settings.accentColor }" />
                 Left Dock ({{ (props.settings.sideWidgetsLeft || []).length }})
               </span>
-              <span class="text-[9px] text-white/40">In-dock arrangement</span>
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  class="text-[9.5px] transition-colors cursor-pointer"
+                  :class="hasAnyActiveOnDock('left') ? 'text-rose-300 hover:text-rose-200' : 'text-emerald-300 hover:text-emerald-200'"
+                  @click="hasAnyActiveOnDock('left') ? closeDockWidgets('left') : openDockWidgets('left')"
+                >
+                  {{ hasAnyActiveOnDock('left') ? 'Close All Left' : 'Open All Left' }}
+                </button>
+              </div>
             </div>
 
             <div
@@ -817,24 +888,24 @@ function onImportFile(e: Event) {
                   #{{ idx + 1 }}
                 </span>
                 <component
-                  :is="SIDE_WIDGET_CONFIG[wId].icon"
+                  :is="SIDE_WIDGET_CONFIG[wId]?.icon || Clock"
                   class="h-3.5 w-3.5 shrink-0"
                   :style="{ color: isWidgetActive(wId) ? props.settings.accentColor : 'rgba(255,255,255,0.4)' }"
                 />
                 <div class="flex flex-col min-w-0">
                   <div class="flex items-center gap-1.5">
                     <span class="text-xs font-medium text-white truncate">
-                      {{ SIDE_WIDGET_CONFIG[wId].label }}
+                      {{ SIDE_WIDGET_CONFIG[wId]?.label || wId }}
                     </span>
                     <span
                       class="rounded px-1.5 py-0.2 text-[8.5px] font-medium"
-                      :class="isWidgetActive(wId) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/10 text-white/50'"
+                      :class="isWidgetActive(wId) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'"
                     >
-                      {{ isWidgetActive(wId) ? 'Active' : 'Hidden' }}
+                      {{ isWidgetActive(wId) ? 'Active' : 'Closed (0% CPU)' }}
                     </span>
                   </div>
                   <span class="text-[9.5px] text-white/40 truncate">
-                    {{ SIDE_WIDGET_CONFIG[wId].desc }}
+                    {{ SIDE_WIDGET_CONFIG[wId]?.desc || '' }}
                   </span>
                 </div>
               </div>
@@ -843,17 +914,17 @@ function onImportFile(e: Event) {
               <div class="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
-                  :title="isWidgetActive(wId) ? 'Hide widget' : 'Show widget on dock'"
+                  :title="isWidgetActive(wId) ? 'Close widget (stops all CPU timers)' : 'Open widget on dock'"
                   class="flex h-6 px-1.5 items-center gap-1 rounded border text-[10px] font-medium transition-all active:scale-90 cursor-pointer"
                   :class="[
                     isWidgetActive(wId)
-                      ? 'border-white/10 bg-white/5 text-white/60 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30'
+                      ? 'border-white/10 bg-white/5 text-white/70 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30'
                       : 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
                   ]"
                   @click="toggleWidgetActive(wId)"
                 >
-                  <component :is="isWidgetActive(wId) ? Eye : EyeOff" class="h-3 w-3" />
-                  <span>{{ isWidgetActive(wId) ? 'Hide' : 'Show' }}</span>
+                  <component :is="isWidgetActive(wId) ? EyeOff : Eye" class="h-3 w-3" />
+                  <span>{{ isWidgetActive(wId) ? 'Close' : 'Open' }}</span>
                 </button>
 
                 <button
@@ -888,7 +959,7 @@ function onImportFile(e: Event) {
 
           <!-- RIGHT DOCK WIDGETS -->
           <div
-            v-if="props.settings.sidePanelPosition !== 'left'"
+            v-if="props.settings.sidePanelPosition !== 'left' && props.settings.sidePanelPosition !== 'none'"
             class="space-y-1.5 rounded-xl border border-white/10 bg-white/[0.02] p-2.5"
           >
             <div class="flex items-center justify-between text-[10px] text-white/60 font-medium">
@@ -896,7 +967,16 @@ function onImportFile(e: Event) {
                 <PanelRight class="h-3 w-3" :style="{ color: props.settings.accentColor }" />
                 Right Dock ({{ (props.settings.sideWidgetsRight || []).length }})
               </span>
-              <span class="text-[9px] text-white/40">In-dock arrangement</span>
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  class="text-[9.5px] transition-colors cursor-pointer"
+                  :class="hasAnyActiveOnDock('right') ? 'text-rose-300 hover:text-rose-200' : 'text-emerald-300 hover:text-emerald-200'"
+                  @click="hasAnyActiveOnDock('right') ? closeDockWidgets('right') : openDockWidgets('right')"
+                >
+                  {{ hasAnyActiveOnDock('right') ? 'Close All Right' : 'Open All Right' }}
+                </button>
+              </div>
             </div>
 
             <div
@@ -921,24 +1001,24 @@ function onImportFile(e: Event) {
                   #{{ idx + 1 }}
                 </span>
                 <component
-                  :is="SIDE_WIDGET_CONFIG[wId].icon"
+                  :is="SIDE_WIDGET_CONFIG[wId]?.icon || Clock"
                   class="h-3.5 w-3.5 shrink-0"
                   :style="{ color: isWidgetActive(wId) ? props.settings.accentColor : 'rgba(255,255,255,0.4)' }"
                 />
                 <div class="flex flex-col min-w-0">
                   <div class="flex items-center gap-1.5">
                     <span class="text-xs font-medium text-white truncate">
-                      {{ SIDE_WIDGET_CONFIG[wId].label }}
+                      {{ SIDE_WIDGET_CONFIG[wId]?.label || wId }}
                     </span>
                     <span
                       class="rounded px-1.5 py-0.2 text-[8.5px] font-medium"
-                      :class="isWidgetActive(wId) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/10 text-white/50'"
+                      :class="isWidgetActive(wId) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'"
                     >
-                      {{ isWidgetActive(wId) ? 'Active' : 'Hidden' }}
+                      {{ isWidgetActive(wId) ? 'Active' : 'Closed (0% CPU)' }}
                     </span>
                   </div>
                   <span class="text-[9.5px] text-white/40 truncate">
-                    {{ SIDE_WIDGET_CONFIG[wId].desc }}
+                    {{ SIDE_WIDGET_CONFIG[wId]?.desc || '' }}
                   </span>
                 </div>
               </div>
@@ -947,17 +1027,17 @@ function onImportFile(e: Event) {
               <div class="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
-                  :title="isWidgetActive(wId) ? 'Hide widget' : 'Show widget on dock'"
+                  :title="isWidgetActive(wId) ? 'Close widget (stops all CPU timers)' : 'Open widget on dock'"
                   class="flex h-6 px-1.5 items-center gap-1 rounded border text-[10px] font-medium transition-all active:scale-90 cursor-pointer"
                   :class="[
                     isWidgetActive(wId)
-                      ? 'border-white/10 bg-white/5 text-white/60 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30'
+                      ? 'border-white/10 bg-white/5 text-white/70 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30'
                       : 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
                   ]"
                   @click="toggleWidgetActive(wId)"
                 >
-                  <component :is="isWidgetActive(wId) ? Eye : EyeOff" class="h-3 w-3" />
-                  <span>{{ isWidgetActive(wId) ? 'Hide' : 'Show' }}</span>
+                  <component :is="isWidgetActive(wId) ? EyeOff : Eye" class="h-3 w-3" />
+                  <span>{{ isWidgetActive(wId) ? 'Close' : 'Open' }}</span>
                 </button>
 
                 <button

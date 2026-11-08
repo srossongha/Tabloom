@@ -176,6 +176,30 @@ async function onResetTile(id?: string) {
   }
 }
 
+const isLeftDockVisible = computed(() => {
+  const pos = settingsStore.settings.value.sidePanelPosition;
+  if (pos === "none" || pos === "right") return false;
+  const left = settingsStore.settings.value.sideWidgetsLeft || [];
+  return left.some((id) => {
+    if (id === "clock") return settingsStore.settings.value.showSideClock;
+    if (id === "calendar") return settingsStore.settings.value.showCalendar;
+    if (id === "notes") return settingsStore.settings.value.showStickyNote;
+    return false;
+  });
+});
+
+const isRightDockVisible = computed(() => {
+  const pos = settingsStore.settings.value.sidePanelPosition;
+  if (pos === "none" || pos === "left") return false;
+  const right = settingsStore.settings.value.sideWidgetsRight || [];
+  return right.some((id) => {
+    if (id === "clock") return settingsStore.settings.value.showSideClock;
+    if (id === "calendar") return settingsStore.settings.value.showCalendar;
+    if (id === "notes") return settingsStore.settings.value.showStickyNote;
+    return false;
+  });
+});
+
 const lastHiddenWidget = ref<SideWidgetId | null>(null);
 let undoHideTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -269,10 +293,7 @@ function onExportConfig() {
 
       <!-- Dual Side Docks: Left and Right dock containers with hold-to-reorder and cross-dock dropping -->
       <SideDockContainer
-        v-if="
-          settingsStore.settings.value.sidePanelPosition !== 'right' &&
-          ((settingsStore.settings.value.sideWidgetsLeft || []).length > 0)
-        "
+        v-if="isLeftDockVisible"
         side="left"
         :widget-ids="settingsStore.settings.value.sideWidgetsLeft || ['clock', 'calendar']"
         :show-clock="settingsStore.settings.value.showSideClock"
@@ -295,14 +316,10 @@ function onExportConfig() {
         "
         @update-theme="(t) => settingsStore.updateSettings({ clockTheme: t })"
         @hide-widget="onHideSideWidget"
-        @show-widget="onShowSideWidget"
       />
 
       <SideDockContainer
-        v-if="
-          settingsStore.settings.value.sidePanelPosition !== 'left' &&
-          ((settingsStore.settings.value.sideWidgetsRight || []).length > 0)
-        "
+        v-if="isRightDockVisible"
         side="right"
         :widget-ids="settingsStore.settings.value.sideWidgetsRight || ['notes']"
         :show-clock="settingsStore.settings.value.showSideClock"
@@ -325,7 +342,6 @@ function onExportConfig() {
         "
         @update-theme="(t) => settingsStore.updateSettings({ clockTheme: t })"
         @hide-widget="onHideSideWidget"
-        @show-widget="onShowSideWidget"
       />
 
       <DynamicGreeting v-if="settingsStore.settings.value.showGreeting" />

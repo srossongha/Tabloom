@@ -13,8 +13,7 @@ import {
   ArrowLeftRight,
   PanelLeft,
   PanelRight,
-  Eye,
-  Plus,
+  X,
 } from 'lucide-vue-next'
 import type {
   SideWidgetId,
@@ -56,7 +55,6 @@ const emit = defineEmits<{
   (e: 'toggleFormat'): void
   (e: 'updateTheme', theme: ClockTheme): void
   (e: 'hideWidget', widgetId: SideWidgetId): void
-  (e: 'showWidget', widgetId: SideWidgetId): void
 }>()
 
 // Active widgets that should be rendered (based on user visibility switches)
@@ -65,16 +63,6 @@ const activeWidgets = computed(() => {
     if (id === 'clock') return props.showClock
     if (id === 'calendar') return props.showCalendar
     if (id === 'notes') return props.showStickyNote
-    return false
-  })
-})
-
-// Widgets assigned to this dock that are currently hidden
-const hiddenWidgetsInThisDock = computed(() => {
-  return props.widgetIds.filter((id) => {
-    if (id === 'clock') return !props.showClock
-    if (id === 'calendar') return !props.showCalendar
-    if (id === 'notes') return !props.showStickyNote
     return false
   })
 })
@@ -358,15 +346,27 @@ function toggleSide(widgetId: SideWidgetId) {
             <span>Hold to move</span>
           </div>
 
-          <!-- Quick Move to Other Dock -->
-          <button
-            type="button"
-            :title="props.side === 'left' ? 'Move to Right Dock' : 'Move to Left Dock'"
-            class="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white/70 shadow-md backdrop-blur-md transition-transform hover:scale-110 hover:text-[var(--accent)] active:scale-90 cursor-pointer"
-            @click.stop="toggleSide(widgetId)"
-          >
-            <ArrowLeftRight class="h-3 w-3" />
-          </button>
+          <div class="flex items-center gap-1">
+            <!-- Quick Move to Other Dock -->
+            <button
+              type="button"
+              :title="props.side === 'left' ? 'Move to Right Dock' : 'Move to Left Dock'"
+              class="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white/70 shadow-md backdrop-blur-md transition-transform hover:scale-110 hover:text-[var(--accent)] active:scale-90 cursor-pointer"
+              @click.stop="toggleSide(widgetId)"
+            >
+              <ArrowLeftRight class="h-3 w-3" />
+            </button>
+
+            <!-- Close / Hide Widget (0% CPU) -->
+            <button
+              type="button"
+              title="Close widget (0% usage)"
+              class="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/80 text-white/70 hover:bg-rose-500/80 hover:text-white shadow-md backdrop-blur-md transition-all active:scale-90 cursor-pointer"
+              @click.stop="emit('hideWidget', widgetId)"
+            >
+              <X class="h-3 w-3" />
+            </button>
+          </div>
         </div>
 
         <!-- Clock Widget Component -->
@@ -396,67 +396,25 @@ function toggleSide(widgetId: SideWidgetId) {
       </div>
     </template>
 
-    <!-- Subtle Restore Pill for Hidden Widgets on Dock Hover -->
+    <!-- Drop Target Zone (ONLY visible during active drag over this dock) -->
     <div
-      v-if="hiddenWidgetsInThisDock.length > 0 && activeWidgets.length > 0"
-      class="flex flex-col gap-1.5 opacity-0 transition-opacity duration-200 group-hover/aside:opacity-100"
-    >
-      <button
-        v-for="hwId in hiddenWidgetsInThisDock"
-        :key="`aside_restore_${hwId}`"
-        type="button"
-        class="flex items-center justify-between rounded-xl border border-dashed border-white/20 bg-black/60 hover:bg-black/80 px-3 py-1.5 text-xs text-white/70 hover:text-white shadow-md backdrop-blur-md transition-all cursor-pointer"
-        @click="emit('showWidget', hwId)"
-      >
-        <span class="flex items-center gap-1.5 text-[11px]">
-          <Eye class="h-3 w-3 text-emerald-400" />
-          <span>Show {{ hwId === 'clock' ? 'Clock' : hwId === 'calendar' ? 'Calendar' : 'Sticky Notes' }}</span>
-        </span>
-        <Plus class="h-3 w-3 opacity-60" />
-      </button>
-    </div>
-
-    <!-- Empty Dock or Bottom Drop Target Zone (Visible when dragging or when dock has 0 widgets) -->
-    <div
-      v-if="activeWidgets.length === 0 || isDockDropTarget"
-      class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed p-5 text-center transition-all duration-300 select-none cursor-pointer"
-      :class="[
-        isDockDropTarget
-          ? 'border-[var(--accent)] bg-[var(--accent-15)] scale-102 shadow-lg shadow-black/20 text-white'
-          : 'border-white/10 bg-white/[0.02] text-white/40 hover:border-white/20 hover:text-white/70',
-      ]"
-      :style="{
-        borderColor: isDockDropTarget ? props.accentColor : undefined,
-      }"
+      v-if="isDockDropTarget"
+      class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed p-5 text-center transition-all duration-300 select-none cursor-pointer border-[var(--accent)] bg-[var(--accent-15)] text-white scale-102 shadow-lg shadow-black/20"
       @dragover="onDragOverDock"
       @dragleave="onDragLeaveDock"
       @drop.stop="onDropDock"
     >
       <component
         :is="props.side === 'left' ? PanelLeft : PanelRight"
-        class="h-5 w-5 opacity-70"
-        :style="{ color: isDockDropTarget ? props.accentColor : undefined }"
+        class="h-5 w-5 opacity-80"
+        :style="{ color: props.accentColor }"
       />
-      <span class="text-xs font-medium">
+      <span class="text-xs font-semibold">
         {{ props.side === 'left' ? 'Left Dock' : 'Right Dock' }}
       </span>
-      <span class="text-[10px] opacity-60">
-        {{ isDockDropTarget ? 'Release to drop widget here' : 'Drop widgets here' }}
+      <span class="text-[10px] text-white/70">
+        Release to drop widget here
       </span>
-
-      <!-- One-click Restore Buttons when dock has hidden widgets -->
-      <div v-if="hiddenWidgetsInThisDock.length > 0 && !isDockDropTarget" class="mt-2 flex flex-col gap-1.5 w-full">
-        <button
-          v-for="hwId in hiddenWidgetsInThisDock"
-          :key="`dock_empty_restore_${hwId}`"
-          type="button"
-          class="flex items-center justify-center gap-1.5 w-full rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 py-2 px-3 text-xs font-medium text-white shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-          @click.stop="emit('showWidget', hwId)"
-        >
-          <Eye class="h-3.5 w-3.5 text-emerald-400" />
-          <span>Restore {{ hwId === 'clock' ? 'Clock' : hwId === 'calendar' ? 'Calendar' : 'Sticky Notes' }}</span>
-        </button>
-      </div>
     </div>
   </aside>
 </template>
